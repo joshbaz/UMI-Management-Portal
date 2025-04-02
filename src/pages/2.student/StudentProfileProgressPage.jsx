@@ -338,7 +338,7 @@ const StudentProfileProgressPage = ({ studentData }) => {
         {activeView === "book" && (
           <StudentProfileProgressBookTable
             setIsStatusDrawerOpen={setIsBookDrawerOpen}
-            setSelectedStatus={setSelectedBook  }
+            setSelectedStatus={setSelectedBook}
             studentId={studentData?.student?.id}
             books={books?.books || []}  
             isLoadingBooks={isLoadingBooks}
@@ -361,7 +361,6 @@ const StudentProfileProgressPage = ({ studentData }) => {
           isOpen={isProposalDrawerOpen}
           onClose={() => setIsProposalDrawerOpen(false)}
           proposalData={selectedProposal}
-         
         />
       )}
 
@@ -370,6 +369,7 @@ const StudentProfileProgressPage = ({ studentData }) => {
           isOpen={isBookDrawerOpen}
           onClose={() => setIsBookDrawerOpen(false)}
           bookData={selectedBook}
+          studentData={studentData?.student}
         />
       )}
     </div>

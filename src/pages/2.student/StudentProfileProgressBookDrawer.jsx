@@ -1,5 +1,6 @@
 import React, { useState, useCallback, memo, useMemo } from "react";
 import { Icon } from "@iconify-icon/react";
+import { format } from "date-fns";
 
 import {
   Sheet,
@@ -34,7 +35,7 @@ const getCategoryStyle = (status) => {
     }
   };
 
-const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData }) => {
+const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData, studentData }) => {
   let {id:studentId} = useParams();
 
   const { data: books } = useGetStudentBooks(studentId);
@@ -44,6 +45,27 @@ const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData }) => {
     const foundBook = books.books.find(b => b.id === bookData?.id);
     return foundBook || bookData;
   }, [bookData, books]);
+
+  const currentStatus = useMemo(() => {
+    if (!book?.statuses?.length) return null;
+    return book.statuses.find(s => s.isCurrent) || book.statuses[book.statuses.length - 1];
+  }, [book]);
+  const internalExaminers = useMemo(() => {
+    if (!book?.examinerAssignments) return [];
+    return book.examinerAssignments.filter(assignment => assignment.examiner.type === 'Internal' && assignment.isCurrent);
+  }, [book]);
+
+  const externalExaminers = useMemo(() => {
+    if (!book?.examinerAssignments) return [];
+    return book.examinerAssignments.filter(assignment => assignment.examiner.type === 'External' && assignment.isCurrent);
+  }, [book]);
+
+  const grade = useMemo(() => {
+    if (!book) return 'NOT GRADED';
+    if (book.grade) return book.grade;
+    if (book.averageExamMark >= 60) return 'PASSED';
+    return book.averageExamMark ? 'FAILED' : 'NOT GRADED';
+  }, [book]);
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose} className="h-screen">
@@ -61,6 +83,14 @@ const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData }) => {
         <div className="overflow-y-scroll h-full min-h-[calc(100vh-100px)] p-6">
           {book ? (
             <div className="space-y-6">
+              {/* Book ID */}
+              <div>
+                <Label className="text-sm font-[Inter-Regular] text-gray-500">Book ID</Label>
+                <p className="text-primary-500 text-base font-[Inter-Medium]">
+                  {book.bookCode?.toString().padStart(4, '0') || "-"}
+                </p>
+              </div>
+              
               {/* Title */}
               <div>
                 <Label className="text-sm font-[Inter-Regular] text-gray-500">Title</Label>
@@ -70,16 +100,16 @@ const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData }) => {
               {/* Status */}
               <div className="flex flex-col gap-2 items-start">
                 <Label className="text-sm font-[Inter-Regular] text-gray-500">Status</Label>
-                {book.statuses?.length > 0 && (
+                {currentStatus && (
                   <span
                     style={{
-                      color: book.statuses[book.statuses.length - 1]?.definition?.color || "#000",
-                      backgroundColor: `${book.statuses[book.statuses.length - 1]?.definition?.color}18` || "#00000018",
-                      border: `1px solid ${book.statuses[book.statuses.length - 1]?.definition?.color || "#000"}`,
+                      color: currentStatus.definition?.color || "#000",
+                      backgroundColor: `${currentStatus.definition?.color}18` || "#00000018",
+                      border: `1px solid ${currentStatus.definition?.color || "#000"}`,
                     }}
                     className="px-2 py-1 rounded-md text-sm font-[Inter-Regular] capitalize inline-block"
                   >
-                    {book.statuses[book.statuses.length - 1]?.definition?.name?.toLowerCase() || "Pending"}
+                    {currentStatus.definition?.name?.toLowerCase() || "Pending"}
                   </span>
                 )}
               </div>
@@ -89,13 +119,13 @@ const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData }) => {
                 <div>
                   <Label className="text-sm font-[Inter-Regular] text-gray-500">Submitted Date</Label>
                   <p className="text-gray-900 text-base font-[Inter-Regular]">
-                    {book.submittedAt ? new Date(book.submittedAt).toLocaleDateString() : "-"}
+                    {book.submissionDate ? format(new Date(book.submissionDate), "MMM d, yyyy") : "-"}
                   </p>
                 </div>
                 <div>
                   <Label className="text-sm font-[Inter-Regular] text-gray-500">Submitted By</Label>
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-900 text-base font-[Inter-Regular]">{book.submittedBy?.name}</span>
+                    <span className="text-gray-900 text-base font-[Inter-Regular]">{book.submittedBy?.name || "-"}</span>
                     {book.submittedBy && (
                       <TooltipProvider>
                         <Tooltip>
@@ -114,16 +144,25 @@ const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData }) => {
               <div>
                 <Label className="text-sm font-[Inter-Regular] text-gray-500">Viva Date</Label>
                 <p className="text-gray-900 text-base font-[Inter-Regular]">
-                  {book.vivaDate ? new Date(book.vivaDate).toLocaleDateString() : "-"}
+                  {book.vivaDate ? format(new Date(book.vivaDate), "MMM d, yyyy") : "-"}
                 </p>
               </div>
 
-              {/* Grade */}
-              <div className="flex flex-col gap-2 w-max">
-                <Label className="text-sm font-[Inter-Regular] text-gray-500">Grade</Label>
-                <span className={getCategoryStyle(book.averageDefenseMark >= 60 ? 'PASSED' : book.averageDefenseMark ? 'FAILED' : 'NOT GRADED')}>
-                  {book.averageDefenseMark >= 60 ? 'PASSED' : book.averageDefenseMark ? 'FAILED' : 'NOT GRADED'}
-                </span>
+              {/* Grade and Average Examiner Mark */}
+              <div className="grid grid-cols-2 gap-4">
+           
+                <div className="flex flex-col gap-2">
+                  <Label className="text-sm font-[Inter-Regular] text-gray-500">Average Examiner Grade</Label>
+                  <p className="text-gray-900 text-base font-[Inter-Regular]">
+                    {book.averageExamMark ? `${book.averageExamMark}%` : "-"}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 w-max">
+                  <Label className="text-sm font-[Inter-Regular] text-gray-500">Grade</Label>
+                  <span className={getCategoryStyle(grade)}>
+                    {grade}
+                  </span>
+                </div>
               </div>
 
               {/* Internal Examiners */}
@@ -132,16 +171,21 @@ const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData }) => {
                   <Label className="text-sm font-[Inter-Regular] text-gray-500">Internal Examiners</Label>
                 </div>
                 <div className="space-y-2">
-                  {book.reviewers?.filter(r => r.type === 'internal')?.length > 0 ? (
-                    book.reviewers.filter(r => r.type === 'internal').map((reviewer) => (
-                      <div key={reviewer.id} className="flex items-center gap-2">
-                        <span className="text-gray-900 text-base font-[Inter-Regular]">{reviewer.name}</span>
+                  {internalExaminers.length > 0 ? (
+                    internalExaminers.map((examiner) => (
+                      <div key={examiner.id} className="flex items-center gap-2">
+                        <span className="text-gray-900 text-base font-[Inter-Regular]">{examiner.examiner?.name || examiner.name}</span>
+                        {examiner.grade && (
+                          <span className="text-gray-700 text-sm bg-gray-100 px-2 py-0.5 rounded-md">
+                            {examiner.grade}%
+                          </span>
+                        )}
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger>
                               <Icon icon="tdesign:info-circle-filled" className="w-4 h-4 text-gray-400" />
                             </TooltipTrigger>
-                            <TooltipContent>{reviewer.email}</TooltipContent>
+                            <TooltipContent>{examiner.examiner?.email || examiner.email}</TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       </div>
@@ -158,16 +202,21 @@ const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData }) => {
                   <Label className="text-sm font-[Inter-Regular] text-gray-500">External Examiners</Label>
                 </div>
                 <div className="space-y-2">
-                  {book.reviewers?.filter(r => r.type === 'external')?.length > 0 ? (
-                    book.reviewers.filter(r => r.type === 'external').map((reviewer) => (
-                      <div key={reviewer.id} className="flex items-center gap-2">
-                        <span className="text-gray-900 text-base font-[Inter-Regular]">{reviewer.name}</span>
+                  {externalExaminers.length > 0 ? (
+                    externalExaminers.map((examiner) => (
+                      <div key={examiner.id} className="flex items-center gap-2">
+                        <span className="text-gray-900 text-base font-[Inter-Regular]">{examiner.examiner?.name || examiner.name}</span>
+                        {examiner.grade && (
+                          <span className="text-gray-700 text-sm bg-gray-100 px-2 py-0.5 rounded-md">
+                            {examiner.grade}%
+                          </span>
+                        )}
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger>
                               <Icon icon="tdesign:info-circle-filled" className="w-4 h-4 text-gray-400" />
                             </TooltipTrigger>
-                            <TooltipContent>{reviewer.email}</TooltipContent>
+                            <TooltipContent>{examiner.examiner?.email || examiner.email}</TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       </div>

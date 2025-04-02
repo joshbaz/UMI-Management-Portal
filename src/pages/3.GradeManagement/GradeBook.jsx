@@ -9,12 +9,17 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { queryClient } from "../../utils/tanstack";
 import GradeBookExaminerTable from "./GradeBookExaminerTable";
+import GradeBookExaminerViewDrawer from "./GradeBookExaminerViewDrawer";
+import GradeBookExaminerEditDrawer from "./GradeBookExaminerEditDrawer";
 
 const GradeBook = () => {
   let navigate = useNavigate();
   const { id: bookId } = useParams();
   const { data: book, isPending: isLoading, error, refetch: refetchBook } = useGetBook(bookId);
-  console.log(book);
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
+  const [isViewDrawerOpen, setIsViewDrawerOpen] = useState(false);
+  
   const currentStatus = useMemo(
     () => book?.book?.statuses?.find((s) => s.isCurrent),
     [book?.book?.statuses]
@@ -30,6 +35,39 @@ const GradeBook = () => {
     const expectedDays = currentStatus?.definition?.expectedDuration || null;
     return { totalDays, expectedDays };
   }, [currentStatus?.createdAt, currentStatus?.definition?.expectedDuration]);
+
+  const handleViewAssignment = useCallback((assignment) => {
+    setSelectedAssignment(assignment);
+    setIsViewDrawerOpen(true);
+  }, []);
+
+  const handleEditAssignment = useCallback((assignment) => {
+    setSelectedAssignment(assignment);
+    setIsEditDrawerOpen(true);
+  }, []);
+
+  const handleCloseViewDrawer = useCallback(() => {
+    setIsViewDrawerOpen(false);
+    setSelectedAssignment(null);
+  }, []);
+
+  const handleCloseEditDrawer = useCallback(() => {
+    setIsEditDrawerOpen(false);
+    setSelectedAssignment(null);
+  }, []);
+
+  // Check for current external examiner and their status
+  const currentExternalExaminer = useMemo(() => {
+    return book?.book?.examinerAssignments?.find(
+      assignment => assignment.isCurrent && assignment.examiner?.type === "External"
+    );
+  }, [book?.book?.examinerAssignments]);
+
+  console.log(currentExternalExaminer);
+
+  const showResubmissionButton = useMemo(() => {
+    return currentExternalExaminer?.status === "FAILED";
+  }, [currentExternalExaminer?.status]);
 
   if (isLoading) {
     return (
@@ -129,18 +167,25 @@ const GradeBook = () => {
         <div className="flex items-center justify-between px-4">
           <h2 className="text-lg font-[Inter-Medium] text-gray-900">Book Examiners</h2>
           <div className="flex gap-2">
-            <button
-              className="px-3 py-1.5 text-sm font-[Inter-Medium] text-white bg-primary-600 rounded hover:bg-primary-700"
-              onClick={() => navigate(`/grades/book/add-external-examiner/${bookId}`)}
-            >
-              Add External Examiner
-            </button>
-            {/* <button
-              className="px-3 py-1.5 text-sm font-[Inter-Medium] text-white bg-primary-600 rounded hover:bg-primary-700"
-              onClick={() => navigate(`/grades/book/add-external-examiner/${bookId}`)}
-            >
-              Add External Examiner (Resubmission)
-            </button> */}
+            {
+              !showResubmissionButton && (
+                <button
+                className="px-3 py-1.5 text-sm font-[Inter-Medium] text-white bg-primary-600 rounded hover:bg-primary-700"
+                onClick={() => navigate(`/grades/book/add-external-examiner/${bookId}`)}
+              >
+                Add External Examiner
+              </button>
+              )
+            }
+           
+            {showResubmissionButton && (
+              <button
+                className="px-3 py-1.5 text-sm font-[Inter-Medium] text-white bg-primary-600 rounded hover:bg-primary-700"
+                onClick={() => navigate(`/grades/book/add-external-examiner/${bookId}?type=resubmission`)}
+              >
+                Add External Examiner (Resubmission)
+              </button>
+            )}
           </div>
         </div>
         <div className="px-4 mt-4">
@@ -150,9 +195,26 @@ const GradeBook = () => {
             refetchBook={refetchBook}
             book={book?.book}
             examinerAssignments={book?.book?.examinerAssignments || []}
+            handleViewAssignment={handleViewAssignment}
+            handleEditAssignment={handleEditAssignment}
           />
         </div>
       </div>
+
+      {/* View Drawer */}
+      <GradeBookExaminerViewDrawer 
+        selectedAssignment={selectedAssignment}
+        isOpen={isViewDrawerOpen}
+        onClose={handleCloseViewDrawer}
+      />
+
+      {/* Edit Drawer */}
+      <GradeBookExaminerEditDrawer  
+        selectedAssignment={selectedAssignment}
+        isOpen={isEditDrawerOpen}
+        onClose={handleCloseEditDrawer}
+        refetchBook={refetchBook}
+      />
     </div>  
   );
 };

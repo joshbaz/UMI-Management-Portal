@@ -55,7 +55,8 @@ const getCategoryStyle = (status) => {
       header: "Status",
       cell: (info) => {
         const statuses = info.getValue();
-        const currentStatus = statuses?.length > 0 ? statuses[statuses.length - 1] : null;
+        const currentStatus = statuses?.find(s => s.isCurrent) || 
+                             (statuses?.length > 0 ? statuses[statuses.length - 1] : null);
         const statusName = currentStatus?.definition?.name || 'PENDING';
         
         return (
@@ -89,7 +90,7 @@ const getCategoryStyle = (status) => {
     columnHelper.accessor("gradedAt", {
       header: "Graded",
       cell: (info) => {
-        const averageMark = info.row.original.averageDefenseMark;
+        const averageMark = info.row.original.averageExamMark;
         let status = 'NOT GRADED';
         
         if (averageMark !== null && averageMark !== undefined) {

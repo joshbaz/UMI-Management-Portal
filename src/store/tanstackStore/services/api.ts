@@ -685,6 +685,10 @@ export const createExaminerService = async (data: any) => {
     }
 }
 
+
+
+
+
 export const getAllExaminersService = async () => {
     try {
         const response = await apiRequest.get('/management/examiners');
@@ -715,6 +719,15 @@ export const updateExaminerService = async (examinerId: string, data: any) => {
 export const assignExaminersToBookService = async (bookId: string, examinerIds: string[]) => {
     try {
         const response = await apiRequest.post(`/management/books/${bookId}/examiners`, { examinerIds });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const updateExternalExaminerMarkService = async (assignmentId: string, mark: number, comments: string, status: string) => {
+    try {
+        const response = await apiRequest.post(`/management/examiner-marks/${assignmentId}`, { mark, comments, status });
         return response.data;
     } catch (error) {
         errorHandling(error);
