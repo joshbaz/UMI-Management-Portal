@@ -51,7 +51,8 @@ import GradeProposal from "./pages/3.GradeManagement/GradeProposal";
 import StudentSubmitBook from "./pages/2.student/StudentSubmitBook";
 import GradeBook from "./pages/3.GradeManagement/GradeBook";
 import GradeBookAddExternalExaminer from "./pages/3.GradeManagement/GradeBookAddExternalExaminer";
-
+import UserRolesManagement from "./pages/9.roles/UserRolesManagement";
+import UserManagementView from "./pages/9.roles/UserManagementView";
 // PublicRoute: Redirects authenticated users away from public pages (like login)
 // If user is authenticated, redirects to dashboard
 // If user is not authenticated, shows the public page content
@@ -157,6 +158,8 @@ const AppRoutes = () => {
 
         {/* Other Routes */}
         <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsManagement />} />
+        <Route path={"/users"} element={<UserRolesManagement />} />
+        <Route path={"/users/:userId"} element={<UserManagementView />} />
         <Route path={ROUTES.TABLES} element={<TableBuilder />} />
         <Route path={ROUTES.SETTINGS} element={<Settings />} />
       </Route>

@@ -11,7 +11,7 @@ import {
   RiTableLine,
   RiFileListLine,
 } from 'react-icons/ri';
-
+import { HiOutlineUserGroup } from 'react-icons/hi';
 const menuItems = {
   mainActivities: [
     { name: 'Dashboard', icon: RiDashboardLine, path: '/dashboard' },
@@ -22,7 +22,9 @@ const menuItems = {
     { name: 'Notifications', icon: RiNotification3Line, path: '/notifications' },
   ],
   otherOptions: [
+    { name: 'User Roles Management', icon: HiOutlineUserGroup, path: '/users' },
     { name: 'Assign Supervisor', icon: RiUserSettingsLine, path: '/assign-supervisor' },
+ 
     { name: 'Status Management', icon: RiFileListLine, path: '/status' },
     { name: 'Settings', icon: RiSettings5Line, path: '/settings' },
    

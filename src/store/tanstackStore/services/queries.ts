@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService } from './api';
+import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService } from './api';
 
 export const useGetLoggedInUserDetails = () => {
   return useQuery({
@@ -296,4 +296,26 @@ export const useGetExaminer = (id: string) => {
   });
 };
 
-/* ********** END OF EXAMINER MANAGEMENT ********** */  
+  /* ********** END OF EXAMINER MANAGEMENT ********** */  
+
+/* ********** USER MANAGEMENT ********** */
+
+export const useGetAllUsers = () => {
+  return useQuery({
+    queryKey: ['users'],
+    queryFn: getAllUsersService,
+    staleTime: Infinity, // 1 minute
+    refetchInterval: false,
+  });
+};  
+
+export const useGetUser = (userId: string) => {
+  return useQuery({
+    queryKey: ['user', userId],
+    queryFn: () => getUserService(userId),
+    staleTime: Infinity, // 1 minute
+    refetchInterval: false,
+    enabled: !!userId
+  });
+};  
+/* ********** END OF USER MANAGEMENT ********** */

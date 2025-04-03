@@ -734,6 +734,91 @@ export const updateExternalExaminerMarkService = async (assignmentId: string, ma
     }
 }
 
+/* ********** USER MANAGEMENT ********** */
+
+export const getAllUsersService = async () => {
+    try {
+        const response = await apiRequest.get('/management/users'); 
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const getUserService = async (userId: string) => {
+    try {
+        const response = await apiRequest.get(`/management/users/${userId}`);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+
+    export const createUserService = async (data: any) => {
+    try {
+        const response = await apiRequest.post('/management/users', data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const updateUserService = async (userId: string, data: any) => {
+    try {
+        const response = await apiRequest.put(`/management/users/${userId}`, data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);   
+    }
+}
+
+export const deactivateUserService = async (userId: string) => {
+    try {
+        const response = await apiRequest.put(`/management/users/${userId}/deactivate`);
+        return response.data;
+    } catch (error) {   
+        errorHandling(error);
+    }
+}
+
+export const reactivateUserService = async (userId: string) => {
+    try {
+        const response = await apiRequest.put(`/management/users/${userId}/reactivate`);
+        return response.data;
+    } catch (error) {   
+        errorHandling(error);
+    }
+}
+
+
+
+
+export const deleteUserService = async (userId: string) => {
+    try {
+        const response = await apiRequest.delete(`/management/users/${userId}`);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const updateUserPasswordService = async (userId: string, newPassword: string) => {
+    try {
+        const response = await apiRequest.put(`/management/users/${userId}/password`, { newPassword });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);   
+    }
+}
+
+/* ********** END OF USER MANAGEMENT ********** */
+
+
+
+
+
+
 
 
 
