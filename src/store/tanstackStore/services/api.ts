@@ -725,6 +725,17 @@ export const assignExaminersToBookService = async (bookId: string, examinerIds: 
     }
 }
 
+export const addPanelistsToBookService = async (bookId: string, panelists: any) => {
+    try {
+        const response = await apiRequest.post(`/management/books/${bookId}/panelists`, { panelists });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+
+
 export const updateExternalExaminerMarkService = async (assignmentId: string, mark: number, comments: string, status: string) => {
     try {
         const response = await apiRequest.post(`/management/examiner-marks/${assignmentId}`, { mark, comments, status });
@@ -813,6 +824,85 @@ export const updateUserPasswordService = async (userId: string, newPassword: str
 }
 
 /* ********** END OF USER MANAGEMENT ********** */
+
+/* ********** VIVA MANAGEMENT ********** */
+
+export const scheduleVivaService = async (bookId: string, date: string, panelists: any) => {
+    try {
+        const response = await apiRequest.post(`/management/books/${bookId}/viva`, { date, panelists });
+        return response.data;   
+    } catch (error) {
+        errorHandling(error);
+    }
+}   
+
+export const recordVivaVerdictService = async (vivaId: string, verdict: string, comments: string) => {
+    try {
+        const response = await apiRequest.put(`/management/viva/${vivaId}`, { verdict, comments });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const getAllPanelistsService = async () => {
+    try {
+        const response = await apiRequest.get('/management/panelists');
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const addNewPanelistService = async (data: any) => {
+    try {
+        const response = await apiRequest.post('/management/panelists', data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const getBookVivasService = async (bookId: string) => {
+    try {
+        const response = await apiRequest.get(`/management/books/${bookId}/viva`);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+/* ********** END OF VIVA MANAGEMENT ********** */
+
+/* ********** COMPLIANCE REPORT MANAGEMENT ********** */
+
+export const updateMinutesSentDateService = async (bookId: string, minutesSentDate: string) => {
+    try {
+        const response = await apiRequest.put(`/management/books/${bookId}/minutes-sent`, { minutesSentDate });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const updateComplianceReportDateService = async (bookId: string, complianceReportDate: string) => {
+    try {
+        const response = await apiRequest.put(`/management/books/${bookId}/compliance-report`, { complianceReportDate });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+/* ********** END OF COMPLIANCE REPORT MANAGEMENT ********** */
+
+
+
+
+
+
+
+
 
 
 

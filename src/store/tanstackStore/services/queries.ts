@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService } from './api';
+import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService } from './api';
 
 export const useGetLoggedInUserDetails = () => {
   return useQuery({
@@ -319,3 +319,25 @@ export const useGetUser = (userId: string) => {
   });
 };  
 /* ********** END OF USER MANAGEMENT ********** */
+
+/* ********** VIVA MANAGEMENT ********** */
+
+export const useGetAllPanelists = () => {
+  return useQuery({
+    queryKey: ['panelists'],
+    queryFn: getAllPanelistsService,
+    staleTime: Infinity, // 1 minute
+    refetchInterval: false,
+  });
+};
+
+export const useGetBookVivas = (bookId: string) => {
+  return useQuery({
+    queryKey: ['bookVivas', bookId],
+    queryFn: () => getBookVivasService(bookId),
+    staleTime: Infinity, // 1 minute
+    refetchInterval: false,
+    enabled: !!bookId
+  });
+};
+/* ********** END OF VIVA MANAGEMENT ********** */
