@@ -9,9 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Icon } from "@iconify-icon/react";
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getDashboardStatsService } from "@/store/tanstackStore/services/api";
 
 import DLineChart from "./DLineChart";
 import DPieChart from "./DPieChart";
@@ -153,7 +151,7 @@ const Dashboard = () => {
         {/* Stats Cards */}
         <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4 px-6 mb-6">
           {updatedCardData.map((data, index) => (
-            <div key={index} className="bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow duration-300">
+            <div key={index} className="bg-white p-6 rounded-lg shadow-md text-left hover:shadow-lg transition-shadow duration-300">
               {isLoading ? (
                 <div className="animate-pulse">
                   <div className="h-6 bg-gray-200 rounded w-20 mx-auto mb-2"></div>
@@ -161,10 +159,10 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <>
-                  <h2 className="text-lg font-semibold text-gray-900">
+                  <h2 className="text-3xl  font-semibold text-gray-900">
                     {data.stats}
                   </h2>
-                  <div className="text-sm text-gray-500 flex items-center justify-center gap-1">
+                  <div className="text-sm font-medium text-gray-500 flex items-center justify-start gap-1">
                     {data.title}
                     {data.icon && (
                       <TooltipProvider>
@@ -172,7 +170,7 @@ const Dashboard = () => {
                           <TooltipTrigger>
                             <Icon
                               icon="tdesign:info-circle-filled"
-                              className="w-4 h-4 text-gray-400"
+                              className="w-4 h-4 text-gray-400 pt-1"
                             />
                           </TooltipTrigger>
                           <TooltipContent>{data.tooltip}</TooltipContent>

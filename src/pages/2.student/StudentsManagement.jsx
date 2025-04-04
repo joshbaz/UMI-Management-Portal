@@ -11,6 +11,7 @@ import SPageSize from "./SPageSize";
 import StudentPagination from "./StudentPagination";
 import { ROUTES } from '../../config/routes';
 import { useGetAllStudents } from '../../store/tanstackStore/services/queries';
+import { useGetDashboardStats } from "@/store/tanstackStore/services/queries";
 
 const StudentsManagement = () => {
   const navigate = useNavigate();
@@ -27,6 +28,9 @@ const StudentsManagement = () => {
 
   // Query to fetch all students
   const { data: studentsData, isLoading, error } = useGetAllStudents();
+  
+  // Query to fetch dashboard stats
+  const { data: statsData } = useGetDashboardStats();
 
   // Manage column visibility state
   const [columnVisibility, setColumnVisibility] = useState({
@@ -102,7 +106,7 @@ const StudentsManagement = () => {
       </div>
 
       {/* Stats */}
-      <SStats />
+      <SStats stats={statsData} />
 
       {/* Table Control Panel */}
       <StudentTableControlPanel 
