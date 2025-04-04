@@ -43,10 +43,19 @@ const DNotificationLog = () => {
   return (
     <Tabs defaultValue="feed" >
       <Card className="flex flex-col h-full">
-        <CardHeader className="flex  items-start  gap-6 space-y-0  py-5 sm:flex-col">
+        <CardHeader className="flex  items-start  gap-2 space-y-0  py-5 sm:flex-col">
+          <div className="flex flex-row w-full justify-between items-start gap-6 space-y-0">
           <CardTitle className="text-lg font-medium text-gray-900">
             Notification Log
           </CardTitle>
+          <Button
+              variant=""
+              className="text-sm text-white bg-primary-500 hover:bg-primary-500 hover:bg-opacity-70"
+            >
+              <span>View More</span>{" "}
+              <ChevronsUpDown className="text-white w-4 h-4" />
+            </Button>
+          </div>
 
           <div className="flex items-center gap-4 w-full">
             <TabsList   className="flex  justify-start w-full px-0 py-0 h-max rounded-none !bg-transparent border-b border-gray-200">
@@ -60,13 +69,7 @@ const DNotificationLog = () => {
                 </div>
               </TabsTrigger>
             </TabsList>
-            <Button
-              variant=""
-              className="text-sm text-white bg-primary-500 hover:bg-primary-500 hover:bg-opacity-70"
-            >
-              <span>View More</span>{" "}
-              <ChevronsUpDown className="text-white w-4 h-4" />
-            </Button>
+            
           </div>
         </CardHeader>
 

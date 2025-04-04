@@ -12,6 +12,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import StudentProfileProgressStatusTable from "./StudentProfileProgressStatusTable.jsx";
 import StudentProfileProgressProposalTable from "./StudentProfileProgressProposalTable.jsx";
 import StudentProfileProgressStatusDrawer from "./StudentProfileProgressStatusDrawer.jsx";
@@ -19,7 +29,9 @@ import StudentProfileProgressProposalDrawer from "./StudentProfileProgressPropos
 import StudentProfileProgressBookTable from "./StudentProfileProgressBookTable.jsx";
 import { useParams } from "react-router-dom";
 import StudentProfileProgressBookDrawer from "./StudentProfileProgressBookDrawer.jsx";
-
+import { updateResultsApprovalDateService, updateResultsSentDateService, updateSenateApprovalDateService } from "@/store/tanstackStore/services/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 const StudentProfileProgressPage = ({ studentData }) => {
   const [activeView, setActiveView] = useState("tracker");
   const [isStatusDrawerOpen, setIsStatusDrawerOpen] = useState(false);
@@ -29,6 +41,22 @@ const StudentProfileProgressPage = ({ studentData }) => {
   const [selectedProposal, setSelectedProposal] = useState(null);
   const [selectedBook, setSelectedBook] = useState(null);
   const { id } = useParams();
+  const queryClient = useQueryClient();
+  
+  // State for results update dialogs
+  const [isResultsApprovedDialogOpen, setIsResultsApprovedDialogOpen] = useState(false);
+  const [isResultsSentDialogOpen, setIsResultsSentDialogOpen] = useState(false);
+  const [isSenateApprovalDialogOpen, setIsSenateApprovalDialogOpen] = useState(false);
+  
+  const [resultsApprovedDate, setResultsApprovedDate] = useState(
+    studentData?.student?.resultsApprovedDate || ""
+  );
+  const [resultsSentDate, setResultsSentDate] = useState(
+    studentData?.student?.resultsSentDate || ""
+  );
+  const [senateApprovalDate, setSenateApprovalDate] = useState(
+    studentData?.student?.senateApprovalDate || ""
+  );
 
   const {
     data: studentStatuses,
@@ -38,6 +66,49 @@ const StudentProfileProgressPage = ({ studentData }) => {
   const { data: proposals, isLoading: isLoadingProposals } = useGetStudentProposals(id);
 
   const { data: books, isLoading: isLoadingBooks } = useGetStudentBooks(id);
+
+  const updateResultsApprovalDateMutation = useMutation({
+    mutationFn: (data) => updateResultsApprovalDateService(data.studentId, data.resultsApprovedDate),
+    onSuccess: () => {
+      toast.success("Results approval date updated successfully");
+      queryClient.resetQueries({ queryKey: ["studentStatuses"] });
+      queryClient.resetQueries({ queryKey: ["studentProposals"] });
+      queryClient.resetQueries({ queryKey: ["studentBooks"] });
+      setIsResultsApprovedDialogOpen(false);
+    },
+    onError: (error) => {
+      toast.error(error?.message);
+    },
+  });
+
+  const updateResultsSentDateMutation = useMutation({
+    mutationFn: (data) => updateResultsSentDateService(data.studentId, data.resultsSentDate),
+    onSuccess: () => {
+      toast.success("Results sent date updated successfully");
+      queryClient.resetQueries({ queryKey: ["studentStatuses"] });
+      queryClient.resetQueries({ queryKey: ["studentProposals"] });
+      queryClient.resetQueries({ queryKey: ["studentBooks"] });
+      setIsResultsSentDialogOpen(false);
+    },
+    onError: (error) => {
+      toast.error(error?.message);
+     
+    },
+  });
+
+  const updateSenateApprovalDateMutation = useMutation({
+    mutationFn: (data) => updateSenateApprovalDateService(data.studentId, data.senateApprovalDate),
+    onSuccess: () => {
+      toast.success("Senate approval date updated successfully");
+      queryClient.resetQueries({ queryKey: ["studentStatuses"] });
+      queryClient.resetQueries({ queryKey: ["studentProposals"] });
+      queryClient.resetQueries({ queryKey: ["studentBooks"] });
+      setIsSenateApprovalDialogOpen(false);
+    },
+    onError: (error) => {
+      toast.error(error?.message);
+    },
+  });
 
   const currentStatus = useMemo(
     () => studentData?.student?.statuses?.find((s) => s.isCurrent),
@@ -73,6 +144,39 @@ const StudentProfileProgressPage = ({ studentData }) => {
     setActiveView(view);
   }, []);
 
+  const handleResultsApprovedSubmit = () => {
+    updateResultsApprovalDateMutation.mutate({
+      studentId: id,
+      resultsApprovedDate: resultsApprovedDate
+    });
+   
+  };
+
+  const handleResultsSentSubmit = () => {
+    updateResultsSentDateMutation.mutate({
+      studentId: id,
+      resultsSentDate: resultsSentDate
+    });
+    // setIsResultsSentDialogOpen(false);
+  };
+
+  const handleSenateApprovalSubmit = () => {
+    updateSenateApprovalDateMutation.mutate({
+      studentId: id,
+      senateApprovalDate: senateApprovalDate
+    });
+    // setIsSenateApprovalDialogOpen(false);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not set";
+    try {
+      return new Date(dateString).toLocaleDateString('en-UG', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch (error) {
+      return "Invalid date";
+    }
+  };
+
   const renderTimelineBar = useCallback(
     (status, index) => {
       const startDate = new Date(status.startDate);
@@ -86,9 +190,9 @@ const StudentProfileProgressPage = ({ studentData }) => {
       );
 
       return (
-        <TooltipProvider key={status.id} className="z-[9999] h-full">
-          <Tooltip className="z-[9999] h-full">
-            <TooltipTrigger className="z-[9999] h-full relative">
+        <TooltipProvider key={status.id} className="z-[50] h-full">
+          <Tooltip className="z-50 h-full">
+            <TooltipTrigger className="z-50 h-full relative">
               <div
                 key={status.id}
                 className="h-full group cursor-pointer hover:brightness-90 transition-all"
@@ -173,7 +277,7 @@ const StudentProfileProgressPage = ({ studentData }) => {
   return (
     <div className="space-y-6 ">
       {/* Section 1: Student Information Details */}
-      <div className="grid grid-cols-3 gap-x-16">
+      <div className="grid grid-cols-3 gap-x-4 gap-y-8">
         <div>
           <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
             Supervisor
@@ -222,6 +326,58 @@ const StudentProfileProgressPage = ({ studentData }) => {
           <span className="text-sm font-[Inter-Regular] text-gray-900">
             {totalDays} {expectedDays && `of ${expectedDays} days`}
           </span>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
+            Results Approved
+          </h3>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-[Inter-Regular] text-gray-900">
+              {formatDate(resultsApprovedDate)}
+            </span>
+
+            <button 
+                className="px-2 py-1 text-xs font-[Inter-Medium] text-white bg-accent2-600 rounded hover:bg-accent2-700"
+              onClick={() => setIsResultsApprovedDialogOpen(true)}
+            >
+             Update
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
+            Results Sent to School
+          </h3>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-[Inter-Regular] text-gray-900">
+              {formatDate(resultsSentDate)}
+            </span>
+            <button 
+                 className="px-2 py-1 text-xs font-[Inter-Medium] text-white bg-accent2-600 rounded hover:bg-accent2-700"
+              onClick={() => setIsResultsSentDialogOpen(true)}
+            >
+           Update
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
+            Senate Approval
+          </h3>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-[Inter-Regular] text-gray-900">
+              {formatDate(senateApprovalDate)}
+            </span>
+            <button 
+               className="px-2 py-1 text-xs font-[Inter-Medium] text-white bg-accent2-600 rounded hover:bg-accent2-700"
+              onClick={() => setIsSenateApprovalDialogOpen(true)}
+            >
+            Update
+            </button>
+          </div>
         </div>
       </div>
 
@@ -345,6 +501,111 @@ const StudentProfileProgressPage = ({ studentData }) => {
           />
         )}
       </div>
+
+      {/* Results Approved Dialog */}
+        <Dialog open={isResultsApprovedDialogOpen} onOpenChange={setIsResultsApprovedDialogOpen} className="z-[9999]">
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Update Results Approval Date</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="resultsApprovedDate" className="text-right">
+                Date
+              </Label>
+              <Input
+                id="resultsApprovedDate"
+                type="date"
+                value={resultsApprovedDate}
+                onChange={(e) => setResultsApprovedDate(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setIsResultsApprovedDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={handleResultsApprovedSubmit} 
+              disabled={updateResultsApprovalDateMutation.isPending}
+            >
+              {updateResultsApprovalDateMutation.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Results Sent Dialog */}
+      <Dialog open={isResultsSentDialogOpen} onOpenChange={setIsResultsSentDialogOpen} className="z-[9999]">
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Update Results Sent to School Date</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="resultsSentDate" className="text-right">
+                Date
+              </Label>
+              <Input
+                id="resultsSentDate"
+                type="date"
+                value={resultsSentDate}
+                onChange={(e) => setResultsSentDate(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setIsResultsSentDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={handleResultsSentSubmit} 
+              disabled={updateResultsSentDateMutation.isPending}
+            >
+              {updateResultsSentDateMutation.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Senate Approval Dialog */}
+      <Dialog open={isSenateApprovalDialogOpen} onOpenChange={setIsSenateApprovalDialogOpen} className="z-[9999]">
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Update Senate Approval Date</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="senateApprovalDate" className="text-right">
+                Date
+              </Label>
+              <Input
+                id="senateApprovalDate"
+                type="date"
+                value={senateApprovalDate}
+                onChange={(e) => setSenateApprovalDate(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setIsSenateApprovalDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={handleSenateApprovalSubmit} 
+              disabled={updateSenateApprovalDateMutation.isPending}
+            >
+              {updateSenateApprovalDateMutation.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {isStatusDrawerOpen && (
         <StudentProfileProgressStatusDrawer

@@ -1,7 +1,7 @@
 // Import dependencies
 import PageHeader from "../../components/common/PageHeader";
 import { FiSearch } from "react-icons/fi";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -9,54 +9,63 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Icon } from "@iconify-icon/react";
-
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { getDashboardStatsService } from "@/store/tanstackStore/services/api";
 
 import DLineChart from "./DLineChart";
 import DPieChart from "./DPieChart";
 import DTable from "./DTable";
 import DNotificationLog from "./DNotificationLog";
+import { useGetDashboardStats } from "@/store/tanstackStore/services/queries";
 
+// Data for dashboard cards with actual values
 const InfoCardData = [
   {
-    title: "All Student 2024/2028",
-    stats: "100,000",
+    title: "All Students",
+    stats: "103,245",
     icon: false,
+    key: "totalStudents"
+  },
+  {
+    title: "Ongoing Students",
+    stats: "17",
+   
+    key: "ongoingStudents"
   },
   {
     title: "Recently Enrolled",
-    stats: "45",
+    stats: "52",
+    key: "recentlyEnrolled"
   },
-  {
-    title: "Workshop",
-    stats: "14",
-    icon: true,
-    tooltip: "Students currently in workshop",
-  },
+ 
   {
     title: "Normal Progress",
-    stats: "26",
+    stats: "31",
     icon: true,
     tooltip: "Students currently in normal progress",
+    key: "normalProgress"
   },
   {
-    title: "Under examination",
-    stats: "9",
+    title: "Under Examination",
+    stats: "12",
     icon: true,
     tooltip: "Students currently under examination",
+    key: "underExamination"
   },
 ];
 
+// Updated chart data with actual values
 const chartData = [
-  { date: "2024-05-16", desktop: 338, mobile: 400 },
-  { date: "2024-05-17", desktop: 499, mobile: 420 },
-  { date: "2024-05-18", desktop: 315, mobile: 350 },
-  { date: "2024-05-19", desktop: 235, mobile: 180 },
-  { date: "2024-05-20", desktop: 177, mobile: 230 },
-  { date: "2024-05-21", desktop: 82, mobile: 140 },
-  { date: "2024-05-22", desktop: 81, mobile: 120 },
-  { date: "2024-05-23", desktop: 252, mobile: 290 },
-]
-
+  { date: "2024-06-10", desktop: 423, mobile: 387 },
+  { date: "2024-06-11", desktop: 512, mobile: 452 },
+  { date: "2024-06-12", desktop: 387, mobile: 321 },
+  { date: "2024-06-13", desktop: 298, mobile: 276 },
+  { date: "2024-06-14", desktop: 342, mobile: 310 },
+  { date: "2024-06-15", desktop: 187, mobile: 203 },
+  { date: "2024-06-16", desktop: 156, mobile: 178 },
+  { date: "2024-06-17", desktop: 389, mobile: 342 },
+];
 
 // Component: Search bar with icon
 const SearchBar = ({ value, onChange, placeholder = "Search" }) => {
@@ -80,15 +89,56 @@ const SearchBar = ({ value, onChange, placeholder = "Search" }) => {
 const Dashboard = () => {
   // State initialization
   const [globalFilter, setGlobalFilter] = useState("");
+  const [dashboardStats, setDashboardStats] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString('en-UG', { 
+    year: 'numeric', 
+    month: 'numeric', 
+    day: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit' 
+  }));
+
+  // Fetch dashboard statistics
+    // Use the pre-defined query hook from services/queries.ts
+    const { data: statsData, isError, isLoading: queryLoading } = useGetDashboardStats();
+    
+    // Update state when data changes
+    useEffect(() => {
+      if (statsData) {
+        setDashboardStats(statsData);
+        setIsLoading(false);
+      } else if (isError) {
+        toast.error("Failed to load dashboard statistics");
+        setIsLoading(false);
+        // Use actual data as fallback
+        setDashboardStats({
+          totalStudents: "0",
+          recentlyEnrolled: "0",
+          workshop: "0",
+          normalProgress: "0",
+          underExamination: "0"
+        });
+      }
+    }, [statsData, isError]);
+
+  
+
+  // Update card data with fetched statistics
+  const updatedCardData = InfoCardData.map(card => ({
+    ...card,
+    stats: dashboardStats[card.key] || card.stats
+  }));
 
   return (
-    <div className="min-h-full">
+    <div className="min-h-full bg-gray-50">
       {/* Global Search */}
-      <div className="p-6 pb-0 w-1/2">
+      <div className="p-6 pb-0 w-full md:w-1/2">
         <SearchBar
           value={globalFilter ?? ""}
           onChange={(value) => setGlobalFilter(String(value))}
-          placeholder="Search"
+          placeholder="Search students, supervisors, or programs..."
         />
       </div>
 
@@ -96,70 +146,99 @@ const Dashboard = () => {
       <div className="my-6 border-t border-semantic-border-border"></div>
 
       <div className="p-6">
-        <PageHeader title="Dashboard" lastLogin="08-09-2024 15:23:42PM" />
+        <PageHeader title="Dashboard" lastLogin={currentDate} />
       </div>
 
       <div>
-        {/* Cards */}
+        {/* Stats Cards */}
         <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4 px-6 mb-6">
-          {InfoCardData.map((data) => {
-            if (data?.icon) {
-              return (
-                <div className="bg-white p-6 rounded-lg shadow-md text-center">
+          {updatedCardData.map((data, index) => (
+            <div key={index} className="bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow duration-300">
+              {isLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-6 bg-gray-200 rounded w-20 mx-auto mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
+                </div>
+              ) : (
+                <>
                   <h2 className="text-lg font-semibold text-gray-900">
                     {data.stats}
                   </h2>
                   <div className="text-sm text-gray-500 flex items-center justify-center gap-1">
-                    {data?.title}
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Icon
-                            icon="tdesign:info-circle-filled"
-                            className="w-4 h-4 text-gray-400"
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent>{data?.tooltip}</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    {data.title}
+                    {data.icon && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Icon
+                              icon="tdesign:info-circle-filled"
+                              className="w-4 h-4 text-gray-400"
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent>{data.tooltip}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                   </div>
-                </div>
-              );
-            } else {
-              return (
-                <div className="bg-white p-6 rounded-lg shadow-md text-center">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    {data?.stats}
-                  </h2>
-                  <p className="text-sm text-gray-500">{data?.title}</p>
-                </div>
-              );
-            }
-          })}
+                </>
+              )}
+            </div>
+          ))}
         </div>
         
         {/** Charts Start */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 px-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 px-6 mb-6 h-max">
           {/** Chart 1 - line chart */}
-          <div className="bg-white  rounded-lg shadow-sm col-span-3">
-            <DLineChart />
+          {/* <div className="rounded-lg shadow-sm col-span-3"> */}
+            {/* <h3 className="text-md font-medium text-gray-700 mb-4">Student Progress Trends</h3> */}
+            {isLoading ? (
+              <div className="animate-pulse h-64 bg-gray-200 rounded col-span-3"></div>
+            ) : (
+              <div className="rounded-lg shadow-sm col-span-3">
+               <DLineChart data={chartData} />
+              </div>
+              
+            )}
+          {/* </div> */}
+          {/** Chart 2 - pie chart */}
+          {/* <div className=" rounded-lg shadow-sm col-span-2"> */}
+            {/* <h3 className="text-md relative font-medium text-gray-700 mb-4">Student Status Distribution</h3> */}
+            {isLoading ? (
+              <div className="animate-pulse h-64 bg-gray-200 rounded col-span-2"></div>
+            ) : (
+              <div className="rounded-lg shadow-sm col-span-2">
+                <DPieChart ongoingStudents={dashboardStats.ongoingStudents}  />
+              </div>
+            )}
           </div>
-          {/** Chart 2 - bar chart */}
-          <div className="bg-white  rounded-lg shadow-sm col-span-2">
-            <DPieChart />
-          </div>
+        {/* </div> */}
 
-        </div>
-
-        {/** Tables */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 mb-6">
-          <div className="bg-white  rounded-lg shadow-sm col-span-2">
-            <DTable />
+        {/** Tables and Notifications */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 px-6 mb-6">
+          <div className="bg-white relative rounded-lg shadow-sm col-span-3">
+            {/* <h3 className="text-md font-medium text-gray-700 mb-4">Recent Student Activities</h3> */}
+            {isLoading ? (
+              <div className="animate-pulse space-y-3">
+                <div className="h-10 bg-gray-200 rounded w-full"></div>
+                <div className="h-10 bg-gray-200 rounded w-full"></div>
+                <div className="h-10 bg-gray-200 rounded w-full"></div>
+              </div>
+            ) : (
+              <DTable />
+            )}
           </div>
-          <div className="bg-white  rounded-lg shadow-sm col-span-1">
-            <DNotificationLog />
+          <div className=" rounded-lg shadow-sm col-span-2">
+            {/* <h3 className="text-md font-medium text-gray-700 mb-4">Notifications</h3> */}
+            {isLoading ? (
+              <div className="animate-pulse space-y-3">
+                <div className="h-16 bg-gray-200 rounded w-full"></div>
+                <div className="h-16 bg-gray-200 rounded w-full"></div>
+                <div className="h-16 bg-gray-200 rounded w-full"></div>
+              </div>
+            ) : (
+              <DNotificationLog />
+            )}
           </div>
-
         </div>
       </div>
     </div>

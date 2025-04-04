@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService } from './api';
+import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService } from './api';
 
 export const useGetLoggedInUserDetails = () => {
   return useQuery({
@@ -341,3 +341,36 @@ export const useGetBookVivas = (bookId: string) => {
   });
 };
 /* ********** END OF VIVA MANAGEMENT ********** */
+
+/* ********** DASHBOARD MANAGEMENT ********** */
+
+export const useGetDashboardStats = () => {
+  return useQuery({
+    queryKey: ['dashboardStats'],
+    queryFn: getDashboardStatsService,
+    staleTime: 300000, // 5 minutes
+    refetchInterval: false,
+    retry: 1,
+  });
+};
+
+export const useGetStatusStatistics = (category?: string) => {
+  return useQuery({
+    queryKey: ['statusStatistics', category],
+    queryFn: () => getStatusStatisticsService(category),
+    staleTime: 300000, // 5 minutes
+    refetchInterval: false,
+    retry: 1,
+  });
+};
+
+export const useGetProgressTrends = (timeRange: string) => {
+  return useQuery({
+    queryKey: ['progressTrends', timeRange],
+    queryFn: () => getProgressTrendsService(timeRange),
+    staleTime: 300000, // 5 minutes
+    refetchInterval: false,
+    retry: 1,
+  });
+};
+/* ********** END OF DASHBOARD MANAGEMENT ********** */

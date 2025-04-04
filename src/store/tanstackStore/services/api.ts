@@ -896,6 +896,73 @@ export const updateComplianceReportDateService = async (bookId: string, complian
 
 /* ********** END OF COMPLIANCE REPORT MANAGEMENT ********** */
 
+/* ********** STUDENT PROGRESS MANAGEMENT ********** */
+
+export const updateResultsApprovalDateService = async (studentId: string, resultsApprovedDate: string) => {
+    try {
+        const response = await apiRequest.put(`/management/students/${studentId}/results-approved`, { resultsApprovedDate });   
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const updateResultsSentDateService = async (studentId: string, resultsSentDate: string) => {
+    try {
+        const response = await apiRequest.put(`/management/students/${studentId}/results-sent`, { resultsSentDate });
+        return response.data;
+    } catch (error) {   
+        errorHandling(error);
+    }
+}
+
+export const updateSenateApprovalDateService = async (studentId: string, senateApprovalDate: string) => {
+    try {
+        const response = await apiRequest.put(`/management/students/${studentId}/senate-approval`, { senateApprovalDate });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+/* ********** DASHBOARD MANAGEMENT ********** */
+
+export const getDashboardStatsService = async () => {
+    try {
+        const response = await apiRequest.get('/management/dashboard/stats');
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const getStatusStatisticsService = async (category?: string) => {
+    try {
+        console.log("category", category);
+        const url = category 
+            ? `/management/dashboard/status-statistics?category=${category}` 
+            : '/management/dashboard/status-statistics';
+        const response = await apiRequest.get(url);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+        throw error;
+    }
+}
+
+export const getProgressTrendsService = async (timeRange: string) => {
+    try {
+        const response = await apiRequest.get(`/management/dashboard/progress-trends?timeRange=${timeRange}`);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+/* ********** END OF DASHBOARD MANAGEMENT ********** */
+
+
+
 
 
 
