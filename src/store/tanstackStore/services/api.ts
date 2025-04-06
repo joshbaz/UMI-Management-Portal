@@ -504,7 +504,7 @@ export const getStudentProposalsService = async (studentId: string) => {
 
 export const addDefenseDateService = async (proposalId: string, defenseDate: string, type: string) => {
     try {
-        const response = await apiRequest.post(`/faculty/proposals/${proposalId}/defense-date`, { defenseDate, type })
+        const response = await apiRequest.post(`/management/proposals/${proposalId}/defense-date`, { defenseDate, type })
         return response.data
     } catch (error) {
         errorHandling(error)
@@ -513,7 +513,7 @@ export const addDefenseDateService = async (proposalId: string, defenseDate: str
 
 export const addComplianceReportDateService = async (proposalId: string, complianceReportDate: string) => {
     try {
-        const response = await apiRequest.post(`/faculty/proposals/${proposalId}/compliance-report-date`, { complianceReportDate })
+        const response = await apiRequest.post(`/management/proposals/${proposalId}/compliance-report-date`, { complianceReportDate })
         return response.data
     } catch (error) {
         errorHandling(error)
@@ -529,7 +529,7 @@ export const addComplianceReportDateService = async (proposalId: string, complia
 
 export const getReviewersService = async () => {
     try {
-        const response = await apiRequest.get("/faculty/reviewers")
+        const response = await apiRequest.get("/management/reviewers")
         return response.data
     } catch (error) {
         errorHandling(error)
@@ -538,7 +538,7 @@ export const getReviewersService = async () => {
 
 export const deleteReviewerService = async (proposalId: string, reviewerId: string) => {
     try {
-        const response = await apiRequest.delete(`/faculty/reviewers/${proposalId}/${reviewerId}`)
+        const response = await apiRequest.delete(`/management/reviewers/${proposalId}/${reviewerId}`)
         return response.data
     } catch (error) {
         errorHandling(error)
@@ -553,7 +553,7 @@ export const deleteReviewerService = async (proposalId: string, reviewerId: stri
 
 export const addPanelistsService = async (proposalId: string, panelists: any) => {
     try {
-        const response = await apiRequest.post(`/faculty/panelists/${proposalId}`, { panelists })
+        const response = await apiRequest.post(`/management/panelists/${proposalId}`, { panelists })
         return response.data
     } catch (error) {
         errorHandling(error)
@@ -562,7 +562,7 @@ export const addPanelistsService = async (proposalId: string, panelists: any) =>
 
 export const getPanelistsService = async () => {
     try {   
-        const response = await apiRequest.get("/faculty/panelists")
+        const response = await apiRequest.get("/management/panelists")
         return response.data
     } catch (error) {
         errorHandling(error)
@@ -572,7 +572,7 @@ export const getPanelistsService = async () => {
 
 export const deletePanelistService = async (proposalId: string, panelistId: string) => {
     try {
-        const response = await apiRequest.delete(`/faculty/panelists/${proposalId}/${panelistId}`)
+        const response = await apiRequest.delete(`/management/panelists/${proposalId}/${panelistId}`)
         return response.data
     } catch (error) {
         errorHandling(error)
@@ -585,7 +585,7 @@ export const deletePanelistService = async (proposalId: string, panelistId: stri
 
 export const addReviewerMarkService = async (proposalId: string, reviewerId: string, grade: number, feedback: string) => {
     try {
-        const response = await apiRequest.post(`/faculty/reviewer-marks/${proposalId}/${reviewerId}`, { grade, feedback })
+        const response = await apiRequest.post(`/management/reviewer-marks/${proposalId}/${reviewerId}`, { grade, feedback })
         return response.data
     } catch (error) {
         errorHandling(error)
@@ -596,7 +596,7 @@ export const addReviewerMarkService = async (proposalId: string, reviewerId: str
 
 export const addPanelistMarkService = async (proposalId: string, panelistId: string, grade: number, feedback: string) => {
     try {
-        const response = await apiRequest.post(`/faculty/panelist-marks/${proposalId}/${panelistId}`, { grade, feedback })
+        const response = await apiRequest.post(`/management/panelist-marks/${proposalId}/${panelistId}`, { grade, feedback })
         return response.data
     } catch (error) {
         errorHandling(error)
@@ -609,7 +609,7 @@ export const addPanelistMarkService = async (proposalId: string, panelistId: str
 
 export const generateFieldLetterService = async (proposalId: string, formData: FormData) => {
     try {
-        const response = await apiRequest.post(`/faculty/generate-field-letter/${proposalId}`, formData, {
+        const response = await apiRequest.post(`/management/generate-field-letter/${proposalId}`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -622,7 +622,7 @@ export const generateFieldLetterService = async (proposalId: string, formData: F
 
 export const updateFieldLetterDateService = async (proposalId: string, fieldLetterDate: string) => {
     try {
-        const response = await apiRequest.put(`/faculty/update-field-letter-date/${proposalId}`, { fieldLetterDate })
+        const response = await apiRequest.put(`/management/update-field-letter-date/${proposalId}`, { fieldLetterDate })
         return response.data
     } catch (error) {
         errorHandling(error)
@@ -959,7 +959,57 @@ export const getProgressTrendsService = async (timeRange: string) => {
     }
 }
 
+
 /* ********** END OF DASHBOARD MANAGEMENT ********** */
+
+/* ********** NOTIFICATION MANAGEMENT ********** */
+
+export const getNotificationsService = async () => {
+    try {
+        const response = await apiRequest.get('/management/notifications');
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+
+/* ********** PROPOSAL DEFENSE MANAGEMENT ********** */
+
+export const scheduleProposalDefenseService = async (proposalId: string, scheduledDate: string, panelistIds: any) => {
+    try {
+        const response = await apiRequest.post(`/management/proposals/${proposalId}/defenses`, { scheduledDate, panelistIds });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const recordProposalDefenseVerdictService = async (defenseId: string, verdict: string, comments: string) => {
+    try {
+        const response = await apiRequest.put(`/management/defenses/${defenseId}`, { verdict, comments });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const getProposalDefensesService = async () => {
+    try {
+        const response = await apiRequest.get('/management/defenses');
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+/* ********** END OF PROPOSAL DEFENSE MANAGEMENT ********** */
+
+
+
+
+
+
 
 
 

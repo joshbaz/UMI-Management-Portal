@@ -1,8 +1,7 @@
 /* eslint-disable react/prop-types */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
 import { FiSearch } from "react-icons/fi";
-import { HiOutlineInformationCircle } from "react-icons/hi";
 import NotificationDrawer from "./NotificationDrawer";
 import {
   useReactTable,
@@ -11,6 +10,14 @@ import {
   getPaginationRowModel,
   flexRender,
 } from "@tanstack/react-table";
+import { useGetNotifications } from "@/store/tanstackStore/services/queries";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 // Priority types and their colors
 const PRIORITY_TYPES = {
@@ -19,153 +26,13 @@ const PRIORITY_TYPES = {
   Anytime: "text-green-500",
 };
 
-// Sample notification data
-export const DUMMY_DATA = [
-  {
-    id: 1,
-    type: "Supervisor Not Assigned",
-    studentName: "Ntale Kilza",
-    priority: "Anytime",
-    remarks: "Supervisor allocation pending",
-  },
-  {
-    id: 2,
-    type: "Proposal Submission Delayed",
-    studentName: "Apio Asiimwe",
-    priority: "Important",
-    remarks: "Submission overdue by 7 days",
-  },
-  {
-    id: 3,
-    type: "Supervisor Not Assigned",
-    studentName: "Musani Anyango",
-    priority: "Anytime",
-    remarks: "Supervisor allocation pending",
-  },
-  {
-    id: 4,
-    type: "Supervisor Not Assigned",
-    studentName: "Apio Kato",
-    priority: "Anytime",
-    remarks: "Supervisor allocation pending",
-  },
-  {
-    id: 5,
-    type: "Proposal Submission Delayed",
-    studentName: "Ntale Acan",
-    priority: "Urgent",
-    remarks: "Submission overdue by 13 days",
-  },
-  {
-    id: 6,
-    type: "Proposal Review Delayed",
-    studentName: "Apio Ocen",
-    priority: "Important",
-    remarks: "No reviewers assigned yet",
-  },
-  {
-    id: 7,
-    type: "Proposal Review Pending Reminder",
-    studentName: "Egonu Birungi",
-    priority: "Urgent",
-    remarks: "Review overdue by 4 days",
-  },
-  {
-    id: 8,
-    type: "Proposal Defense Not Conducted",
-    studentName: "Chepyegon Tumusiime",
-    priority: "Important",
-    remarks: "Defense pending past deadline",
-  },
-  {
-    id: 9,
-    type: "Letter to Field Not Issued",
-    studentName: "Nabbanja Muhumuza",
-    priority: "Urgent",
-    remarks: "No letter issued in 2 weeks",
-  },
-  {
-    id: 10,
-    type: "Book Examination Delayed",
-    studentName: "Rukundo Nakate",
-    priority: "Important",
-    remarks: "Review pending past 2 weeks",
-  },
-];
-
-// Sample status report data
-const STATUS_REPORT_DATA = [
-  {
-    id: 1,
-    previousStatus: "Waiting for Supervisor Alloca",
-    currentStatus: "Normal Progress",
-    studentName: "Ntale Kilza",
-    statusUpdatedOn: "2024-10-11 08:40 AM",
-  },
-  {
-    id: 2,
-    previousStatus: "Proposal Received",
-    currentStatus: "Proposal in Review",
-    studentName: "Apio Asiimwe",
-    statusUpdatedOn: "2025-02-21 12:11 PM",
-  },
-  {
-    id: 3,
-    previousStatus: "Under Examination",
-    currentStatus: "Failed & Resubmission Required",
-    studentName: "Musani Anyango",
-    statusUpdatedOn: "2025-08-03 12:07 AM",
-  },
-  {
-    id: 4,
-    previousStatus: "Book Submitted",
-    currentStatus: "Under Examination",
-    studentName: "Apio Kato",
-    statusUpdatedOn: "2024-09-08 08:17 AM",
-  },
-  {
-    id: 5,
-    previousStatus: "Minutes Pending",
-    currentStatus: "Minutes Sent",
-    studentName: "Ntale Acan",
-    statusUpdatedOn: "2025-09-15 11:56 PM",
-  },
-  {
-    id: 6,
-    previousStatus: "Fieldwork",
-    currentStatus: "Book Submitted",
-    studentName: "Apio Ocen",
-    statusUpdatedOn: "2024-03-26 10:45 AM",
-  },
-  {
-    id: 7,
-    previousStatus: "Proposal Defense Graded - P",
-    currentStatus: "Compliance Report & Revised Proposal",
-    studentName: "Egonu Birungi",
-    statusUpdatedOn: "2025-05-13 06:40 AM",
-  },
-  {
-    id: 8,
-    previousStatus: "Waiting for Supervisor Alloca",
-    currentStatus: "Normal Progress",
-    studentName: "Chepyegon Tumusiime",
-    statusUpdatedOn: "2024-05-11 10:02 PM",
-  },
-  {
-    id: 9,
-    previousStatus: "Online",
-    currentStatus: "Proposal Defense Graded - Passed",
-    studentName: "Nabbaala Muhumuza",
-    statusUpdatedOn: "2024-12-18 08:35 AM",
-  },
-  {
-    id: 10,
-    previousStatus: "Online",
-    currentStatus: "Waiting for Reviewer Assignment",
-    studentName: "Rukundo Nakate",
-    statusUpdatedOn: "2025-09-14 01:13 PM",
-  },
-];
+// Status types and their colors
+const STATUS_TYPES = {
+  New: "text-blue-500",
+  Read: "text-gray-500",
+  Actioned: "text-green-500",
+  Archived: "text-gray-400",
+};
 
 // Component: Search bar with icon
 const SearchBar = ({ value, onChange, placeholder = "Search" }) => {
@@ -185,31 +52,19 @@ const SearchBar = ({ value, onChange, placeholder = "Search" }) => {
   );
 };
 
-// Component: Info icon helper for tooltips
-const InfoIconHelper = ({ tooltip }) => {
-  return (
-    <div className="relative flex items-center group">
-      <div className="w-4 h-4 bg-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-600 ml-2 cursor-help">
-        <HiOutlineInformationCircle className="w-4 h-4 text-gray-600" />
-      </div>
-      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block">
-        <div className="bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-          {tooltip}
-        </div>
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-          <div className="border-4 border-transparent border-t-gray-800"></div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // Main component: Notifications management page
 const NotificationsManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("notifications");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedNotificationId, setSelectedNotificationId] = useState(null);
+
+  // Fetch notifications data from API
+  const { data, isLoading, error } = useGetNotifications();
+
+  console.log("data", data);
+  
+  // Use the fetched data
+  const notificationsData = data?.notifications || [];
 
   const handleRowClick = (notificationId) => {
     setSelectedNotificationId(notificationId);
@@ -220,134 +75,89 @@ const NotificationsManagement = () => {
   const columns = useMemo(
     () => [
       {
-        accessorKey: "type",
-        header: "Type",
+        accessorKey: "title",
+        header: "Title",
         cell: (info) => (
-          <button
-            onClick={() => handleRowClick(info.row.original.id)}
-            className="text-left hover:text-primary-600"
-          >
-            {info.getValue()}
-          </button>
+          
+            <div className="max-w-xs whitespace-pre-wrap break-words text-xs font-[Inter-Medium]">
+              {info.getValue()}
+            </div>
+       
         ),
       },
       {
         accessorKey: "studentName",
-        header: "Student Name",
+        header: "Student",
         cell: (info) => (
           <button
             onClick={() => handleRowClick(info.row.original.id)}
             className="text-left hover:text-primary-600"
           >
-            {info.getValue()}
+            {info.row.original?.studentStatus?.student?.firstName} {info.row.original?.studentStatus?.student?.lastName}
           </button>
         ),
       },
       {
-        accessorKey: "priority",
-        header: "Priority",
+        accessorKey: "studentStatus.definition.name",
+        header: "Progress",
         cell: (info) => (
-          <span className={PRIORITY_TYPES[info.getValue()]}>
-            {info.getValue()}
-          </span>
+          <div className="flex items-center">
+            <span className="px-2 py-1 text-xs font-[Inter-Regular] capitalize rounded-sm bg-blue-100 text-blue-800">
+              {info.row.original?.studentStatus?.definition?.name || "N/A"}
+            </span>
+          </div>
         ),
       },
+  
+ 
       {
-        accessorKey: "remarks",
-        header: "Remarks",
+        accessorKey: "recipientName",
+        header: "Recipient",
         cell: (info) => (
-          <button
-            onClick={() => handleRowClick(info.row.original.id)}
-            className="text-left hover:text-primary-600"
-          >
-            {info.getValue()}
-          </button>
-        ),
-      },
-      {
-        accessorKey: "actions",
-        header: " ",
-        cell: (info) => (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleRowClick(info.row.original.id);
-            }}
-            className="rounded border border-semantic-bg-border shadow-sm py-1 px-3 hover:bg-gray-50"
-          >
-            Open
-          </button>
-        ),
-      },
-    ],
-    []
-  );
-
-  // Status Report columns
-  const statusReportColumns = useMemo(
-    () => [
-      {
-        accessorKey: "previousStatus",
-        header: "Previous Status",
-        cell: (info) => {
-          const status = info.getValue();
-          const randomStyle = Math.random() < 0.5;
-          return (
-            <div
-              className={`${
-                randomStyle
-                  ? "bg-[#F3F4F6] border-[#6B7280]"
-                  : "bg-[#CCFBF1] border-[#0F766E]"
-              } inline-block h-hug24px rounded-md border px-2 py-1 text-sm text-left`}
-            >
-              {status}
+          <div>
+            <div className="text-gray-700 font-medium">
+              {info.getValue() || "N/A"}
             </div>
+            <div className="text-gray-500 text-xs">
+              {info.row.original.recipientEmail || "N/A"}
+            </div>
+          </div>
+        ),
+      },
+      
+     
+      
+      {
+        accessorKey: "statusType",
+        header: "Status",
+        cell: (info) => {
+          const status = info.getValue() || "PENDING";
+          const statusClasses = {
+            PENDING: "bg-yellow-100 text-yellow-800",
+            SENT: "bg-green-100 text-green-800",
+            FAILED: "bg-red-100 text-red-800",
+            CANCELLED: "bg-gray-100 text-gray-800"
+          };
+          return (
+            <span className={`px-2 py-1 rounded-sm text-xs font-[Inter-Regular] ${statusClasses[status] || "bg-blue-100 text-blue-800"}`}>
+              {status}
+            </span>
           );
         },
       },
       {
-        accessorKey: "currentStatus",
-        header: "Current Status",
+        accessorKey: "sentAt",
+        header: "Sent At",
         cell: (info) => {
-          const status = info.getValue();
-          const randomStyle = Math.random() < 0.5;
+          const sentAt = info.getValue();
           return (
-            <div
-              className={`${
-                randomStyle
-                  ? "bg-[#F3F4F6] border-[#6B7280]"
-                  : "bg-[#CCFBF1] border-[#0F766E]"
-              } inline-block h-hug24px rounded-md border px-2 py-1 text-sm text-left`}
-            >
-              {status}
-            </div>
+            <span className="text-xs font-[Inter-Medium] text-gray-700">
+              {sentAt ? new Date(sentAt).toLocaleString() : "Not sent yet"}
+            </span>
           );
         },
       },
-      {
-        accessorKey: "studentName",
-        header: "Student Name",
-        cell: (info) => (
-          <button
-            onClick={() => handleRowClick(info.row.original.id)}
-            className="text-left hover:text-primary-600"
-          >
-            {info.getValue()}
-          </button>
-        ),
-      },
-      {
-        accessorKey: "statusUpdatedOn",
-        header: "Status Updated On",
-        cell: (info) => (
-          <button
-            onClick={() => handleRowClick(info.row.original.id)}
-            className="text-left hover:text-primary-600"
-          >
-            {info.getValue()}
-          </button>
-        ),
-      },
+   
       {
         accessorKey: "actions",
         header: " ",
@@ -369,32 +179,18 @@ const NotificationsManagement = () => {
 
   // Filter data based on search query
   const filteredNotificationsData = useMemo(() => {
-    let filtered = DUMMY_DATA;
+    let filtered = notificationsData;
     
     if (searchQuery) {
       filtered = filtered.filter((item) =>
-        item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.remarks.toLowerCase().includes(searchQuery.toLowerCase())
+        item.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.studentName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.remarks?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     
     return filtered;
-  }, [searchQuery]);
-
-  const filteredStatusData = useMemo(() => {
-    let filtered = STATUS_REPORT_DATA;
-    
-    if (searchQuery) {
-      filtered = filtered.filter((item) =>
-        item.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.currentStatus.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.previousStatus.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    
-    return filtered;
-  }, [searchQuery]);
+  }, [searchQuery, notificationsData]);
 
   // Initialize table
   const [pagination, setPagination] = useState({
@@ -403,8 +199,8 @@ const NotificationsManagement = () => {
   });
 
   const table = useReactTable({
-    data: activeTab === "notifications" ? filteredNotificationsData : filteredStatusData,
-    columns: activeTab === "notifications" ? columns : statusReportColumns,
+    data: filteredNotificationsData,
+    columns: columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -443,34 +239,61 @@ const NotificationsManagement = () => {
       {/* Info Cards */}
       <div className="grid grid-cols-4 gap-4 px-6 mb-6">
         <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-          <h2 className="text-lg font-semibold text-gray-900">{DUMMY_DATA.length}</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{notificationsData.length}</h2>
           <p className="text-sm text-gray-500">Total Notifications</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm text-center">
           <h2 className="text-lg font-semibold text-gray-900">
-            {DUMMY_DATA.filter(item => item.priority === 'Urgent').length}
+            {notificationsData.filter(item => item.statusType === 'PENDING').length}
           </h2>
           <div className="text-sm text-gray-500 flex items-center justify-center gap-1">
-            Urgent Priority
-            <InfoIconHelper tooltip="Notifications requiring immediate attention" />
+            Pending
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-gray-500" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Notifications waiting to be sent</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm text-center">
           <h2 className="text-lg font-semibold text-gray-900">
-            {DUMMY_DATA.filter(item => item.priority === 'Important').length}
+            {notificationsData.filter(item => item.statusType === 'SENT').length}
           </h2>
           <div className="text-sm text-gray-500 flex items-center justify-center gap-1">
-            Important Priority
-            <InfoIconHelper tooltip="Notifications requiring attention soon" />
+            Sent
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-gray-500" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Notifications that have been sent</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm text-center">
           <h2 className="text-lg font-semibold text-gray-900">
-            {DUMMY_DATA.filter(item => item.priority === 'Anytime').length}
+            {notificationsData.filter(item => item.statusType === 'FAILED' || item.statusType === 'CANCELLED').length}
           </h2>
           <div className="text-sm text-gray-500 flex items-center justify-center gap-1">
-            Regular Priority
-            <InfoIconHelper tooltip="Notifications that can be handled at any time" />
+            Failed/Cancelled
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-gray-500" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Notifications that failed to send or were cancelled</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </div>
@@ -478,30 +301,9 @@ const NotificationsManagement = () => {
       {/* Table Container */}
       <div className="px-6 py-4">
         <div className="bg-white rounded-lg shadow">
-          {/* Tabs */}
-          <div className="border-b border-gray-200">
-            <div className="flex gap-8 px-4">
-              <button
-                onClick={() => setActiveTab("notifications")}
-                className={`py-4 px-1 border-b-2 ${
-                  activeTab === "notifications"
-                    ? "border-primary-500 text-primary-500"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                } font-medium text-sm focus:outline-none`}
-              >
-                System Notifications
-              </button>
-              <button
-                onClick={() => setActiveTab("status")}
-                className={`py-4 px-1 border-b-2 ${
-                  activeTab === "status"
-                    ? "border-primary-500 text-primary-500"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                } font-medium text-sm focus:outline-none`}
-              >
-                Status Report
-              </button>
-            </div>
+          {/* Header */}
+          <div className="border-b border-gray-200 px-6 py-4">
+            <h2 className="text-lg font-semibold text-gray-900">System Notifications</h2>
           </div>
 
           {/* Search and Controls */}
@@ -510,7 +312,7 @@ const NotificationsManagement = () => {
               <SearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
-                placeholder={activeTab === "notifications" ? "Search notifications" : "Search status"}
+                placeholder="Search notifications"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -536,44 +338,52 @@ const NotificationsManagement = () => {
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-sm divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <th
-                        key={header.id}
-                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {table.getRowModel().rows.map((row) => (
-                  <tr key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <td
-                        key={cell.id}
-                        className="px-3 py-1.5 whitespace-nowrap text-xs text-gray-900"
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {isLoading ? (
+              <div className="p-6 text-center text-gray-500">Loading notifications...</div>
+            ) : error ? (
+              <div className="p-6 text-center text-red-500">Error loading notifications</div>
+            ) : notificationsData.length === 0 ? (
+              <div className="p-6 text-center text-gray-500">No notifications found</div>
+            ) : (
+              <table className="w-full text-sm divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <th
+                          key={header.id}
+                          className="px-3 py-2 text-left text-sm font-[Inter-Regular] text-gray-700 capitalize"
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {table.getRowModel().rows.map((row) => (
+                    <tr key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className="px-3 py-1.5 whitespace-nowrap text-xs font-[Inter-Medium] text-gray-900"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
           {/* Pagination */}
           <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200 bg-white">

@@ -42,7 +42,7 @@ const GradeManagementProposalTable = ({
   const columnHelper = createColumnHelper();
   const [globalFilter, setGlobalFilter] = useState("");
 
-  console.log(data);
+  console.log("Proposal Table Data", data);
 
   const columns = useMemo(
     () => [
@@ -89,18 +89,17 @@ const GradeManagementProposalTable = ({
           );
         },
       }),
-      columnHelper.accessor("averageDefenseMark", {
-        header: "Mark Range",
-        cell: (info) => info.getValue() ? `${info.getValue()}%` : "-",
-      }),
-      columnHelper.accessor("defenseGrade", {
+   
+      columnHelper.accessor("defenses", {
         header: "Category",
         cell: (info) => {
-          const averageMark = info.row.original.averageDefenseMark;
+          const currentDefense = info.row.original.defenses?.find(d => d.isCurrent);
           let status = 'NOT GRADED';
           
-          if (averageMark !== null && averageMark !== undefined) {
-            status = averageMark >= 60 ? 'PASSED' : 'FAILED';
+          if (currentDefense && currentDefense.verdict?.toLowerCase().includes('pass')) {
+            status = 'PASSED';
+          } else if (currentDefense && currentDefense.verdict?.toLowerCase().includes('fail')) {
+            status = 'FAILED';
           }
 
           return (

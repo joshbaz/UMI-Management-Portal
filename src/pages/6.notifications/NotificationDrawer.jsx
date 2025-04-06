@@ -2,31 +2,96 @@
 import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { HiX } from 'react-icons/hi'
-import { DUMMY_DATA } from './NotificationsManagement'
+import { useGetNotifications } from '@/store/tanstackStore/services/queries'
+import { format } from 'date-fns'
 
 const NotificationDrawer = ({ isOpen, onClose, notificationId }) => {
+  // Fetch notifications data from API
+  const { data: notificationsData } = useGetNotifications();
+  const notifications = notificationsData?.notifications || [];
+  
   // Find the notification data based on the ID
-  const notificationData = DUMMY_DATA.find(item => item.id === notificationId) || {
-    id: 2,
-    type: "Proposal Submission Delayed",
-    studentName: "Apio Asiimwe",
+  const notificationData = notifications.find(item => item.id === notificationId) || {
+    type: "Notification Unavailable",
+    studentName: "Unknown Student",
     priority: "Important",
-    remarks: "Submission overdue by 7 days",
+    remarks: "Details not available",
   }
 
-  // Default student data
+  // Format date if available
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy');
+    } catch (e) {
+      return 'Invalid date';
+    }
+  };
+
+  // Calculate time ago
+  const getTimeAgo = (dateString) => {
+    if (!dateString) return 'N/A';
+    
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+      
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+      if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      if (diffDays < 30) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      
+      return formatDate(dateString);
+    } catch (e) {
+      return 'N/A';
+    }
+  };
+
+  // Get student name
+  const studentName = notificationData?.studentStatus?.student 
+    ? `${notificationData.studentStatus.student.firstName} ${notificationData.studentStatus.student.lastName}`
+    : notificationData.studentName || 'Unknown Student';
+
+  // Get student initials for avatar
+  const getInitials = (name) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  // Prepare data for display
   const data = {
-    name: notificationData.studentName,
-    studentId: 'C5X2Q4Y3V',
-    type: 'Masters Student',
-    dateOfAdmission: '29/01/2025',
-    currentStatus: 'Normal Progress',
-    totalTime: '120 days',
+    name: studentName,
+    studentId: notificationData.studentStatus?.student?.studentId || 'N/A',
+    type: notificationData.studentStatus?.student?.type || 'Student',
+    dateOfAdmission: formatDate(notificationData.studentStatus?.student?.createdAt),
+    currentStatus: notificationData.studentStatus?.definition?.name || 'Status Unknown',
+    totalTime: notificationData.studentStatus?.totalDays 
+      ? `${notificationData.studentStatus.totalDays} days` 
+      : 'N/A',
     notificationType: notificationData.type,
     notificationDetail: notificationData.remarks,
-    system: 'DRIMS System',
-    timeAgo: '2 hours ago'
+    message: notificationData.message || 'No message content',
+    system: notificationData.system || 'UMI System',
+    timeAgo: getTimeAgo(notificationData.createdAt),
+    statusType: notificationData.statusType || 'PENDING',
+    recipientName: notificationData.recipientName,
+    recipientEmail: notificationData.recipientEmail,
+    sentAt: formatDate(notificationData.sentAt)
   }
+
+  // Status styling
+  const getStatusStyle = (status) => {
+    const statusClasses = {
+      PENDING: "bg-yellow-100 text-yellow-800",
+      SENT: "bg-green-100 text-green-800",
+      FAILED: "bg-red-100 text-red-800",
+      CANCELLED: "bg-gray-100 text-gray-800"
+    };
+    return statusClasses[status] || "bg-blue-100 text-blue-800";
+  };
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
@@ -60,7 +125,7 @@ const NotificationDrawer = ({ isOpen, onClose, notificationId }) => {
                     <div className="flex justify-center py-4 mt-8 mb-5">
                       <div className="flex justify-between items-center bg-white rounded-lg border p-4 w-[460px]">
                         <Dialog.Title className="text-sm font-medium text-gray-900">
-                          Notification
+                          Notification Details
                         </Dialog.Title>
                         <button
                           onClick={onClose}
@@ -74,14 +139,14 @@ const NotificationDrawer = ({ isOpen, onClose, notificationId }) => {
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 flex flex-col items-center space-y-6 mt-4">
+                    <div className="flex-1 flex flex-col items-center space-y-6 mt-4 pb-8 overflow-y-auto">
                       {/* Profile Container */}
                       <div className="flex justify-center">
                         <div className="flex justify-between items-start bg-white rounded-lg border p-4 w-[460px]">
                           <div className="flex gap-3">
-                            <div className="bg-gray-400 rounded-full w-10 h-10 flex items-center justify-center">
+                            <div className="bg-primary-500 rounded-full w-10 h-10 flex items-center justify-center">
                               <span className="text-white text-sm font-medium">
-                                {data.name?.split(' ').map(n => n[0]).join('')}
+                                {getInitials(data.name)}
                               </span>
                             </div>
                             <div>
@@ -106,7 +171,7 @@ const NotificationDrawer = ({ isOpen, onClose, notificationId }) => {
                             </div>
                             <div>
                               <p className="text-gray-600 text-sm">Current Status</p>
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 {data.currentStatus}
                               </span>
                             </div>
@@ -130,14 +195,30 @@ const NotificationDrawer = ({ isOpen, onClose, notificationId }) => {
                                 {data.notificationDetail}
                               </p>
                             </div>
-                            <button
-                              className="rounded bg-white px-4 py-2 text-sm border border-gray-200 hover:bg-gray-50"
-                              onClick={onClose}
-                            >
-                              Notify Admin
-                            </button>
+                            <span className={`px-2 py-1 rounded-sm text-xs font-[Inter-Regular] ${getStatusStyle(data.statusType)}`}>
+                              {data.statusType}
+                            </span>
                           </div>
-                          <div className="flex items-center justify-between">
+                          <div className="mt-4 border-t pt-4">
+                            
+                            <p className="text-gray-600 text-sm mb-2">Recipient Information</p>
+                            <div className="flex justify-between mb-2">
+                              <span className="text-gray-700 font-medium">{data.recipientName || 'N/A'}</span>
+                              <span className="text-gray-500 text-sm">{data.recipientEmail || 'N/A'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600 text-sm">Sent At:</span>
+                              <span className="text-gray-700 text-sm">{data.sentAt}</span>
+                            </div>
+
+                            <p className="text-gray-600 text-sm mt-2">Message</p>
+                            <div className="bg-gray-50 p-3 rounded-md mb-4">
+                              <p className="text-gray-800 text-sm whitespace-pre-wrap">
+                                {data.message}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between mt-4">
                             <div className="flex items-center gap-2">
                               <div className="bg-yellow-100 rounded-full w-6 h-6 flex items-center justify-center">
                                 <span className="text-yellow-800 text-xs">⚠</span>

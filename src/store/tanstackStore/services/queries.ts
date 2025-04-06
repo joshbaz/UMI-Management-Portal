@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService } from './api';
+import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService } from './api';
 
 export const useGetLoggedInUserDetails = () => {
   return useQuery({
@@ -374,3 +374,28 @@ export const useGetProgressTrends = (timeRange: string) => {
   });
 };
 /* ********** END OF DASHBOARD MANAGEMENT ********** */
+
+/* ********** NOTIFICATION MANAGEMENT ********** */
+
+export const useGetNotifications = () => {
+  return useQuery({
+    queryKey: ['notifications'],
+    queryFn: getNotificationsService,
+    staleTime: 300000, // 5 minutes
+    refetchInterval: false,
+    retry: 1,
+  });
+};
+/* ********** END OF NOTIFICATION MANAGEMENT ********** */
+
+/* ********** PROPOSAL DEFENSE MANAGEMENT ********** */
+
+export const useGetProposalDefenses = () => {
+  return useQuery({
+    queryKey: ['proposalDefenses'],
+    queryFn: getProposalDefensesService,
+    staleTime: Infinity, // 1 minute
+    refetchInterval: false,
+  });
+};
+/* ********** END OF PROPOSAL DEFENSE MANAGEMENT ********** */

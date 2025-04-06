@@ -6,25 +6,21 @@ import { Icon } from "@iconify-icon/react";
 import { useGetProposal } from "../../store/tanstackStore/services/queries";
 import GradeProposalTableTabs from "./GradeProposalTableTabs";
 import GradeProposalReviewerTable from "./GradeProposalReviewerTable";
-import GradeProposalPanelistTable from "./GradeProposalPanelistTable";
 import GradeProposalUpdateReviewerMark from "./GradeProposalUpdateReviewerMark";
-import GradeProposalUpdatePanelistMark from "./GradeProposalUpdatePanelistMark";
 import GradeProposalViewReviewerMark from "./GradeProposalViewReviewerMark";
-import GradeProposalViewPanelistMark from "./GradeProposalViewPanelistMark";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
 import { useMutation } from "@tanstack/react-query";
 import { addDefenseDateService, addComplianceReportDateService, updateFieldLetterDateService } from "../../store/tanstackStore/services/api";
 import { toast } from "sonner";
 import { queryClient } from "../../utils/tanstack";
 import GradeProposalGenerateFieldLetter from "./GradeProposalGenerateFieldLetter";
+import GradeProposalDefenseTable from "./GradeProposalDefenseTable";
 
 const GradeProposal = () => {
   let navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Reviewers");
   const [isUpdateReviewerDrawerOpen, setIsUpdateReviewerDrawerOpen] = useState(false);
-  const [isUpdatePanelistDrawerOpen, setIsUpdatePanelistDrawerOpen] = useState(false);
   const [isViewReviewerDrawerOpen, setIsViewReviewerDrawerOpen] = useState(false);
-  const [isViewPanelistDrawerOpen, setIsViewPanelistDrawerOpen] = useState(false);
   const [selectedReviewer, setSelectedReviewer] = useState(null);
   const [selectedPanelist, setSelectedPanelist] = useState(null);
   const [isDefenseDateDialogOpen, setIsDefenseDateDialogOpen] = useState(false);
@@ -151,7 +147,6 @@ const GradeProposal = () => {
 
   const handlePanelistUpdateClick = useCallback((panelist) => {
     setSelectedPanelist(panelist);
-    setIsUpdatePanelistDrawerOpen(true);
   }, []);
 
   const handleViewReviewerClick = useCallback((reviewer) => {
@@ -161,7 +156,6 @@ const GradeProposal = () => {
 
   const handleViewPanelistClick = useCallback((panelist) => {
     setSelectedPanelist(panelist);
-    setIsViewPanelistDrawerOpen(true);
   }, []);
 
   const hasPassedProposalGraded = useMemo(() => {
@@ -193,7 +187,9 @@ const GradeProposal = () => {
   return (
     <div className="space-y-4">
       {/* Top Search Bar */}
-      <div className="flex px-6 justify-between items-center border-b border-gray-300 h-[89px]"></div>
+      <div className="flex px-6 justify-end items-center border-b border-gray-300 h-[89px]">
+      <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
+      </div>
 
       {/* Header */}
       <div className="flex justify-between items-center px-6 py-1">
@@ -314,7 +310,7 @@ const GradeProposal = () => {
             </div>
           </div>
 
-          <div>
+          {/* <div>
             <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
               Letter to Field
             </h3>
@@ -331,7 +327,7 @@ const GradeProposal = () => {
                 Generate
               </button>
             </div>
-          </div>
+          </div> */}
 
           <div>
             <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
@@ -358,10 +354,24 @@ const GradeProposal = () => {
         <GradeProposalTableTabs activeTab={activeTab} setActiveTab={setActiveTab} />
         
         <div className="px-4 mt-4">
-          {activeTab === "Reviewers" ? (
-            <GradeProposalReviewerTable reviewers={reviewers} proposalId={proposalId} refetchProposal={refetchProposal} onUpdateClick={handleReviewerUpdateClick} reviewGrades={proposal?.proposal?.reviewGrades} onViewClick={handleViewReviewerClick} />
-          ) : (
-            <GradeProposalPanelistTable panelists={proposal?.proposal?.panelists || []} proposalId={proposalId} onUpdateClick={handlePanelistUpdateClick} defenseGrades={proposal?.proposal?.defenseGrades} onViewClick={handleViewPanelistClick} />
+          {activeTab === "Reviewers" && (
+            <GradeProposalReviewerTable 
+              reviewers={reviewers} 
+              proposalId={proposalId} 
+              refetchProposal={refetchProposal} 
+              onUpdateClick={handleReviewerUpdateClick} 
+              reviewGrades={proposal?.proposal?.reviewGrades} 
+              onViewClick={handleViewReviewerClick} 
+            />
+          )}
+          
+          {activeTab === "Proposal defense" && (
+            <GradeProposalDefenseTable 
+             
+              proposalId={proposalId} 
+            
+              
+            />
           )}
         </div>
       </div>
@@ -371,12 +381,6 @@ const GradeProposal = () => {
 
       {/** View Reviewer Mark */}
       <GradeProposalViewReviewerMark isOpen={isViewReviewerDrawerOpen} onClose={() => setIsViewReviewerDrawerOpen(false)} reviewer={selectedReviewer} proposalId={proposalId} proposal={proposal?.proposal} />
-
-      {/** Update Panelist Mark */}
-      <GradeProposalUpdatePanelistMark isOpen={isUpdatePanelistDrawerOpen} onClose={() => setIsUpdatePanelistDrawerOpen(false)} panelist={selectedPanelist} proposalId={proposalId} proposal={proposal} />
-
-      {/** View Panelist Mark */}
-      <GradeProposalViewPanelistMark isOpen={isViewPanelistDrawerOpen} onClose={() => setIsViewPanelistDrawerOpen(false)} panelist={selectedPanelist} proposalId={proposalId} proposal={proposal?.proposal} />
 
       {/** Defense Date Dialog */}
       <Dialog open={isDefenseDateDialogOpen} onOpenChange={setIsDefenseDateDialogOpen}>

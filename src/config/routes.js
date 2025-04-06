@@ -38,6 +38,10 @@ export const ROUTES = {
     ADD: '/assign-supervisor/add/:id',
     DETAILS: '/faculty/:id'
   },
+  STATISTICS: {
+    ROOT: '/statistics',
+   
+  },
   NOTIFICATIONS: '/notifications',
   TABLES: '/table-builder',
   SETTINGS: '/settings'

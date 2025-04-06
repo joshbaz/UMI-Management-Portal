@@ -40,7 +40,7 @@ const AccountSettings = ({ studentData }) => {
       // Handle success
       console.log("Student updated successfully");
       toast.success("Student updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["student"] });
+      queryClient.resetQueries({ queryKey: ["student"] });
     },
     onError: (error) => {
       // Handle error
@@ -58,7 +58,7 @@ const AccountSettings = ({ studentData }) => {
       // Handle success
       console.log("Student password updated successfully");
       toast.success("Student password updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["student"] });
+      queryClient.resetQueries({ queryKey: ["student"] });
     },
     onError: (error) => {
       // Handle error
@@ -75,7 +75,7 @@ const AccountSettings = ({ studentData }) => {
     
       toast.success("Student account deleted successfully");
       navigate("/students", { replace: true });
-      queryClient.invalidateQueries({ queryKey: ["student"] });
+      queryClient.resetQueries({ queryKey: ["student"] });
    
     },
     onError: (error) => {

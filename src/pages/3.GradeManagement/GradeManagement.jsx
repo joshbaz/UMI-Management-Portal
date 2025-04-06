@@ -100,17 +100,13 @@ const GradeManagement = () => {
 
   const passedBooks = useMemo(() => {
     return (booksData?.books || []).filter(book => {
-      return book.statuses?.some(status =>
-        status.definition?.name?.includes("passed-book graded")  
-      );
+      return book.averageExamMark >= 60;
     }).length;
   }, [booksData?.books]);
 
   const failedBooks = useMemo(() => {
     return (booksData?.books || []).filter(book => {
-      return book.statuses?.some(status =>
-        status.definition?.name?.includes("failed-book graded")
-      );
+      return book.averageExamMark < 60;
     }).length;
   }, [booksData?.books]);
 

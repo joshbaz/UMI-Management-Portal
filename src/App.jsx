@@ -40,8 +40,6 @@ import NotificationsManagement from "./pages/6.notifications/NotificationsManage
 import TableBuilder from "./pages/tables";
 import Settings from "./pages/settings";
 import EditSchool from "./pages/5.schools/EditSchool";
-import SupervisorManagement from "./pages/7.supervisors/SupervisorManagement";
-import AssignSupervisor from "./pages/7.supervisors/AssignSupervisor";
 import RegisterSuperAdmin from "./pages/0.auth/RegisterSuperAdmin";
 import AddStudent from "./pages/2.student/AddStudent";
 import AddSupervisor from "./pages/4.faculty/AddSupervisor";
@@ -53,6 +51,7 @@ import GradeBook from "./pages/3.GradeManagement/GradeBook";
 import GradeBookAddExternalExaminer from "./pages/3.GradeManagement/GradeBookAddExternalExaminer";
 import UserRolesManagement from "./pages/9.roles/UserRolesManagement";
 import UserManagementView from "./pages/9.roles/UserManagementView";
+import FacultyStatsManagement from "./pages/7.FacultyStatistics/FacultyStatsManagement";
 // PublicRoute: Redirects authenticated users away from public pages (like login)
 // If user is authenticated, redirects to dashboard
 // If user is not authenticated, shows the public page content
@@ -151,9 +150,14 @@ const AppRoutes = () => {
         </Route>
 
         {/* Assign Supervisor */}
-        <Route path={ROUTES.SUPERVISOR.ROOT}>
+        {/* <Route path={ROUTES.SUPERVISOR.ROOT}>
           <Route index element={<SupervisorManagement />} />
           <Route path={ROUTES.SUPERVISOR.ADD} element={<AssignSupervisor />} />
+        </Route> */}
+
+        {/* Faculty Statistics */}
+        <Route path={ROUTES.STATISTICS.ROOT}>
+          <Route index element={<FacultyStatsManagement />} />
         </Route>
 
         {/* Other Routes */}

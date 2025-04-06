@@ -42,6 +42,7 @@ const GradeManagementBookTable = ({
   const columnHelper = createColumnHelper();
   const [globalFilter, setGlobalFilter] = useState("");
  
+  console.log("Book Table Data", data);
   const columns = useMemo(
     () => [
       columnHelper.accessor("bookCode", {
@@ -87,14 +88,14 @@ const GradeManagementBookTable = ({
           );
         },
       }),
-      columnHelper.accessor("averageBookMark", {
+      columnHelper.accessor("averageExamMark", {
         header: "Mark Range",
         cell: (info) => info.getValue() ? `${info.getValue()}%` : "-",
       }),
       columnHelper.accessor("bookGrade", {
         header: "Category",
         cell: (info) => {
-          const averageMark = info.row.original.averageBookMark;
+          const averageMark = info.row.original.averageExamMark;
           let status = 'NOT GRADED';
           
           if (averageMark !== null && averageMark !== undefined) {

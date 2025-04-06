@@ -14,7 +14,6 @@ const Sidebar = () => {
 
   const { data } = useGetLoggedInUserDetails();
 
-  console.log(data);
 
   const handleLogout = () => {
     logout();
