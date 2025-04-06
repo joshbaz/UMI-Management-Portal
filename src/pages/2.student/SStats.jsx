@@ -11,7 +11,7 @@ const SStats = ({ stats }) => {
   const isLoading = !stats;
 
   return (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="grid grid-cols-4 gap-4 px-6">
       <div className="bg-[#FDFDFE] border border-[#E5E7EB] p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
         {isLoading ? (
           <div className="animate-pulse">

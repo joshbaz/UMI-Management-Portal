@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { FiSearch } from "react-icons/fi";
-import { HiArrowLeft } from "react-icons/hi";
-import { HiOutlineChartBar, HiOutlineCog } from "react-icons/hi";
+
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetStudent } from "../../store/tanstackStore/services/queries";
 import StudentProfileProgressPage from "./StudentProfileProgressPage.jsx";
@@ -12,22 +11,6 @@ import { Icon } from "@iconify-icon/react";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 
-const SearchBar = ({ value, onChange, placeholder = "Search" }) => {
-  return (
-    <div className="relative">
-      <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-        <FiSearch className="h-4 w-4 text-gray-400" />
-      </div>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-        placeholder={placeholder}
-      />
-    </div>
-  );
-};
 
 const StudentProfile = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -96,11 +79,12 @@ const StudentProfile = () => {
     <div ref={containerRef} className="min-h-full bg-gray-50">
     {/* Top Search Bar */}
    <div className="flex px-6 justify-between items-center border-b border-gray-300 h-[89px]">
-     
+    <p className="text-sm font-[Inter-SemiBold]  text-gray-900">Management Portal</p>
+   <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
    </div>
 
    {/* Header */}
-   <div className="flex justify-between items-center px-6 py-4">
+   <div className="flex justify-between items-center px-6 py-6">
      <h1 className="text-2xl font-[Inter-Medium]">
        Student Profile
      </h1>

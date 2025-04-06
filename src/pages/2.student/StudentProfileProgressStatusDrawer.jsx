@@ -209,16 +209,7 @@ const StudentStatusDrawer = ({ isOpen, onClose, studentId, studentData, selected
                         </div> */}
 
                         {/* More Details Button */}
-                        <div className="flex justify-center">
-                          <button
-                            onClick={() =>
-                              navigate(`/students/profile/${data.studentId}`)
-                            }
-                            className="bg-primary-500 text-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-[Inter-SemiBold] hover:text-primary-500 hover:border-primary-500 hover:bg-gray-50"
-                          >
-                            View More Details
-                          </button>
-                        </div>
+                     
                       </div>
                     </div>
                   </div>

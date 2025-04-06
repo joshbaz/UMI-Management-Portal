@@ -434,7 +434,7 @@ const StudentProfileProgressPage = ({ studentData }) => {
         <div className="flex gap-4 px-4 pt-4">
           <button
             onClick={() => handleViewChange("tracker")}
-            className={`text-sm font-[Inter-Medium] border py-1 px-2 rounded-lg cursor-pointer select-none ${
+            className={`text-sm font-[Inter-Medium] border py-1 px-2 rounded-lg !cursor-pointer select-none ${
               activeView === "tracker"
                 ? "border-secondary-800 bg-secondary-100  text-primary-800"
                 : "border-secondary-700 bg-white text-secondary-800"
@@ -445,7 +445,7 @@ const StudentProfileProgressPage = ({ studentData }) => {
 
           <button
             onClick={() => handleViewChange("proposal")}
-            className={`text-sm font-[Inter-Medium] border py-1 px-2 rounded-lg cursor-pointer select-none ${
+            className={`text-sm font-[Inter-Medium] border py-1 px-2 rounded-lg !cursor-pointer select-none ${
               activeView === "proposal"
                 ? "border-secondary-800 bg-secondary-100  text-primary-900"
                 : "border-secondary-700 bg-white text-secondary-800"
@@ -456,7 +456,7 @@ const StudentProfileProgressPage = ({ studentData }) => {
 
           <button
             onClick={() => handleViewChange("book")}
-            className={`text-sm font-[Inter-Medium] border py-1 px-2 rounded-lg cursor-pointer select-none ${
+            className={`text-sm font-[Inter-Medium] border py-1 px-2 rounded-lg !cursor-pointer select-none ${
               activeView === "book"
                 ? "border-secondary-800 bg-secondary-100  text-primary-900"
                 : "border-secondary-700 bg-white text-secondary-800"

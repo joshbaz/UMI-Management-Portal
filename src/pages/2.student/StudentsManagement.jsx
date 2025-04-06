@@ -90,15 +90,16 @@ const StudentsManagement = () => {
 
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className=" mx-auto space-y-6">
       {/* Search Bar */}
-      <div>
-        <SSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        <div className="border-b border-gray-300 h-1 w-full mx-auto mt-3"></div>
+      {/* Top Search Bar */}
+      <div className="flex items-center justify-end  px-6 pb-0 w-full h-[88px] border-b border-gray-200">
+        {/* <h2 className="text-lg font-[Inter-SemiBold] text-gray-800">DRIMS</h2> */}
+        <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
       </div>
 
       {/* Header */}
-      <div className="flex justify-between items-center p-4">
+      <div className="flex justify-between items-center px-6 py-3">
         <h1 className="text-2xl font-semibold text-gray-800">Postgraduate Students Records</h1>
         <span className="text-sm text-gray-500">
           Last login: {format(new Date(), "MM-dd-yyyy hh:mm:ssaa")}

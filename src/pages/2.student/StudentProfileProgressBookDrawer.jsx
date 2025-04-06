@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useGetStudentBooks } from "../../store/tanstackStore/services/queries";
 
 const getCategoryStyle = (status) => {
@@ -37,7 +37,7 @@ const getCategoryStyle = (status) => {
 
 const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData, studentData }) => {
   let {id:studentId} = useParams();
-
+  let navigate = useNavigate();
   const { data: books } = useGetStudentBooks(studentId);
 
   const book = useMemo(() => {
@@ -65,6 +65,11 @@ const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData, studentDa
     if (book.grade) return book.grade;
     if (book.averageExamMark >= 60) return 'PASSED';
     return book.averageExamMark ? 'FAILED' : 'NOT GRADED';
+  }, [book]);
+
+  const currentViva = useMemo(() => {
+    if (!book?.vivaHistory?.length) return null;
+    return book.vivaHistory.find(v => v.isCurrent) || book.vivaHistory[book.vivaHistory.length - 1];
   }, [book]);
 
   return (
@@ -144,7 +149,7 @@ const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData, studentDa
               <div>
                 <Label className="text-sm font-[Inter-Regular] text-gray-500">Viva Date</Label>
                 <p className="text-gray-900 text-base font-[Inter-Regular]">
-                  {book.vivaDate ? format(new Date(book.vivaDate), "MMM d, yyyy") : "-"}
+                {currentViva?.scheduledDate ? format(new Date(currentViva.scheduledDate), "MMM d, yyyy") : "-"}
                 </p>
               </div>
 
@@ -230,6 +235,9 @@ const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData, studentDa
               {/* More Details Button */}
               <div className="mt-5 w-full flex justify-center mx-auto">
                 <Button
+                onClick={() => {
+                  navigate(`/grades/book/${book.id}`);
+                }}
                   variant="outline"
                   className="bg-primary-500 text-white hover:text-primary-500 hover:border-primary-500"
                 >

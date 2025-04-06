@@ -69,7 +69,7 @@ const getCategoryStyle = (status) => {
               borderRadius: '0.375rem',
               display: 'inline-block'
             }}
-            className="capitalize"
+           className="capitalize break-words  whitespace-normal"
           >
             {statusName}
           </span>
@@ -82,10 +82,15 @@ const getCategoryStyle = (status) => {
       cell: (info) =>
         info.getValue() ? format(new Date(info.getValue()), 'MMM d, yyyy') : "-",
     }),
-    columnHelper.accessor("vivaDate", {
+    columnHelper.accessor("vivaHistory", {
       header: "Viva",
-      cell: (info) =>
-        info.getValue() ? format(new Date(info.getValue()), 'MMM d, yyyy') : "-",
+      cell: (info) => {
+        const vivaHistory = info.getValue();
+        const currentViva = vivaHistory?.find(v => v.isCurrent);
+        return currentViva?.scheduledDate 
+          ? format(new Date(currentViva.scheduledDate), 'MMM d, yyyy') 
+          : "-";
+      },
     }),
     columnHelper.accessor("gradedAt", {
       header: "Graded",
@@ -201,7 +206,7 @@ const getCategoryStyle = (status) => {
             {row.getVisibleCells().map((cell) => (
               <td 
                 key={cell.id} 
-                className="px-4 py-2 whitespace-nowrap text-[#111827] font-[Inter-Regular] text-[14px] leading-[20px]"
+                className="px-4 py-2 whitespace-nowrap text-[#111827] font-[Inter-Regular] text-xs"
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </td>

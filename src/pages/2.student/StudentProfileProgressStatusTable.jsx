@@ -43,7 +43,7 @@ const StudentProfileProgressStatusTable = ({statuses, isLoading, setIsStatusDraw
                 borderRadius: '0.375rem',
                 display: 'inline-block'
               }}
-              className="capitalize"
+              className="capitalize whitespace-normal text-xs font-[Inter-Regular]"
             >
               {info.getValue()?.toLowerCase() || 'Unknown'}
             </span>
@@ -66,32 +66,7 @@ const StudentProfileProgressStatusTable = ({statuses, isLoading, setIsStatusDraw
             return daysDiff || '-';
           }
         }),
-        columnHelper.accessor("notificationsSent", {
-          header: "Notifications",
-          cell: (info) => {
-            const notifications = info.getValue();
-            if (!notifications?.length) return 'N/A';
-            return (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="flex items-center gap-1">
-                      <span>{notifications.length}</span>
-                      <Icon icon="mdi:bell" className="w-4 h-4 text-gray-400" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {notifications.map((notification, i) => (
-                      <div key={i} className="text-sm">
-                        {notification.type}: {notification.message}
-                      </div>
-                    ))}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            );
-          }
-        }),
+     
         columnHelper.accessor("updatedBy.name", {
           header: "Updated By",
           cell: (info) => {
