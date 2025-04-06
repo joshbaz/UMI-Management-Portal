@@ -116,7 +116,7 @@ const StudentsManagement = () => {
       />
 
       {/* Tabs, Search, Table, and Pagination */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white p-6 rounded-lg shadow-md mx-6 mb-8">
         {/* Tabs */}
         <StudentTabs  
           selectedCategory={selectedCategory} 
@@ -138,6 +138,7 @@ const StudentsManagement = () => {
             </button>
           </div>
         </div>
+
 
         {/* Student Table */}
         <StudentTable 

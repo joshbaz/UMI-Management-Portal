@@ -144,10 +144,25 @@ const proposal = useMemo(() => {
 
                 {/* Grade */}
                 <div className="flex flex-col gap-2 w-max">
-                  <Label className="text-sm font-[Inter-Regular] text-gray-500">Grade</Label>
-                  <span className={getCategoryStyle(proposal.averageDefenseMark >= 60 ? 'PASSED' : proposal.averageDefenseMark ? 'FAILED' : 'NOT GRADED')}>
-                  {proposal.averageDefenseMark >= 60 ? 'PASSED' : proposal.averageDefenseMark ? 'FAILED' : 'NOT GRADED'}
-                  </span>
+                  <Label className="text-sm font-[Inter-Regular] text-gray-500">Verdict</Label>
+                  {(() => {
+                    const defenses = proposal.defenses || [];
+                    const currentDefense = defenses.find(defense => defense.isCurrent);
+                    
+                    return (
+                      <div className="flex flex-col">
+                        {currentDefense && currentDefense.verdict ? (
+                          <span className="text-gray-900 text-base font-[Inter-Regular]">
+                            {currentDefense.verdict}
+                          </span>
+                        ) : (
+                          <span className="text-gray-500 text-sm italic">
+                            No verdict available
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Reviewers */}
@@ -182,23 +197,29 @@ const proposal = useMemo(() => {
                     <Label className="text-sm font-[Inter-Regular] text-gray-500">Panelists</Label>
                   </div>
                   <div className="space-y-2">
-                    {proposal.panelists?.length > 0 ? (
-                      proposal.panelists.map((panelist) => (
-                        <div key={panelist.id} className="flex items-center gap-2">
-                          <span className="text-gray-900 text-base font-[Inter-Regular]">{panelist.name}</span>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Icon icon="tdesign:info-circle-filled" className="w-4 h-4 text-gray-400" />
-                              </TooltipTrigger>
-                              <TooltipContent>{panelist.email}</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 text-sm italic">No panelists assigned</p>
-                    )}
+                    {(() => {
+                      const defenses = proposal.defenses || [];
+                      const currentDefense = defenses.find(defense => defense.isCurrent);
+                      const panelists = currentDefense?.panelists || [];
+                      
+                      return panelists.length > 0 ? (
+                        panelists.map((panelist) => (
+                          <div key={panelist.id} className="flex items-center gap-2">
+                            <span className="text-gray-900 text-base font-[Inter-Regular]">{panelist.name}</span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Icon icon="tdesign:info-circle-filled" className="w-4 h-4 text-gray-400" />
+                                </TooltipTrigger>
+                                <TooltipContent>{panelist.email}</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-500 text-sm italic">No panelists assigned</p>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

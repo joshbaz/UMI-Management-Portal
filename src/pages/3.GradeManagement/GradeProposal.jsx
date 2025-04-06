@@ -6,11 +6,10 @@ import { Icon } from "@iconify-icon/react";
 import { useGetProposal } from "../../store/tanstackStore/services/queries";
 import GradeProposalTableTabs from "./GradeProposalTableTabs";
 import GradeProposalReviewerTable from "./GradeProposalReviewerTable";
-import GradeProposalUpdateReviewerMark from "./GradeProposalUpdateReviewerMark";
 import GradeProposalViewReviewerMark from "./GradeProposalViewReviewerMark";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
 import { useMutation } from "@tanstack/react-query";
-import { addDefenseDateService, addComplianceReportDateService, updateFieldLetterDateService } from "../../store/tanstackStore/services/api";
+import { addComplianceReportDateService, updateFieldLetterDateService } from "../../store/tanstackStore/services/api";
 import { toast } from "sonner";
 import { queryClient } from "../../utils/tanstack";
 import GradeProposalGenerateFieldLetter from "./GradeProposalGenerateFieldLetter";
@@ -23,29 +22,13 @@ const GradeProposal = () => {
   const [isViewReviewerDrawerOpen, setIsViewReviewerDrawerOpen] = useState(false);
   const [selectedReviewer, setSelectedReviewer] = useState(null);
   const [selectedPanelist, setSelectedPanelist] = useState(null);
-  const [isDefenseDateDialogOpen, setIsDefenseDateDialogOpen] = useState(false);
   const [isComplianceReportDialogOpen, setIsComplianceReportDialogOpen] = useState(false);
   const [isFieldLetterDateDialogOpen, setIsFieldLetterDateDialogOpen] = useState(false);
-  const [defenseDate, setDefenseDate] = useState("");
   const [complianceReportDate, setComplianceReportDate] = useState("");
   const [fieldLetterDate, setFieldLetterDate] = useState("");
-  const [isReschedule, setIsReschedule] = useState(false);
   const [isFieldLetterDialogOpen, setIsFieldLetterDialogOpen] = useState(false);
   const { id: proposalId } = useParams();
   const { data: proposal, isPending: isLoading, error, refetch:refetchProposal } = useGetProposal(proposalId);
-
-  const addDefenseDateMutation = useMutation({
-    mutationFn: ({ proposalId, defenseDate, type }) => addDefenseDateService(proposalId, defenseDate, type),
-    onSuccess: () => {
-      toast.success("Defense date updated successfully");
-      queryClient.resetQueries({ queryKey: ["proposal", proposalId] });
-      setIsDefenseDateDialogOpen(false);
-      setDefenseDate("");
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to update defense date");
-    }
-  });
 
   const addComplianceReportDateMutation = useMutation({
     mutationFn: ({ proposalId, complianceReportDate }) => addComplianceReportDateService(proposalId, complianceReportDate),
@@ -72,29 +55,6 @@ const GradeProposal = () => {
       toast.error(error.message || "Failed to update field letter date");
     }
   });
-
-  const handleScheduleDefense = () => {
-    setIsReschedule(false);
-    setIsDefenseDateDialogOpen(true);
-  };
-
-  const handleRescheduleDefense = () => {
-    setIsReschedule(true);
-    setIsDefenseDateDialogOpen(true);
-  };
-
-  const handleDefenseDateSubmit = (e) => {
-    e.preventDefault();
-    if (!defenseDate) {
-      toast.error("Please select a defense date");
-      return;
-    }
-    addDefenseDateMutation.mutate({
-      proposalId,
-      defenseDate,
-      type: isReschedule ? "reschedule" : "schedule"
-    });
-  };
 
   const handleComplianceReportDateSubmit = (e) => {
     e.preventDefault();
@@ -187,7 +147,8 @@ const GradeProposal = () => {
   return (
     <div className="space-y-4">
       {/* Top Search Bar */}
-      <div className="flex px-6 justify-end items-center border-b border-gray-300 h-[89px]">
+      <div className="flex px-6 justify-between items-center border-b border-gray-300 h-[89px]">
+        <p className="text-sm font-[Inter-SemiBold]  text-gray-900">Management Portal</p>
       <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
       </div>
 
@@ -219,43 +180,15 @@ const GradeProposal = () => {
       </div>
 
 {/* Proposal Details */}
-      <div className="grid grid-cols-4 px-6">
+      <div className="grid grid-cols-3 px-6">
         <div>
           <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
             Proposal ID
           </h3>
           <div className="flex gap-2">
-            <span className="text-sm font-[Inter-Regular] text-gray-900">
-              {proposalId || "Not Available"}
+          <span className="text-sm text-primary-500 font-[Inter-Medium] ">
+              {proposal?.proposal?.proposalCode}
             </span>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
-            Defense Date
-          </h3>
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-[Inter-Regular] text-gray-900">
-              {proposal?.proposal?.defenseDate 
-                ? format(new Date(proposal.proposal.defenseDate), "dd-MMM-yyyy")
-                : "Not Scheduled"}
-            </span>
-            {proposal?.proposal?.defenseDate ? (
-              <button
-                className="px-2 py-1 text-xs font-[Inter-Medium] text-white bg-accent2-600 rounded hover:bg-accent2-700"
-                onClick={() => handleRescheduleDefense()}
-              >
-                Reschedule
-              </button>
-            ) : (
-              <button 
-                className="px-2 py-1 text-xs font-[Inter-Medium] text-white bg-accent2-600 rounded hover:bg-accent2-700"
-                onClick={() => handleScheduleDefense()}
-              >
-                Schedule
-              </button>
-            )}
           </div>
         </div>
 
@@ -290,7 +223,7 @@ const GradeProposal = () => {
 
 {/* Compliance Report and Letter to Field */}
       {hasPassedProposalGraded && (
-        <div className="grid grid-cols-4 px-6 mt-8">
+        <div className="grid grid-cols-3 px-6 mt-8">
           <div>
             <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
               Compliance Report
@@ -377,50 +310,10 @@ const GradeProposal = () => {
       </div>
 
       {/** Update Reviewer Mark */}
-      <GradeProposalUpdateReviewerMark isOpen={isUpdateReviewerDrawerOpen} onClose={() => setIsUpdateReviewerDrawerOpen(false)} reviewer={selectedReviewer} proposalId={proposalId} proposal={proposal?.proposal} />
+      {/* <GradeProposalUpdateReviewerMark isOpen={isUpdateReviewerDrawerOpen} onClose={() => setIsUpdateReviewerDrawerOpen(false)} reviewer={selectedReviewer} proposalId={proposalId} proposal={proposal?.proposal} /> */}
 
       {/** View Reviewer Mark */}
       <GradeProposalViewReviewerMark isOpen={isViewReviewerDrawerOpen} onClose={() => setIsViewReviewerDrawerOpen(false)} reviewer={selectedReviewer} proposalId={proposalId} proposal={proposal?.proposal} />
-
-      {/** Defense Date Dialog */}
-      <Dialog open={isDefenseDateDialogOpen} onOpenChange={setIsDefenseDateDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold leading-6">
-              {isReschedule ? "Reschedule Defense Date" : "Schedule Defense Date"}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleDefenseDateSubmit} className="grid gap-6 py-4">
-            <div className="grid gap-2 ">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                Defense Date
-              </label>
-              <input
-                type="datetime-local"
-                value={defenseDate}
-                onChange={(e) => setDefenseDate(e.target.value)}
-                className=" h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-            <DialogFooter>
-              <button
-                type="button"
-                onClick={() => setIsDefenseDateDialogOpen(false)}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={addDefenseDateMutation.isPending}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-              >
-                {addDefenseDateMutation.isPending ? "Saving..." : "Save"}
-              </button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
 
       {/** Compliance Report Date Dialog */}
       <Dialog open={isComplianceReportDialogOpen} onOpenChange={setIsComplianceReportDialogOpen}>

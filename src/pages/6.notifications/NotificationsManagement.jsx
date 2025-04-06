@@ -215,16 +215,12 @@ const NotificationsManagement = () => {
   return (
     <div className="min-h-full">
       {/* Global Search */}
-      <div className="p-6 pb-0 w-1/2">
-        <SearchBar
-          value={searchQuery}
-          onChange={(value) => setSearchQuery(value)}
-          placeholder="Search notifications..."
-        />
+      <div className="flex px-6 justify-between items-center border-b border-gray-300 h-[89px]">
+        <p className="text-sm font-[Inter-SemiBold]  text-gray-900">Management Portal</p>
+      <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
       </div>
 
-      {/* Horizontal Line */}
-      <div className="my-6 border-t border-gray-200"></div>
+    
 
       {/* Header */}
       <div className="flex justify-between items-center px-6 py-4">

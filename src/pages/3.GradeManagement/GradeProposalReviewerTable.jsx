@@ -178,12 +178,12 @@ const GradeProposalReviewerTable = ({ reviewers, proposalId, onUpdateClick, revi
       },
     },
     {
-      header: 'Marks',
-      accessorKey: 'grade',
+      header: 'Verdict',
+      accessorKey: 'verdict',
       cell: (info) => {
         const reviewerId = info.row.original.id;
         const grade = reviewGrades.find(grade => grade.gradedById === reviewerId);
-        return grade ? `${grade.grade}%` : '-';
+        return grade ? grade.verdict : '-';
       },
     },
     {
