@@ -42,7 +42,6 @@ const GradeManagementBookTable = ({
   const columnHelper = createColumnHelper();
   const [globalFilter, setGlobalFilter] = useState("");
  
-  console.log("Book Table Data", data);
   const columns = useMemo(
     () => [
       columnHelper.accessor("bookCode", {
@@ -81,7 +80,7 @@ const GradeManagementBookTable = ({
               borderRadius: '0.375rem',
               display: 'inline-block'
             }}
-            className="capitalize text-xs font-[Inter-Regular]"
+            className="capitalize text-xs whitespace-normal font-[Inter-Regular]"
           >
             {currentStatus?.definition?.name?.toLowerCase() || 'Unknown'}
           </span>
@@ -192,7 +191,7 @@ const GradeManagementBookTable = ({
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="px-4 py-3 text-left text-sm font-[Inter-Medium] text-gray-500 capitalize tracking-wider"
+                  className="px-3 py-3 text-left text-sm font-[Inter-Medium] text-gray-500 capitalize tracking-wider"
                 >
                   {header.isPlaceholder
                     ? null
@@ -211,7 +210,7 @@ const GradeManagementBookTable = ({
               {row.getVisibleCells().map((cell) => (
                 <td
                   key={cell.id}
-                  className="px-4 py-4 whitespace-nowrap text-sm font-[Inter-Regular] text-gray-900"
+                  className="px-3 py-4 whitespace-nowrap text-sm font-[Inter-Regular] text-gray-900"
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>

@@ -133,22 +133,11 @@ const GradeManagement = () => {
   }
   return (
     <div className="space-y-6">
-      {/* Top Search Bar */}
+      {/* Top Bar */}
       <div className="flex px-6 justify-between items-center border-b border-gray-300 h-[89px]">
-        {/* Search Bar */}
-        <div className="relative w-1/2">
-          <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-semantic-text-secondary"
-            size={18}
-          />
-          <input
-            type="text"
-            placeholder="Search by Name"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-semantic-surface text-sm font-[Inter-Regular]  border border-semantic-bg-border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-200"
-          />
-        </div>
+        
+        <p className="text-sm font-[Inter-SemiBold]  text-gray-900">Management Portal</p>
+        <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
       </div>
 
       {/* Header */}
