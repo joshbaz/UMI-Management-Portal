@@ -191,7 +191,7 @@ const GradeManagementBookTable = ({
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="px-3 py-3 text-left text-sm font-[Inter-Medium] text-gray-500 capitalize tracking-wider"
+                  className="px-3 py-3 text-left text-sm font-[Inter-Regular] text-gray-500 capitalize tracking-wider"
                 >
                   {header.isPlaceholder
                     ? null

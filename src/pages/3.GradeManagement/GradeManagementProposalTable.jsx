@@ -42,15 +42,14 @@ const GradeManagementProposalTable = ({
   const columnHelper = createColumnHelper();
   const [globalFilter, setGlobalFilter] = useState("");
 
-  console.log("Proposal Table Data", data);
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor("id", {
+      columnHelper.accessor("proposalCode", {
         header: "Proposal ID",
         cell: (info) => (
           <div className="text-xs text-primary-500 uppercase font-[Inter-Medium]">
-            {/* {info.getValue().toString().padStart(4, '0')} */} PR-2025-001
+            {info.getValue()}
           </div>
         ),
       }),
@@ -192,7 +191,7 @@ const GradeManagementProposalTable = ({
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="px-4 py-3 text-left text-sm font-[Inter-Medium] text-gray-500 capitalize tracking-wider"
+                    className="px-4 py-3 text-left text-sm font-[Inter-Regular] text-gray-500 capitalize tracking-wider"
                   >
                     {header.isPlaceholder
                       ? null
