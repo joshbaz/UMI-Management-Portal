@@ -11,7 +11,7 @@ import {
   RiTableLine,
   RiFileListLine,
 } from 'react-icons/ri';
-import { HiOutlineUserGroup } from 'react-icons/hi';
+import { HiOutlineUserGroup, HiOutlineAcademicCap } from 'react-icons/hi';
 const menuItems = {
   mainActivities: [
     { name: 'Dashboard', icon: RiDashboardLine, path: '/dashboard' },
@@ -24,6 +24,7 @@ const menuItems = {
   otherOptions: [
   
     { name: 'Faculty Statistics', icon: RiUserSettingsLine, path: '/statistics' },
+    { name: 'Graduation Statistics', icon: HiOutlineAcademicCap, path: '/graduation' },
     { name: 'User Roles Management', icon: HiOutlineUserGroup, path: '/users' },
  
     { name: 'Status Management', icon: RiFileListLine, path: '/status' },

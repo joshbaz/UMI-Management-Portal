@@ -54,7 +54,7 @@ export const getLoggedInUserDetails = async () => {
     try {
         const response = await apiRequest.get("/management/user/details");
 
-        console.log(response.data);
+      
         return {
             ...response.data,
             loginTime: new Date().toISOString()
@@ -63,6 +63,24 @@ export const getLoggedInUserDetails = async () => {
         errorHandling(error);
     }
 };
+
+export const updateUserProfileService = async (data: any) => {
+    try {
+        const response = await apiRequest.put("/management/profile", data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const changePasswordService = async (data: any) => {
+    try {
+        const response = await apiRequest.put("/management/profile/password", data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
 
 
 export const logoutService = async () => {
@@ -1005,14 +1023,37 @@ export const getProposalDefensesService = async () => {
 
 /* ********** END OF PROPOSAL DEFENSE MANAGEMENT ********** */
 
+/* ********** GRADUATION MANAGEMENT ********** */
+
+// export const getSenateApprovedStudentsService = async () => {
+//     try {
+//         const response = await apiRequest.get('/management/students/senate-approved');
+//         return response.data;
+//     } catch (error) {
+//         errorHandling(error);
+//     }
+// }
 
 
+export const getGraduationStatisticsService = async () => {
+    try {
+        const response = await apiRequest.get('/management/graduation');
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
 
+export const addStudentToGraduationService = async (studentId: string, academicYear: string) => {
+    try {
+        const response = await apiRequest.post(`/management/graduation`, { studentId, academicYear });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
 
-
-
-
-
+/* ********** END OF GRADUATION MANAGEMENT ********** */
 
 
 

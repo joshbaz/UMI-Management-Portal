@@ -202,7 +202,7 @@ const LoginPage = () => {
               </div>
               <button
                 type="button"
-                onClick={() => navigate(ROUTES.FORGOT_PASSWORD)}
+                onClick={() => navigate('/request-password-reset')}
                 className="text-primary-500 text-sm font-semibold hover:underline"
               >
                 Forgot password?

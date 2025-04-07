@@ -1,6 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PageHeader from '../../components/common/PageHeader';
-import { RiNotificationLine, RiLockLine, RiUserLine, RiGlobalLine } from 'react-icons/ri';
+import { RiNotificationLine, RiLockLine, RiUserLine, RiGlobalLine, RiCloseLine } from 'react-icons/ri';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useAuth } from '../../store/context/AuthContext';
+import axios from 'axios';
+import { toast } from 'sonner';
+import { useGetLoggedInUserDetails } from '../../store/tanstackStore/services/queries';
+import { useMutation } from '@tanstack/react-query';
+import { updateUserProfileService, changePasswordService } from '../../store/tanstackStore/services/api';
 
 const SettingSection = ({ icon: Icon, title, children }) => (
   <div className="bg-white rounded-lg shadow-sm p-6">
@@ -16,7 +23,125 @@ const SettingSection = ({ icon: Icon, title, children }) => (
   </div>
 );
 
+const Modal = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4">
+        <div className="flex justify-between items-center p-4 border-b">
+          <h3 className="text-lg font-medium">{title}</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <RiCloseLine className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-4">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Settings = () => {
+  const { user } = useAuth();
+  const { data: userData, isLoading } = useGetLoggedInUserDetails();
+ 
+  const [userDetails, setUserDetails] = useState({
+    title: '',
+    name: '',
+    email: '',
+    phone: '',
+    designation: ''
+  });
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [editedUserDetails, setEditedUserDetails] = useState({...userDetails});
+  const [passwordDetails, setPasswordDetails] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const updateProfileMutation = useMutation({
+    mutationFn: updateUserProfileService,
+    onSuccess: () => {
+      setUserDetails(editedUserDetails);
+      setEditModalOpen(false);
+      toast.success('Profile updated successfully');
+    },
+    onError: (error) => {
+      toast.error(error?.message);
+      console.error('Error updating profile:', error);
+    }
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: changePasswordService,
+    onSuccess: () => {
+      setPasswordModalOpen(false);
+      setPasswordDetails({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      toast.success('Password updated successfully');
+    },
+    onError: (error) => {
+      toast.error(error?.message);
+      console.error('Error updating password:', error);
+    }
+  });
+
+  useEffect(() => {
+    if (userData) {
+      const details = {
+        title: userData?.user?.title || '',
+        name: userData?.user?.name || '',
+        email: userData?.user?.email || '',
+        phone: userData?.user?.phone || '',
+        designation: userData?.user?.designation || ''
+      };
+      setUserDetails(details);
+      setEditedUserDetails(details);
+    }
+  }, [userData]);
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      await updateProfileMutation.mutateAsync(editedUserDetails);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (passwordDetails.newPassword !== passwordDetails.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      await changePasswordMutation.mutateAsync({
+        currentPassword: passwordDetails.currentPassword,
+        newPassword: passwordDetails.newPassword
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="p-6">
       <PageHeader
@@ -27,23 +152,46 @@ const Settings = () => {
       <div className="grid gap-6">
         {/* Profile Settings */}
         <SettingSection icon={RiUserLine} title="Profile Settings">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium text-semantic-text-primary">Profile Picture</h3>
-              <p className="text-sm text-semantic-text-secondary">Update your profile photo</p>
+          <div className="space-y-4">
+            <div className="flex flex-col space-y-2">
+              <div className="flex justify-between items-center">
+                <h3 className="text-sm font-medium text-semantic-text-primary">Personal Information</h3>
+                <button 
+                  className="px-4 py-2 text-sm text-primary-500 border border-primary-500 rounded-md hover:bg-blue-50"
+                  onClick={() => {
+                    setEditedUserDetails({...userDetails});
+                    setEditModalOpen(true);
+                  }}
+                >
+                  Edit
+                </button>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-md">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-semantic-text-secondary">Title</p>
+                    <p className="text-sm font-medium">{userDetails.title || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-semantic-text-secondary">Full Name</p>
+                    <p className="text-sm font-medium">{userDetails.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-semantic-text-secondary">Email</p>
+                    <p className="text-sm font-medium">{userDetails.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-semantic-text-secondary">Phone</p>
+                    <p className="text-sm font-medium">{userDetails.phone || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-semantic-text-secondary">Designation</p>
+                    <p className="text-sm font-medium">{userDetails.designation || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <button className="px-4 py-2 text-sm text-primary-500 border border-primary-500 rounded-md hover:bg-blue-50">
-              Change
-            </button>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium text-semantic-text-primary">Personal Information</h3>
-              <p className="text-sm text-semantic-text-secondary">Update your personal details</p>
-            </div>
-            <button className="px-4 py-2 text-sm text-primary-500 border border-primary-500 rounded-md hover:bg-blue-50">
-              Edit
-            </button>
           </div>
         </SettingSection>
 
@@ -54,23 +202,18 @@ const Settings = () => {
               <h3 className="text-sm font-medium text-semantic-text-primary">Password</h3>
               <p className="text-sm text-semantic-text-secondary">Change your password</p>
             </div>
-            <button className="px-4 py-2 text-sm text-primary-500 border border-primary-500 rounded-md hover:bg-blue-50">
+            <button 
+              className="px-4 py-2 text-sm text-primary-500 border border-primary-500 rounded-md hover:bg-blue-50"
+              onClick={() => setPasswordModalOpen(true)}
+            >
               Update
             </button>
           </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium text-semantic-text-primary">Two-Factor Authentication</h3>
-              <p className="text-sm text-semantic-text-secondary">Add extra security to your account</p>
-            </div>
-            <button className="px-4 py-2 text-sm text-white bg-primary-500 rounded-md hover:bg-primary-600">
-              Enable
-            </button>
-          </div>
+         
         </SettingSection>
 
         {/* Notification Settings */}
-        <SettingSection icon={RiNotificationLine} title="Notification Settings">
+        {/* <SettingSection icon={RiNotificationLine} title="Notification Settings">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -93,10 +236,10 @@ const Settings = () => {
               </label>
             </div>
           </div>
-        </SettingSection>
+        </SettingSection> */}
 
         {/* System Settings */}
-        <SettingSection icon={RiGlobalLine} title="System Settings">
+        {/* <SettingSection icon={RiGlobalLine} title="System Settings">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-medium text-semantic-text-primary">Language</h3>
@@ -119,8 +262,198 @@ const Settings = () => {
               <option value="pst">PST</option>
             </select>
           </div>
-        </SettingSection>
+        </SettingSection> */}
       </div>
+
+      {/* Edit Profile Modal */}
+      <Modal 
+        isOpen={editModalOpen} 
+        onClose={() => setEditModalOpen(false)} 
+        title="Edit Profile Information"
+      >
+        <form onSubmit={handleEditSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <input
+              type="text"
+              id="title"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:outline-none"
+              value={editedUserDetails.title}
+              onChange={(e) => setEditedUserDetails({...editedUserDetails, title: e.target.value})}
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <input
+              type="text"
+              id="name"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:outline-none"
+              value={editedUserDetails.name}
+              onChange={(e) => setEditedUserDetails({...editedUserDetails, name: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+            <input
+              type="tel"
+              id="phone"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:outline-none"
+              value={editedUserDetails.phone}
+              onChange={(e) => setEditedUserDetails({...editedUserDetails, phone: e.target.value})}
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="designation" className="block text-sm font-medium text-gray-700 mb-1">Designation</label>
+            <input
+              type="text"
+              id="designation"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:outline-none"
+              value={editedUserDetails.designation}
+              onChange={(e) => setEditedUserDetails({...editedUserDetails, designation: e.target.value})}
+            />
+          </div>
+          
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setEditModalOpen(false)}
+              className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 text-sm text-white bg-primary-500 rounded-md hover:bg-primary-600 flex items-center justify-center gap-2"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Change Password Modal */}
+      <Modal 
+        isOpen={passwordModalOpen} 
+        onClose={() => setPasswordModalOpen(false)} 
+        title="Change Password"
+      >
+        <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+            <div className="relative">
+              <input
+                type={showCurrentPassword ? "text" : "password"}
+                id="currentPassword"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:outline-none pr-10"
+                value={passwordDetails.currentPassword}
+                onChange={(e) => setPasswordDetails({...passwordDetails, currentPassword: e.target.value})}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+              >
+                {showCurrentPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400" />
+                )}
+              </button>
+            </div>
+          </div>
+          
+          <div>
+            <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <div className="relative">
+              <input
+                type={showNewPassword ? "text" : "password"}
+                id="newPassword"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:outline-none pr-10"
+                value={passwordDetails.newPassword}
+                onChange={(e) => setPasswordDetails({...passwordDetails, newPassword: e.target.value})}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+              >
+                {showNewPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400" />
+                )}
+              </button>
+            </div>
+          </div>
+          
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:outline-none pr-10"
+                value={passwordDetails.confirmPassword}
+                onChange={(e) => setPasswordDetails({...passwordDetails, confirmPassword: e.target.value})}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400" />
+                )}
+              </button>
+            </div>
+            {passwordDetails.newPassword !== passwordDetails.confirmPassword && 
+              passwordDetails.confirmPassword && 
+              <p className="mt-1 text-sm text-red-600">Passwords do not match</p>
+            }
+          </div>
+          
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setPasswordModalOpen(false)}
+              className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 text-sm text-white bg-primary-500 rounded-md hover:bg-primary-600 flex items-center justify-center gap-2"
+              disabled={isSubmitting || (passwordDetails.newPassword !== passwordDetails.confirmPassword && passwordDetails.confirmPassword)}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Updating...</span>
+                </>
+              ) : (
+                'Update Password'
+              )}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

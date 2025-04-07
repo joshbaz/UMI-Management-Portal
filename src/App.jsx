@@ -10,7 +10,7 @@ import MainLayout from "./components/Layout/MainLayout";
 
 // Auth Pages
 import LoginPage from "./pages/0.auth/LoginPage";
-import ForgotPasswordPage from "./pages/0.auth/ForgotPasswordPage";
+import RequestPasswordReset from "./pages/0.auth/RequestPasswordReset";
 
 // Dashboard
 import Dashboard from "./pages/1.dashboard/Dashboard";
@@ -52,6 +52,8 @@ import GradeBookAddExternalExaminer from "./pages/3.GradeManagement/GradeBookAdd
 import UserRolesManagement from "./pages/9.roles/UserRolesManagement";
 import UserManagementView from "./pages/9.roles/UserManagementView";
 import FacultyStatsManagement from "./pages/7.FacultyStatistics/FacultyStatsManagement";
+import ResetPassword from "./pages/0.auth/ResetPassword";
+import GraduationManagement from "./pages/10.Graduation/GraduationManagement";
 // PublicRoute: Redirects authenticated users away from public pages (like login)
 // If user is authenticated, redirects to dashboard
 // If user is not authenticated, shows the public page content
@@ -84,11 +86,27 @@ const AppRoutes = () => {
           </PublicRoute>
         }
       />
-      <Route
+      {/* <Route
         path={ROUTES.FORGOT_PASSWORD}
         element={
           <PublicRoute>
             <ForgotPasswordPage />
+          </PublicRoute>
+        }
+      /> */}
+      <Route
+        path={'/request-password-reset'}
+        element={
+          <PublicRoute>
+            <RequestPasswordReset />
+          </PublicRoute>
+        }
+      />
+       <Route
+        path={'/reset-password'}
+        element={
+          <PublicRoute>
+            <ResetPassword />
           </PublicRoute>
         }
       />
@@ -143,6 +161,9 @@ const AppRoutes = () => {
           <Route path="add" element={<AddSchool />} />
           <Route path="edit/:id" element={<EditSchool />} />
         </Route>
+
+        {/* Graduation Management */}
+        <Route path={'/graduation'} element={<GraduationManagement />} />
 
         {/* Status Management */}
         <Route path={ROUTES.STATUS.ROOT}>
