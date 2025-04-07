@@ -62,8 +62,9 @@ const GradeManagementProposalTable = ({
           </div>
         ),
       }),
-      columnHelper.accessor("defenseDate", {
+      columnHelper.accessor((row) => row.defenses?.[0]?.scheduledDate, {
         header: "Defense Date",
+        id: "defenseDate",
         cell: (info) => info.getValue() ? format(new Date(info.getValue()), "dd-MMM-yyyy") : "-",
       }),
       columnHelper.accessor("status", {
@@ -89,16 +90,14 @@ const GradeManagementProposalTable = ({
         },
       }),
    
-      columnHelper.accessor("defenses", {
+      columnHelper.accessor("defenseGrade", {
         header: "Category",
         cell: (info) => {
           const currentDefense = info.row.original.defenses?.find(d => d.isCurrent);
           let status = 'NOT GRADED';
           
-          if (currentDefense && currentDefense.verdict?.toLowerCase().includes('pass')) {
-            status = 'PASSED';
-          } else if (currentDefense && currentDefense.verdict?.toLowerCase().includes('fail')) {
-            status = 'FAILED';
+          if (currentDefense && currentDefense.verdict) {
+            status = currentDefense.verdict.includes('PASS') ? 'PASSED' : 'FAILED';
           }
 
           return (
