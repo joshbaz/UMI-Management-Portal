@@ -119,7 +119,17 @@ const proposal = useMemo(() => {
                   <div>
                     <Label className="text-sm font-[Inter-Regular] text-gray-500">Defense Date</Label>
                     <p className="text-gray-900 text-base font-[Inter-Regular]">
-                      {proposal.defenseDate ? format(new Date(proposal.defenseDate), 'PP') : "-"}
+                      {(() => {
+                        const defenses = proposal.defenses || [];
+                        const currentDefense = defenses.find(defense => defense.isCurrent);
+                        
+                        if (currentDefense && currentDefense.scheduledDate) {
+                          return format(new Date(currentDefense.scheduledDate), 'PP');
+                        } else if (proposal.defenseDate) {
+                          return format(new Date(proposal.defenseDate), 'PP');
+                        }
+                        return "-";
+                      })()}
                     </p>
                   </div>
                 </div>

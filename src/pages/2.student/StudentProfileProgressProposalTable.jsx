@@ -116,8 +116,17 @@ const StudentProfileProgressProposalTable = ({
     }),
     columnHelper.accessor("defenseDate", {
       header: "Defense",
-      cell: (info) =>
-        info.getValue() ? format(new Date(info.getValue()), 'MMM d, yyyy') : "-",
+      cell: (info) => {
+        const defenses = info.row.original.defenses || [];
+        const currentDefense = defenses.find(defense => defense.isCurrent);
+        
+        if (currentDefense && currentDefense.scheduledDate) {
+          return format(new Date(currentDefense.scheduledDate), 'PP');
+        } else if (info.getValue()) {
+          return format(new Date(info.getValue()), 'PP');
+        }
+        return "-";
+      },
     }),
     columnHelper.accessor("gradedAt", {
       header: "Graded",

@@ -32,6 +32,7 @@ const StudentSubmitBook = () => {
           });
           navigate(`/students/profile/${id}`);
           queryClient.resetQueries({ queryKey: ['student', id] });
+          queryClient.invalidateQueries({ queryKey: ['student', id] });
         },
         onError: (error) => {
           toast.error( error?.message, {
