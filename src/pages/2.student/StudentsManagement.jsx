@@ -93,8 +93,8 @@ const StudentsManagement = () => {
     <div className=" mx-auto space-y-6">
       {/* Search Bar */}
       {/* Top Search Bar */}
-      <div className="flex items-center justify-end  px-6 pb-0 w-full h-[88px] border-b border-gray-200">
-        {/* <h2 className="text-lg font-[Inter-SemiBold] text-gray-800">DRIMS</h2> */}
+      <div className="flex items-center justify-between py-6 px-6 pb-0 w-full h-[88px] border-b border-gray-200">
+        <p className="text-sm font-[Inter-Medium]  text-gray-900">Management Portal</p>
         <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
       </div>
 

@@ -339,7 +339,7 @@ const StatusManagement = () => {
     setIsDrawerOpen(true);
   };
 
-  console.log(statusDefinitions)
+
 
   // Table columns definition
   const columns = useMemo(
@@ -436,7 +436,6 @@ const StatusManagement = () => {
 
 
 
-console.log(statusDefinitions)
 
   // Filter status data based on search query
   const filteredStatusData = useMemo(() => {
@@ -483,16 +482,11 @@ console.log(statusDefinitions)
       <CreateStatusModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
       
       {/* Global Search */}
-      <div className="p-6 pb-0 w-1/2">
-        <SearchBar
-          value={searchQuery}
-          onChange={(value) => setSearchQuery(value)}
-          placeholder="Search notifications..."
-        />
+      <div className="flex items-center justify-between py-6 px-6 pb-0 w-full h-[89px] border-b border-gray-200">
+        {/* <h2 className="text-lg font-[Inter-SemiBold] text-gray-800">DRIMS</h2> */}
+        <p className="text-sm font-[Inter-Medium]  text-gray-900">Management Portal</p>
+        <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
       </div>
-
-      {/* Horizontal Line */}
-      <div className="my-6 border-t border-gray-200"></div>
 
       {/* Header */}
       <div className="flex justify-between items-center px-6 py-4">

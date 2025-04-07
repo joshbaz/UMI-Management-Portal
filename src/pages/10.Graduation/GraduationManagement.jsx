@@ -25,6 +25,7 @@ const GraduationManagement = () => {
     const currentYear = new Date().getFullYear();
     return `${currentYear}/${currentYear + 1}`;
   });
+  const [activeTab, setActiveTab] = useState('approved'); // 'approved' or 'graduates'
 
   const queryClient = useQueryClient();
 
@@ -51,7 +52,22 @@ const GraduationManagement = () => {
     
     return { data: filteredStudents };
   }, [studentsResponse]);
+  
+  const graduatesResponse = useMemo(() => {
+    if (!studentsResponse?.students) return { data: [] };
+    
+    const filteredStudents = studentsResponse.students.filter(student => {
+      // Find the current status by checking which status has isCurrent set to true
+      const currentStatus = student.statuses?.find(status => status.isCurrent)?.definition?.name || 
+                           student.statuses?.[0]?.definition?.name;
+      return currentStatus === 'graduated';
+    });
+    
+    return { data: filteredStudents };
+  }, [studentsResponse]);
+  
   const senateApprovedStudents = senateApprovedResponse?.data || [];
+  const graduatedStudents = graduatesResponse?.data || [];
 
   // Mutation for adding student to graduation list
   const addToGraduationMutation = useMutation({
@@ -116,9 +132,9 @@ const GraduationManagement = () => {
         <button
           onClick={() => addToGraduationMutation.mutate(row.original.id)}
           className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50"
-          disabled={row.original.isInGraduationList || addToGraduationMutation.isLoading}
+          disabled={ addToGraduationMutation.isPending}
         >
-          {addToGraduationMutation.isLoading && row.original.id === addToGraduationMutation.variables ? (
+          {addToGraduationMutation.isPending  ? (
             <span className="flex items-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing...
@@ -132,10 +148,75 @@ const GraduationManagement = () => {
       )
     }
   ], [addToGraduationMutation]);
+  
+  const graduatesColumns = useMemo(() => [
+    {
+      accessorKey: 'name',
+      header: 'Name',
+      cell: ({ row }) => (
+        <div className="flex items-center capitalize">
+          {`${row.original.firstName} ${row.original.lastName}`}
+        </div>
+      )
+    },
+    {
+      accessorKey: 'email',
+      header: 'Email',
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <div>{row.original.email}</div>
+          <div className="text-xs text-gray-600">{row.original.phoneNumber || 'No phone number'}</div>
+        </div>
+      )
+    },
+    {
+      accessorKey: 'programLevel',
+      header: 'Program',
+      cell: ({ row }) => (
+        <div className="flex items-center capitalize">
+          {row.original.programLevel}
+        </div>
+      )
+    },
+    {
+      accessorKey: 'school',
+      header: 'School',
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          {row.original.school?.name || 'N/A'}
+        </div>
+      )
+    },
+    {
+      accessorKey: 'gradAcademicYear',
+      header: 'Academic Year',
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          {row.original.gradAcademicYear || 'N/A'}
+        </div>
+      )
+    },
+    {
+      accessorKey: 'graduatedAt',
+      header: 'Graduation Date',
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          {row.original.graduatedAt ? new Date(row.original.graduatedAt).toLocaleDateString() : 'N/A'}
+        </div>
+      )
+    }
+  ], []);
 
-  const table = useReactTable({
+  const approvedTable = useReactTable({
     data: senateApprovedStudents || [],
     columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
+  
+  const graduatesTable = useReactTable({
+    data: graduatedStudents || [],
+    columns: graduatesColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
@@ -267,92 +348,211 @@ const GraduationManagement = () => {
         </div>
       </div>
 
-      {/* Senate Approved Students Table */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">
-            Senate Approved Students
-          </h2>
+      {/* Tabs */}
+      <div className="mb-4">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex">
+            <button
+              onClick={() => setActiveTab('approved')}
+              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
+                activeTab === 'approved'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Senate Approved Students
+            </button>
+            <button
+              onClick={() => setActiveTab('graduates')}
+              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
+                activeTab === 'graduates'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Graduates
+            </button>
+          </nav>
         </div>
-        
-        <div className="overflow-x-auto">
-          {isLoadingStudents ? (
-            <div className="flex flex-col items-center justify-center p-8">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400 mb-2" />
-              <p className="text-gray-500">Loading students...</p>
+      </div>
+
+      {/* Senate Approved Students Table */}
+      {activeTab === 'approved' && (
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-gray-900">
+              Senate Approved Students
+            </h2>
+          </div>
+          
+          <div className="overflow-x-auto">
+            {isLoadingStudents ? (
+              <div className="flex flex-col items-center justify-center p-8">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400 mb-2" />
+                <p className="text-gray-500">Loading students...</p>
+              </div>
+            ) : senateApprovedStudents.length === 0 ? (
+              <div className="flex justify-center items-center p-8">
+                <p className="text-gray-500">No senate approved students found.</p>
+              </div>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  {approvedTable.getHeaderGroups().map(headerGroup => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map(header => (
+                        <th
+                          key={header.id}
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {approvedTable.getRowModel().rows.map(row => (
+                    <tr key={row.id}>
+                      {row.getVisibleCells().map(cell => (
+                        <td
+                          key={cell.id}
+                          className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {!isLoadingStudents && senateApprovedStudents.length > 0 && (
+            <div className="px-6 py-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => approvedTable.previousPage()}
+                    disabled={!approvedTable.getCanPreviousPage()}
+                    className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => approvedTable.nextPage()}
+                    disabled={!approvedTable.getCanNextPage()}
+                    className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+                <span className="text-sm text-gray-700">
+                  Page {approvedTable.getState().pagination.pageIndex + 1} of{' '}
+                  {approvedTable.getPageCount()}
+                </span>
+              </div>
             </div>
-          ) : senateApprovedStudents.length === 0 ? (
-            <div className="flex justify-center items-center p-8">
-              <p className="text-gray-500">No senate approved students found.</p>
-            </div>
-          ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                {table.getHeaderGroups().map(headerGroup => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map(header => (
-                      <th
-                        key={header.id}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {table.getRowModel().rows.map(row => (
-                  <tr key={row.id}>
-                    {row.getVisibleCells().map(cell => (
-                      <td
-                        key={cell.id}
-                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           )}
         </div>
+      )}
 
-        {/* Pagination */}
-        {!isLoadingStudents && senateApprovedStudents.length > 0 && (
-          <div className="px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                  className="px-3 py-1 border rounded text-sm disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                  className="px-3 py-1 border rounded text-sm disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
-              <span className="text-sm text-gray-700">
-                Page {table.getState().pagination.pageIndex + 1} of{' '}
-                {table.getPageCount()}
-              </span>
-            </div>
+      {/* Graduates Table */}
+      {activeTab === 'graduates' && (
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-gray-900">
+              Graduates
+            </h2>
           </div>
-        )}
-      </div>
+          
+          <div className="overflow-x-auto">
+            {isLoadingStudents ? (
+              <div className="flex flex-col items-center justify-center p-8">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400 mb-2" />
+                <p className="text-gray-500">Loading graduates...</p>
+              </div>
+            ) : graduatedStudents.length === 0 ? (
+              <div className="flex justify-center items-center p-8">
+                <p className="text-gray-500">No graduates found.</p>
+              </div>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  {graduatesTable.getHeaderGroups().map(headerGroup => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map(header => (
+                        <th
+                          key={header.id}
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {graduatesTable.getRowModel().rows.map(row => (
+                    <tr key={row.id}>
+                      {row.getVisibleCells().map(cell => (
+                        <td
+                          key={cell.id}
+                          className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {!isLoadingStudents && graduatedStudents.length > 0 && (
+            <div className="px-6 py-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => graduatesTable.previousPage()}
+                    disabled={!graduatesTable.getCanPreviousPage()}
+                    className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => graduatesTable.nextPage()}
+                    disabled={!graduatesTable.getCanNextPage()}
+                    className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+                <span className="text-sm text-gray-700">
+                  Page {graduatesTable.getState().pagination.pageIndex + 1} of{' '}
+                  {graduatesTable.getPageCount()}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

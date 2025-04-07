@@ -3,7 +3,7 @@ import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import { addYears, format } from 'date-fns';
 
-const StudentCourseApplication = ({ formRef, handleNext }) => {
+const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }) => {
   // Encryption/decryption functions
   const encryptData = (data) => {
     return btoa(JSON.stringify(data)); // Simple base64 encoding for demo
@@ -41,6 +41,11 @@ const StudentCourseApplication = ({ formRef, handleNext }) => {
     completionTime: Yup.string().required('Completion time is required')
   });
 
+    const generatePassword = () => {
+    const password = Math.random().toString(36).slice(-8);
+    return password;
+  };
+
   return (
     <Formik
       innerRef={formRef}
@@ -50,7 +55,14 @@ const StudentCourseApplication = ({ formRef, handleNext }) => {
         // Encrypt data before storing
         const encryptedValues = encryptData(values);
         localStorage.setItem('studentCourseApplication', encryptedValues);
-        handleNext();
+        const personalInfo = decryptData(localStorage.getItem('studentPersonalInfo') || '')
+        const finalFormData = {
+          ...personalInfo,
+          ...values,
+          password: generatePassword()
+        }
+        createStudentMutation.mutate(finalFormData);
+        // handleNext();
       }}
     >
       {({ errors, touched, handleChange, handleBlur, values, setFieldValue }) => (
@@ -82,9 +94,9 @@ const StudentCourseApplication = ({ formRef, handleNext }) => {
                 {/* <option value="certificate">Certificate</option> */}
                 {/* <option value="diploma">Diploma</option> */}
                 {/* <option value="bachelors">Bachelor's Degree</option> */}
-                <option value="postgraduate">Post Graduate</option>
+                {/* <option value="postgraduate">Post Graduate</option> */}
                 <option value="masters">Master's Degree</option>
-                <option value="phd">PhD</option>
+                {/* <option value="phd">PhD</option> */}
               </select>
               {errors.programLevel && touched.programLevel && (
                 <div className="text-red-500 text-sm mt-1">{errors.programLevel}</div>
@@ -250,8 +262,13 @@ const StudentCourseApplication = ({ formRef, handleNext }) => {
                 }}
               >
                 <option value="">Select Completion Time</option>
-                <option value="1">1 Year</option>
+              
                 <option value="2">2 Years</option>
+              
+                <option value="4">4 Years</option>
+               
+                <option value="6">6 Years</option>
+             
               </select>
               {errors.completionTime && touched.completionTime && (
                 <div className="text-red-500 text-sm mt-1">{errors.completionTime}</div>

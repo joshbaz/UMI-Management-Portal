@@ -287,7 +287,7 @@ const UserRolesManagement = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold text-gray-900">User Roles Management</h1>
         <button 
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          className="bg-primary-600 hover:bg-primary-700 text-white text-sm font-[Inter-Medium] px-4 py-2 rounded"
           onClick={showModal}
         >
           Add New User

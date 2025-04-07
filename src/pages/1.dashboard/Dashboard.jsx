@@ -132,12 +132,9 @@ const Dashboard = () => {
   return (
     <div className="min-h-full bg-gray-50">
       {/* Global Search */}
-      <div className="p-6 pb-0 w-full md:w-1/2">
-        <SearchBar
-          value={globalFilter ?? ""}
-          onChange={(value) => setGlobalFilter(String(value))}
-          placeholder="Search students, supervisors, or programs..."
-        />
+      <div className="flex items-center justify-between py-6 px-6 pb-0 w-full h-[64px]">
+        <p className="text-sm font-[Inter-Medium]  text-gray-900">Management Portal</p>
+        <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
       </div>
 
       {/* Horizontal Line */}

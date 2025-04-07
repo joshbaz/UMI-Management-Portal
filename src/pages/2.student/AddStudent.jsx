@@ -12,7 +12,7 @@ import StudentUserAccess from "./Forms/StudentUserAccess";
 const STEPS = [
   { id: 1, title: "Step 1", description: "Personal information" },
   { id: 2, title: "Step 2", description: "Course Application Summary" },
-  { id: 3, title: "Step 3", description: "User Access" },
+  // { id: 3, title: "Step 3", description: "User Access" },
 ];
 
 // Progress Steps Component
@@ -114,9 +114,9 @@ const AddStudent = () => {
       case 1:
         return <StudentPersonalInfoForm formRef={formRef} handleNext={handleMoveToStep} />;
       case 2:
-        return <StudentCourseApplication formRef={formRef} handleNext={handleMoveToStep} />;
-      case 3:
-        return <StudentUserAccess formRef={formRef} handleNext={handleMoveToStep} createStudentMutation={createStudentMutation} />;
+        return <StudentCourseApplication formRef={formRef} handleNext={handleMoveToStep} createStudentMutation={createStudentMutation} />;
+      // case 3:
+      //   return <StudentUserAccess formRef={formRef} handleNext={handleMoveToStep} createStudentMutation={createStudentMutation} />;
       default:
         return null;
     }
@@ -158,7 +158,7 @@ const AddStudent = () => {
                 Previous Step
               </button>
             )}
-            {currentStep < 3 ? (
+            {currentStep < 2 ? (
               <button
                 onClick={handleNext}
                className="px-4 py-2 text-sm font-medium justify-end text-gray-700 border-2 border-gray-200 rounded-md hover:text-gray-500 bg-gray-50"
