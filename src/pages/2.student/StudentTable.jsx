@@ -112,6 +112,42 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
         </span>
       )
     },
+     {
+      accessorKey: "timeInStatus",
+      header: "Time in Status",
+      cell: ({ row }) => {
+        const currentStatus = row.original.statuses?.find(s => s.isCurrent);
+        if (!currentStatus || !currentStatus.startDate) {
+          return <span className="text-gray-400">N/A</span>;
+        }
+        
+        const startDate = new Date(currentStatus.startDate);
+        const now = new Date();
+        const diffInDays = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
+        
+        let timeDisplay;
+        if (diffInDays < 1) {
+          timeDisplay = "Today";
+        } else if (diffInDays === 1) {
+          timeDisplay = "1 day";
+        } else if (diffInDays < 30) {
+          timeDisplay = `${diffInDays} days`;
+        } else if (diffInDays < 365) {
+          const months = Math.floor(diffInDays / 30);
+          timeDisplay = `${months} ${months === 1 ? 'month' : 'months'}`;
+        } else {
+          const years = Math.floor(diffInDays / 365);
+          const remainingMonths = Math.floor((diffInDays % 365) / 30);
+          timeDisplay = `${years} ${years === 1 ? 'year' : 'years'}${remainingMonths > 0 ? `, ${remainingMonths} ${remainingMonths === 1 ? 'month' : 'months'}` : ''}`;
+        }
+        
+        return (
+          <span className="text-sm">
+            {timeDisplay}
+          </span>
+        );
+      }
+    },
     {
       accessorKey: "actions",
       header: "",
