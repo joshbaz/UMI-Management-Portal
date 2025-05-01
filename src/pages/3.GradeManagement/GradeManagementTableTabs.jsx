@@ -5,7 +5,7 @@ const GradeManagementTableTabs = ({
   setSelectedCategory,
 }) => {
   const categories = useMemo(
-    () => ["Proposal Grading", "Book Examination"].filter(Boolean),
+    () => ["Proposal Grading", "Dissertation Examination"].filter(Boolean),
     []
   );
   const handleCategoryClick = useCallback(

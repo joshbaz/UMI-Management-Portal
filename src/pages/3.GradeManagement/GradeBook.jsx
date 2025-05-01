@@ -147,7 +147,7 @@ const GradeBook = () => {
       <div className="flex items-center justify-center h-screen gap-2">
         <Loader2 className="h-4 w-4 animate-spin text-green-900" />
         <div className="text-lg font-[Inter-Medium] text-gray-600">
-          Loading book data...
+          Loading Dissertation data...
         </div>
       </div>
     );
@@ -168,7 +168,7 @@ const GradeBook = () => {
 
       {/* Header */}
       <div className="flex justify-between items-center px-6 py-1">
-        <h1 className="text-2xl font-[Inter-Medium]">Book</h1>
+        <h1 className="text-2xl font-[Inter-Medium]">Dissertation Examination</h1>
         <span className="text-sm font-[Inter-Regular] text-gray-500">
           Last login: {format(new Date(), "MM-dd-yyyy hh:mm:ssaa")}
         </span>
@@ -197,7 +197,7 @@ const GradeBook = () => {
       <div className="grid grid-cols-3 px-6 pb-4">
         <div>
           <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
-            Book ID
+             ID
           </h3>
           <div className="flex gap-2">
             <span className="text-sm font-[Inter-Regular] text-gray-900">
@@ -288,7 +288,7 @@ const GradeBook = () => {
                   : "border-2 border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
-              Book Examiners
+              Dissertation Examiners
             </button>
             <button
               onClick={() => setActiveTab("vivas")}
@@ -307,7 +307,7 @@ const GradeBook = () => {
         {activeTab === "examiners" && (
           <div className="py-4">
             <div className="flex items-center justify-between px-4">
-              <h2 className="text-lg font-[Inter-Medium] text-gray-900">Book Examiners</h2>
+              <h2 className="text-lg font-[Inter-Medium] text-gray-900">Dissertation Examiners</h2>
               <div className="flex gap-2">
                 {!showResubmissionButton && (
                   <button

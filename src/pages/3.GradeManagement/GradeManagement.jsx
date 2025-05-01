@@ -49,7 +49,7 @@ const GradeManagement = () => {
   const filteredBooks = useMemo(() => {
     return (booksData?.books || []).filter(
       (book) =>
-        activeTab === "Book Examination" &&
+        activeTab === "Dissertation Examination" &&
         (book?.student?.firstName
           ?.toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
@@ -155,7 +155,7 @@ const GradeManagement = () => {
             {activeTab === "Proposal Grading" ? totalProposals : totalBooks}
           </p>
           <h3 className="text-sm font-[Inter-Medium] text-gray-500">
-            {activeTab === "Proposal Grading" ? "Proposals Submitted" : "Books Submitted"}
+            {activeTab === "Proposal Grading" ? "Proposals Submitted" : "Dissertations Submitted"}
           </h3>
         </div>
 
@@ -165,14 +165,14 @@ const GradeManagement = () => {
           </p>
           <h3 className="text-sm font-[Inter-Medium] text-gray-500">
             <div className="flex items-center gap-1">
-              Status: {activeTab === "Proposal Grading" ? "Proposal" : "Book"} Graded - Passed
+              Status: {activeTab === "Proposal Grading" ? "Proposal" : "Dissertation"} Graded - Passed
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
                     <InfoIcon className="h-4 w-4" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{activeTab === "Proposal Grading" ? "Proposal" : "Book"} Graded - Passed</p>
+                    <p>{activeTab === "Proposal Grading" ? "Proposal" : "Dissertation"} Graded - Passed</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -186,7 +186,7 @@ const GradeManagement = () => {
           </p>
           <h3 className="text-sm font-[Inter-Medium] text-gray-500">
             <div className="flex items-center gap-1">
-              Status: {activeTab === "Proposal Grading" ? "Proposal" : "Book"} Graded - Failed
+              Status: {activeTab === "Proposal Grading" ? "Proposal" : "Dissertation"} Graded - Failed
               <TooltipProvider className="z-[9999] h-full">
                 <Tooltip>
                   <TooltipTrigger>
@@ -219,7 +219,7 @@ const GradeManagement = () => {
               setCurrentPage={setCurrentPage}
               totalCount={filteredProposals.length}
             />
-          ) : activeTab === "Book Examination" ? (
+          ) : activeTab === "Dissertation Examination" ? (
             <GradeManagementBookTable 
               data={paginatedBooks}
               pageSize={pageSize}

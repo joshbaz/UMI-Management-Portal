@@ -186,7 +186,7 @@ const DLineChart = () => {
                 stroke={submissionsColor}
                 fill="url(#colorSubmissions)"
                 strokeWidth={2}
-                name="Book Submissions"
+                name="Dessertation Submissions"
               />
               <Area
                 type="monotone"

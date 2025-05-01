@@ -89,7 +89,7 @@ const DPieChart = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="main">Student Statuses</SelectItem>
-            <SelectItem value="book">Book Statuses</SelectItem>
+            <SelectItem value="book">Dissertation Statuses</SelectItem>
             <SelectItem value="proposal">Proposal Statuses</SelectItem>
           </SelectContent>
         </Select>

@@ -451,7 +451,7 @@ const StudentProfileProgressPage = ({ studentData }) => {
                 : "border-secondary-700 bg-white text-secondary-800"
             }`}
           >
-            Proposal Grading
+            Proposal
           </button>
 
           <button
@@ -462,7 +462,7 @@ const StudentProfileProgressPage = ({ studentData }) => {
                 : "border-secondary-700 bg-white text-secondary-800"
             }`}
           >
-            Book Grading
+            Dissertation
           </button>
         </div>
 

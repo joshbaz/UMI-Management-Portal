@@ -36,7 +36,7 @@ const getCategoryStyle = (status) => {
   const columnHelper = createColumnHelper();
   const columns = [
     columnHelper.accessor("bookCode", {
-      header: "Book ID",
+      header: " ID",
       cell: (info) => (
         <span className="whitespace-nowrap text-primary-500 font-[Inter-Medium]">
           {info.getValue() || "Untitled"}
@@ -44,7 +44,7 @@ const getCategoryStyle = (status) => {
       ),
     }),
     columnHelper.accessor("title", {
-      header: "Book Title",
+      header: " Title",
       cell: (info) => (
         <span className="whitespace-normal break-words max-w-[200px] line-clamp-4">
           {info.getValue() || "Untitled"}
@@ -172,12 +172,12 @@ const getCategoryStyle = (status) => {
   if (!books || books?.length === 0) {
     return (
       <div className="overflow-x-auto bg-white shadow-md rounded-lg p-8 text-center">
-        <p className="text-gray-500 text-base font-[Inter-Regular] mb-4">No Book Grades Available</p>
+        <p className="text-gray-500 text-base font-[Inter-Regular] mb-4">No Dissertation Grades Available</p>
         <button
           onClick={handleSubmitBook}
           className="bg-primary-600 text-sm font-[Inter-Medium] text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors"
         >
-          Submit New Book
+          Submit New Dissertation
         </button>
       </div>
     );

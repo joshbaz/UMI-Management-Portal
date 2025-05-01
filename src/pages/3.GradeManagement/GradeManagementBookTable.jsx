@@ -45,10 +45,19 @@ const GradeManagementBookTable = ({
   const columns = useMemo(
     () => [
       columnHelper.accessor("bookCode", {
-        header: "Book ID",
+        header: "ID",
         cell: (info) => (
           <div className="text-xs text-primary-500 uppercase font-[Inter-Medium]">
             {info.getValue().toString().padStart(4, '0')}
+          </div>
+        ),
+      }),
+      columnHelper.accessor("student", {
+        header: "Reg. No.",
+        cell: (info) => (
+          <div className="capitalize">
+            {`${info?.getValue()?.registrationNumber}`}
+          
           </div>
         ),
       }),

@@ -179,7 +179,7 @@ const ExaminersTable = ({ data }) => {
         return (
           <div className="space-y-1">
             <div className="flex items-center text-sm font-[Inter-Regular] justify-between">
-              <span>Total Books:</span>
+              <span>Total Dissertations:</span>
               <span className="font-medium">{totalAssignments}</span>
             </div>
             <div className="flex items-center text-sm font-[Inter-Regular] justify-between">

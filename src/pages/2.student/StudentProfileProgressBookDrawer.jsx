@@ -77,7 +77,7 @@ const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData, studentDa
       <SheetContent side="right" className="min-w-[600px] min-h-screen overflow-hidden p-0 pb-20">
         <SheetHeader className="p-4 border-b">
           <div className="flex justify-between items-center z-50">
-            <SheetTitle>Book Details</SheetTitle>
+            <SheetTitle>Dissertation Details</SheetTitle>
             <Button className="bg-primary-500 hover:bg-primary-800 text-white" onClick={onClose}>
               <X className="w-4 h-4 mr-2" />
               Close Window
@@ -90,7 +90,7 @@ const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData, studentDa
             <div className="space-y-6">
               {/* Book ID */}
               <div>
-                <Label className="text-sm font-[Inter-Regular] text-gray-500">Book ID</Label>
+                <Label className="text-sm font-[Inter-Regular] text-gray-500"> ID</Label>
                 <p className="text-primary-500 text-base font-[Inter-Medium]">
                   {book.bookCode?.toString().padStart(4, '0') || "-"}
                 </p>
@@ -246,7 +246,7 @@ const StudentProfileProgressBookDrawer = ({ isOpen, onClose, bookData, studentDa
               </div>
             </div>
           ) : (
-            <div className="text-center text-gray-500">No book selected</div>
+            <div className="text-center text-gray-500">No dissertation selected</div>
           )}
         </div>
       </SheetContent>
