@@ -360,6 +360,16 @@ export const assignStudentsToSupervisorService = async (supervisorId: string, st
     }
 };
 
+export const assignSupervisorsToStudentService = async (studentId: string, supervisorIds: string[]) => {
+    try {
+        const response = await apiRequest.post(`/management/students/${studentId}/assign-supervisors`, { supervisorIds });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+
 export const getAssignedStudentsService = async (supervisorId: string) => {
     try {
         const response = await apiRequest.get(`/management/supervisor/${supervisorId}/students`);
@@ -370,6 +380,14 @@ export const getAssignedStudentsService = async (supervisorId: string) => {
 };
 
 
+export const changeStudentSupervisorService = async (studentId: string, data: { oldSupervisorId: string, newSupervisorId: string, reason: string }) => {
+    try {
+        const response = await apiRequest.put(`/management/students/${studentId}/change-supervisor`, data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
 
 
 

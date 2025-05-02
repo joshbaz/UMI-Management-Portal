@@ -54,6 +54,8 @@ import UserManagementView from "./pages/9.roles/UserManagementView";
 import FacultyStatsManagement from "./pages/7.FacultyStatistics/FacultyStatsManagement";
 import ResetPassword from "./pages/0.auth/ResetPassword";
 import GraduationManagement from "./pages/10.Graduation/GraduationManagement";
+import AddSupervisors from "./pages/2.student/AddSupervisors";
+import ChangeSupervisor from "./pages/2.student/ChangeSupervisor";
 // PublicRoute: Redirects authenticated users away from public pages (like login)
 // If user is authenticated, redirects to dashboard
 // If user is not authenticated, shows the public page content
@@ -135,6 +137,8 @@ const AppRoutes = () => {
         <Route path={ROUTES.STUDENT.ADD} element={<AddStudent />} />
         <Route path="/students/profile/:id" element={<StudentProfile />} />
         <Route path="/students/submit-book/:id" element={<StudentSubmitBook />} />
+        <Route path="/students/add-supervisors/:id" element={<AddSupervisors/>} />
+        <Route path="/students/change-supervisor/:id" element={<ChangeSupervisor/>} />
         {/* Faculty Management */}
         <Route path={ROUTES.GRADE.ROOT}>
         <Route index element={<GradeManagement />} />
