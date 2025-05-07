@@ -69,6 +69,7 @@ const FacultyPersonalInfoForm = ({ handleNext, formRef }) => {
                 <option value="">Select faculty type</option>
                 <option value="dean">Dean</option>
                 <option value="school admin">School Admin</option>
+                <option value="Research Committee Chairperson">School Research Committee Chairperson</option>
                 <option value="faculty">Faculty</option>
               </select>
               <FormErrorHandler

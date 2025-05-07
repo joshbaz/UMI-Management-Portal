@@ -570,9 +570,9 @@ const ReviewersTable = ({ data }) => {
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   {flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
+            </th>
               ))}
-            </tr>
+          </tr>
           ))}
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -581,7 +581,7 @@ const ReviewersTable = ({ data }) => {
               {row.getVisibleCells().map(cell => (
                 <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
+              </td>
               ))}
             </tr>
           ))}
@@ -763,8 +763,8 @@ const FacultyStatsManagement = () => {
           {selectedTab === 'Reviewers' && (
             <ReviewersTable 
               data={reviewersData?.reviewers} 
-              globalFilter={globalFilter}
-            />
+            globalFilter={globalFilter}
+          />
           )}
         </div>
       </div>
