@@ -95,7 +95,7 @@ const PaginationButtons = memo(({ table, currentPage, totalPages }) => {
   );
 });
 
-const GradeProposalReviewerTable = ({ reviewers, proposalId, onUpdateClick, reviewGrades, onViewClick }) => {
+const GradeProposalReviewerTable = ({ reviewers, proposalId, onUpdateClick, reviewGrades, onViewClick, isProposalActive }) => {
   const [globalFilter, setGlobalFilter] = useState('')
   const [pageIndex, setPageIndex] = useState(0)
   const [pageSize, setPageSize] = useState(10)
@@ -227,14 +227,16 @@ const GradeProposalReviewerTable = ({ reviewers, proposalId, onUpdateClick, revi
               <>
                 <button
                   onClick={() => onUpdateClick(info.row.original)}
-                  className="rounded border text-gray-700 border-semantic-bg-border shadow-sm py-1 px-2 hover:bg-gray-50 font-[Inter-Medium] text-sm"
+                   className="rounded border text-gray-700 border-semantic-bg-border shadow-sm py-1 px-2 hover:bg-gray-50 font-[Inter-Medium] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!isProposalActive}
                 >
                   Update
                 </button>
 
                 <button
                   onClick={() => handleOpenDelete(info.row.original)}
-                  className="rounded py-1 px-2 border border-[#FB3836] text-red-800 bg-red-100 flex items-center justify-center overflow-hidden"
+                   className="rounded py-1 px-2 border border-[#FB3836] text-red-800 bg-red-100 flex items-center justify-center overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+                   disabled={!isProposalActive}
                 >
                   Delete
                 </button>
@@ -244,7 +246,7 @@ const GradeProposalReviewerTable = ({ reviewers, proposalId, onUpdateClick, revi
         );
       }
     },
-  ], [handleOpenDelete, reviewGrades])
+  ], [handleOpenDelete, reviewGrades,  isProposalActive])
 
   const handlePaginationChange = useCallback((updater) => {
     if (typeof updater === 'function') {

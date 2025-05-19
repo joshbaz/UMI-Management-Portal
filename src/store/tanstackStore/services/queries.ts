@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService, getGraduationStatisticsService } from './api';
+import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService, getGraduationStatisticsService, getChairpersonsService, getExternalPersonsService, getProposalDefenseReportsService } from './api';
 
 export const useGetLoggedInUserDetails = () => {
   return useQuery({
@@ -238,6 +238,31 @@ export function useGetPanelists() {
 
 /* ********** END OF PANELIST MANAGEMENT ********** */  
 
+/* ********** CHAIRPERSON MANAGEMENT ********** */
+
+export function useGetChairpersons() {
+  return useQuery({
+    queryKey: ['chairpersons'],
+    queryFn: getChairpersonsService,
+    staleTime: Infinity, // 1 minute
+    refetchInterval: false,
+    networkMode: 'online',
+  });
+}
+
+/* ********** END OF CHAIRPERSON MANAGEMENT ********** */
+
+/* ********** EXTERNAL PERSONS MANAGEMENT ********** */
+export const useGetExternalPersons = () => {
+  return useQuery({
+    queryKey: ['externalPersons'],
+    queryFn: getExternalPersonsService,
+    staleTime: 300000, // 5 minutes
+    refetchInterval: false,
+    retry: 1,
+  });
+};
+
 /* ********** STUDENT BOOK MANAGEMENT ********** */
 
 export const useGetStudentBooks = (studentId: string) => {
@@ -398,6 +423,18 @@ export const useGetProposalDefenses = () => {
     refetchInterval: false,
   });
 };
+
+export const useGetProposalDefenseReports = (proposalId: string) => {
+  return useQuery({
+    queryKey: ['proposalDefenseReports', proposalId],
+    queryFn: () => getProposalDefenseReportsService(proposalId),
+    staleTime: 300000, // 5 minutes
+    refetchInterval: false,
+    retry: 1,
+  });
+}; 
+
+
 /* ********** END OF PROPOSAL DEFENSE MANAGEMENT ********** */
 
 /* ********** GRADUATION MANAGEMENT ********** */

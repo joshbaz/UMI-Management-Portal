@@ -556,7 +556,45 @@ export const addComplianceReportDateService = async (proposalId: string, complia
     }
 }
 
+export const generateDefenseReportService = async (proposalId: string, reportData: FormData) => {
+    try {
+      const response = await apiRequest.post(`/management/generate-defense-report/${proposalId}`, reportData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      errorHandling(error);
+    }
+  }
 
+  export const getProposalDefenseReportsService = async (proposalId: string) => {
+    try {
+    const response = await apiRequest.get(`/management/proposal/${proposalId}/defense-reports`);
+    return response.data;
+    } catch (error) {
+    errorHandling(error);
+    }
+}
+
+export const downloadProposalDefenseReportService = async (reportId) => {
+    try {
+      const response = await apiRequest.get(
+        `/management/defense-reports/${reportId}/download`,
+        {
+          responseType: 'blob', // Important: This tells axios to expect binary data
+          headers: {
+            'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+          }
+        }
+      );
+      return response;
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      throw error;
+    }
+  }; 
 
 
 /* ********** END OF PROPOSAL MANAGEMENT ********** */
@@ -664,6 +702,15 @@ export const updateFieldLetterDateService = async (proposalId: string, fieldLett
         errorHandling(error)
     }
 }
+
+export const updateEthicsCommitteeDateService = async (proposalId: string, ethicsCommitteeDate: string) => {
+    try {
+        const response = await apiRequest.put(`/management/update-ethics-committee-date/${proposalId}`, { ethicsCommitteeDate })
+        return response.data
+    } catch (error) {
+        errorHandling(error)
+    }
+}
 /* ********** END OF FIELD LETTER MANAGEMENT ********** */
 
 
@@ -688,6 +735,77 @@ export const getStudentBooksService = async (studentId: string) => {
 }
 
 /* ********** END OF STUDENT BOOK MANAGEMENT ********** */
+
+/** Chairperson */
+export const getChairpersonsService = async () => {
+    try {
+      const response = await apiRequest.get('/management/chairperson');
+      return response.data;
+    } catch (error) {
+      errorHandling(error);
+    }
+  }
+
+  export const createChairpersonService = async (name: string, email: string) => {
+    try {
+      const response = await apiRequest.post('/management/chairperson', {
+        name,
+        email
+      });
+      return response.data;
+    } catch (error) {
+      errorHandling(error);
+    }
+  }
+
+  /* ********** EXTERNAL PERSONS MANAGEMENT ********** */
+
+export const getExternalPersonsService = async () => {
+    try {
+        const response = await apiRequest.get('/management/external-persons');
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const getExternalPersonsByRoleService = async (role: string) => {
+    try {
+        const response = await apiRequest.get(`/management/external-persons/${role}`);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+
+export const createExternalPersonService = async (name: string, email: string, role: string) => {
+    try {
+        const response = await apiRequest.post('/management/external-person', { name, email, role });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+
+export const updateExternalPersonService = async (id: string, data: { name?: string, email?: string, role?: string, isActive?: boolean }) => {
+    try {
+        const response = await apiRequest.put(`/management/external-person/${id}`, data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
+export const deleteExternalPersonService = async (id: string) => {
+    try {
+        const response = await apiRequest.delete(`/management/external-person/${id}`);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
 
 /* ********** GRADE BOOK MANAGEMENT ********** */
 
@@ -896,6 +1014,17 @@ export const addNewPanelistService = async (data: any) => {
         return response.data;
     } catch (error) {
         errorHandling(error);
+    }
+}
+
+//to be removed
+export const createReviewerService = async (data: any) => {
+    try {
+        const response = await apiRequest.post(`/management/reviewer`, data)
+        return response.data
+        
+    } catch (error) {
+        errorHandling(error)
     }
 }
 

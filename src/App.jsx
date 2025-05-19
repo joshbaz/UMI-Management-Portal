@@ -56,6 +56,7 @@ import ResetPassword from "./pages/0.auth/ResetPassword";
 import GraduationManagement from "./pages/10.Graduation/GraduationManagement";
 import AddSupervisors from "./pages/2.student/AddSupervisors";
 import ChangeSupervisor from "./pages/2.student/ChangeSupervisor";
+import GradeProposalScheduleDefense from "./pages/3.GradeManagement/GradeProposalScheduleDefense";
 // PublicRoute: Redirects authenticated users away from public pages (like login)
 // If user is authenticated, redirects to dashboard
 // If user is not authenticated, shows the public page content
@@ -139,11 +140,12 @@ const AppRoutes = () => {
         <Route path="/students/submit-book/:id" element={<StudentSubmitBook />} />
         <Route path="/students/add-supervisors/:id" element={<AddSupervisors/>} />
         <Route path="/students/change-supervisor/:id" element={<ChangeSupervisor/>} />
-        {/* Faculty Management */}
+        {/* Grade Management */}
         <Route path={ROUTES.GRADE.ROOT}>
         <Route index element={<GradeManagement />} />
 
         <Route path="proposal/:id" element={<GradeProposal />} />
+        <Route  path="proposal/schedule-defense/:id" element={<GradeProposalScheduleDefense />} />
         <Route path="book/:id" element={<GradeBook />} />
         <Route path="book/add-external-examiner/:id" element={<GradeBookAddExternalExaminer />} />
         </Route>

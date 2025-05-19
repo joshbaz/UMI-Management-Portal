@@ -9,11 +9,13 @@ import GradeProposalReviewerTable from "./GradeProposalReviewerTable";
 import GradeProposalViewReviewerMark from "./GradeProposalViewReviewerMark";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
 import { useMutation } from "@tanstack/react-query";
-import { addComplianceReportDateService, updateFieldLetterDateService } from "../../store/tanstackStore/services/api";
+import { addComplianceReportDateService, updateEthicsCommitteeDateService, updateFieldLetterDateService } from "../../store/tanstackStore/services/api";
 import { toast } from "sonner";
 import { queryClient } from "../../utils/tanstack";
 import GradeProposalGenerateFieldLetter from "./GradeProposalGenerateFieldLetter";
 import GradeProposalDefenseTable from "./GradeProposalDefenseTable";
+import GradeProposalDefenseReport from "./GradeProposalDefenseReport";
+import GradeProposalReportsTable from "./GradeProposalReportsTable";
 
 const GradeProposal = () => {
   let navigate = useNavigate();
@@ -21,11 +23,14 @@ const GradeProposal = () => {
   const [isUpdateReviewerDrawerOpen, setIsUpdateReviewerDrawerOpen] = useState(false);
   const [isViewReviewerDrawerOpen, setIsViewReviewerDrawerOpen] = useState(false);
   const [selectedReviewer, setSelectedReviewer] = useState(null);
-  const [selectedPanelist, setSelectedPanelist] = useState(null);
   const [isComplianceReportDialogOpen, setIsComplianceReportDialogOpen] = useState(false);
   const [isFieldLetterDateDialogOpen, setIsFieldLetterDateDialogOpen] = useState(false);
+  (false);
+  const [isEthicsCommitteeDialogOpen, setIsEthicsCommitteeDialogOpen] = useState(false);
+  const [isDefenseReportDialogOpen, setIsDefenseReportDialogOpen] = useState(false);
   const [complianceReportDate, setComplianceReportDate] = useState("");
   const [fieldLetterDate, setFieldLetterDate] = useState("");
+  const [ethicsCommitteeDate, setEthicsCommitteeDate] = useState("");
   const [isFieldLetterDialogOpen, setIsFieldLetterDialogOpen] = useState(false);
   const { id: proposalId } = useParams();
   const { data: proposal, isPending: isLoading, error, refetch:refetchProposal } = useGetProposal(proposalId);
@@ -53,6 +58,19 @@ const GradeProposal = () => {
     },
     onError: (error) => {
       toast.error(error.message || "Failed to update field letter date");
+    }
+  });
+
+  const updateEthicsCommitteeDateMutation = useMutation({
+    mutationFn: ({ proposalId, ethicsCommitteeDate }) => updateEthicsCommitteeDateService(proposalId, ethicsCommitteeDate),
+    onSuccess: () => {
+      toast.success("Ethics committee date updated successfully");
+      queryClient.resetQueries({ queryKey: ["proposal", proposalId] });
+      setIsEthicsCommitteeDialogOpen(false);
+      setEthicsCommitteeDate("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update ethics committee date");
     }
   });
 
@@ -85,6 +103,11 @@ const GradeProposal = () => {
     [proposal?.proposal?.statuses]
   );
 
+  const isProposalActive = useMemo(
+    () => !!proposal?.proposal?.isCurrent,
+    [proposal?.proposal?.isCurrent]
+  );
+
   const { totalDays, expectedDays } = useMemo(() => {
     const statusDate = currentStatus?.createdAt
       ? new Date(currentStatus.createdAt)
@@ -101,22 +124,22 @@ const GradeProposal = () => {
   }, [proposal?.proposal?.reviewers]);
 
   const handleReviewerUpdateClick = useCallback((reviewer) => {
+    if (!isProposalActive) {
+      toast.error("Cannot update reviewers for inactive proposals");
+      return;
+    }
     setSelectedReviewer(reviewer);
     setIsUpdateReviewerDrawerOpen(true);
-  }, []);
+  }, [isProposalActive]);
 
-  const handlePanelistUpdateClick = useCallback((panelist) => {
-    setSelectedPanelist(panelist);
-  }, []);
+
 
   const handleViewReviewerClick = useCallback((reviewer) => {
     setSelectedReviewer(reviewer);
     setIsViewReviewerDrawerOpen(true);
   }, []);
 
-  const handleViewPanelistClick = useCallback((panelist) => {
-    setSelectedPanelist(panelist);
-  }, []);
+
 
   const hasPassedProposalGraded = useMemo(() => {
     return proposal?.proposal?.statuses?.some(
@@ -175,6 +198,11 @@ const GradeProposal = () => {
                 {`${proposal?.proposal?.student?.firstName} ${proposal?.proposal?.student?.lastName}` || "Loading..."}
               </span>
             </div>
+            {!isProposalActive && (
+              <div className="bg-amber-100 text-amber-800 px-3 py-1 rounded-md text-sm">
+                This proposal is inactive. Some actions are disabled.
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -262,6 +290,26 @@ const GradeProposal = () => {
             </div>
           </div> */}
 
+<div>
+            <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
+               Letter to Ethics Committee 
+            </h3>
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-[Inter-Regular] text-gray-900">
+                {proposal?.proposal?.ethicsCommitteeDate 
+                  ? format(new Date(proposal.proposal.ethicsCommitteeDate), "dd-MMM-yyyy")
+                  : "Not Available"}
+              </span>
+              <button 
+                className={`px-2 py-1 text-xs font-[Inter-Medium] text-white rounded ${isProposalActive ? 'bg-accent2-600 hover:bg-accent2-700' : 'bg-gray-400 cursor-not-allowed'}`}
+                onClick={() => isProposalActive ? setIsEthicsCommitteeDialogOpen(true) : toast.error("Cannot update field letter date for inactive proposals")}
+                disabled={!isProposalActive}
+              >
+                {proposal?.proposal?.ethicsCommitteeDate ? "Update" : "Add Date"}
+              </button>
+            </div>
+          </div>
+
           <div>
             <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
               Field Letter Date
@@ -273,8 +321,9 @@ const GradeProposal = () => {
                   : "Not Available"}
               </span>
               <button 
-                className="px-2 py-1 text-xs font-[Inter-Medium] text-white bg-accent2-600 rounded hover:bg-accent2-700"
-                onClick={() => setIsFieldLetterDateDialogOpen(true)}
+                className={`px-2 py-1 text-xs font-[Inter-Medium] text-white rounded ${isProposalActive ? 'bg-accent2-600 hover:bg-accent2-700' : 'bg-gray-400 cursor-not-allowed'}`}
+                onClick={() => isProposalActive ? setIsFieldLetterDateDialogOpen(true) : toast.error("Cannot update field letter date for inactive proposals")}
+                disabled={!isProposalActive}
               >
                 {proposal?.proposal?.fieldLetterDate ? "Update" : "Add Date"}
               </button>
@@ -295,6 +344,7 @@ const GradeProposal = () => {
               onUpdateClick={handleReviewerUpdateClick} 
               reviewGrades={proposal?.proposal?.reviewGrades} 
               onViewClick={handleViewReviewerClick} 
+              isProposalActive={isProposalActive}
             />
           )}
           
@@ -302,10 +352,20 @@ const GradeProposal = () => {
             <GradeProposalDefenseTable 
              
               proposalId={proposalId} 
+              isProposalActive={isProposalActive}
             
               
             />
           )}
+
+
+{activeTab === "Reports" && (
+  <GradeProposalReportsTable
+    reports={proposal?.proposal?.defenseReports || []}
+    isLoading={isLoading}
+    onGenerateReportClick={() => setIsDefenseReportDialogOpen(true)}
+  />
+)}
         </div>
       </div>
 
@@ -395,8 +455,65 @@ const GradeProposal = () => {
         </DialogContent>
       </Dialog>
 
+        {/** Ethics Committee Date Dialog */}
+        <Dialog open={isEthicsCommitteeDialogOpen} onOpenChange={setIsEthicsCommitteeDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold leading-6">
+              {proposal?.proposal?.ethicsCommitteeDate ? "Update Ethics Committee Date" : "Add Ethics Committee Date"}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (!ethicsCommitteeDate) {
+              toast.error("Please select a date");
+              return;
+            }
+            updateEthicsCommitteeDateMutation.mutate({
+              proposalId,
+              ethicsCommitteeDate
+            });
+          }} className="grid gap-6 py-4">
+            <div className="grid gap-2">
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Ethics Committee Date
+              </label>
+              <input
+                type="date"
+                value={ethicsCommitteeDate}
+                onChange={(e) => setEthicsCommitteeDate(e.target.value)}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => setIsEthicsCommitteeDialogOpen(false)}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={updateEthicsCommitteeDateMutation.isPending}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+              >
+                {updateEthicsCommitteeDateMutation.isPending ? "Saving..." : "Save"}
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/** Field Letter Dialog */}
       <GradeProposalGenerateFieldLetter isOpen={isFieldLetterDialogOpen} onClose={() => setIsFieldLetterDialogOpen(false)} proposalId={proposalId} proposal={proposal?.proposal} />
+
+         {/** Defense Report Dialog */}
+      <GradeProposalDefenseReport
+        isOpen={isDefenseReportDialogOpen}
+        onClose={() => setIsDefenseReportDialogOpen(false)}
+        proposal={proposal?.proposal}
+      />
     </div>  
   );
 };
