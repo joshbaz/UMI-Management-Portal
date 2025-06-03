@@ -29,11 +29,13 @@ const GradeBook = () => {
   const [isMinutesDateDialogOpen, setIsMinutesDateDialogOpen] = useState(false);
   const [isComplianceReportDialogOpen, setIsComplianceReportDialogOpen] = useState(false);
   const [complianceReport, setComplianceReport] = useState("");
+  const [actualTopic, setActualTopic] = useState("");
   
   useEffect(() => {
     if (book?.book) {
       setMinutesSentDate(book.book.minutesSentDate || null);
       setComplianceReport(book.book.complianceReportDate || null);
+      setActualTopic(book.book.actualTopic || "");
     }
   }, [book?.book]);
 
@@ -105,11 +107,11 @@ const GradeBook = () => {
   });
 
   const updateComplianceReportMutation = useMutation({
-    mutationFn: (date) => {
-      return updateComplianceReportDateService(bookId, date);
+    mutationFn: (data) => {
+      return updateComplianceReportDateService(bookId, data);
     },
     onSuccess: () => {
-      toast.success("Compliance report recorded successfully");
+      toast.success("Compliance report and actual topic updated successfully");
       setIsComplianceReportDialogOpen(false);
       queryClient.invalidateQueries(['book', bookId]);
     },
@@ -126,8 +128,11 @@ const GradeBook = () => {
 
   const handleComplianceReportSubmit = useCallback((e) => {
     e.preventDefault();
-    updateComplianceReportMutation.mutate(complianceReport);
-  }, [complianceReport, updateComplianceReportMutation]);
+    updateComplianceReportMutation.mutate({
+      complianceReportDate: complianceReport,
+      actualTopic: actualTopic
+    });
+  }, [complianceReport, actualTopic, updateComplianceReportMutation]);
 
   // Check for current external examiner and their status
   const currentExternalExaminer = useMemo(() => {
@@ -260,7 +265,7 @@ const GradeBook = () => {
 
         <div>
           <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
-            Compliance Received
+            Final Submission Topic & Compliance Report Date
           </h3>
           <div className="flex items-center gap-2">
             <span className="text-sm font-[Inter-Regular] text-gray-900">
@@ -463,22 +468,40 @@ const GradeBook = () => {
 
       {/* Compliance Report Dialog */}
       <Dialog open={isComplianceReportDialogOpen} onOpenChange={setIsComplianceReportDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold leading-6">
-              {book?.book?.complianceReportDate ? "Update Compliance Received Date" : "Add Compliance Received Date"}
+              {book?.book?.complianceReportDate ? "Update Final Submission & Compliance Report Date" : "Final Submission & Compliance Report Date"}
             </DialogTitle>
+            <div className="mt-2">
+              <div className="text-sm text-gray-600 mb-4">
+                <span className="font-[Inter-Medium]">Dissertation Title:</span> {book?.book?.title || "Not Available"}
+              </div>
+            </div>
           </DialogHeader>
           <form onSubmit={handleComplianceReportSubmit} className="grid gap-6 py-4">
             <div className="grid gap-2">
               <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                Date
+                Actual Topic (Final Submission Title)
+              </label>
+              <textarea
+                value={actualTopic}
+                onChange={(e) => setActualTopic(e.target.value)}
+                placeholder="Enter the actual topic of the book"
+                className="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Compliance Report Date (Date of Submission)
               </label>
               <input
                 type="date"
                 value={complianceReport || ''}
                 onChange={(e) => setComplianceReport(e.target.value)}
                 className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                required
               />
             </div>
             <DialogFooter>
@@ -491,7 +514,7 @@ const GradeBook = () => {
               </button>
               <button
                 type="submit"
-                disabled={!complianceReport || updateComplianceReportMutation.isPending}
+                disabled={!complianceReport || !actualTopic || updateComplianceReportMutation.isPending}
                 className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {updateComplianceReportMutation.isPending ? "Submitting..." : "Submit"}

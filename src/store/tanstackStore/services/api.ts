@@ -1072,9 +1072,9 @@ export const updateMinutesSentDateService = async (bookId: string, minutesSentDa
     }
 }
 
-export const updateComplianceReportDateService = async (bookId: string, complianceReportDate: string) => {
+export const updateComplianceReportDateService = async (bookId: string, data: { complianceReportDate: string, actualTopic: string }) => {
     try {
-        const response = await apiRequest.put(`/management/books/${bookId}/compliance-report`, { complianceReportDate });
+        const response = await apiRequest.put(`/management/books/${bookId}/compliance-report`, data);
         return response.data;
     } catch (error) {
         errorHandling(error);
