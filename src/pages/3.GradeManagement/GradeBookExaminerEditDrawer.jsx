@@ -21,7 +21,7 @@ const validationSchema = Yup.object({
     .required("Mark is required")
     .min(0, "Mark must be at least 0")
     .max(100, "Mark cannot exceed 100"),
-  comments: Yup.string().required("Comments are required"),
+  // comments: Yup.string().required("Comments are required"),
 });
 
 const GradeBookExaminerEditDrawer = ({
@@ -76,8 +76,8 @@ const GradeBookExaminerEditDrawer = ({
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="min-w-[440px] p-0">
-        <SheetHeader className="p-4 border-b">
-          <div className="flex justify-between items-center z-50">
+        <SheetHeader className=" border-b">
+          <div className="p-4 flex justify-between items-center z-50 bg-white">
             <SheetTitle className="text-base font-[Inter-Medium]">
               Update Examiner's Report
             </SheetTitle>
@@ -141,7 +141,7 @@ const GradeBookExaminerEditDrawer = ({
               {/* Comments */}
               <div className="space-y-2">
                 <Label className="text-sm font-[Inter-Regular] text-gray-800">
-                  Comments
+                  Comments (Optional)
                 </Label>
                 <Field
                   as={Textarea}

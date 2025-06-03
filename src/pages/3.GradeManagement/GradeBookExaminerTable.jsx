@@ -73,12 +73,12 @@ const GradeBookExaminerTable = ({
         header: "Status",
         cell: (info) => (
           <span
-            className={`capitalize px-2 py-1 rounded-full text-xs ${
-              info.getValue() === "Completed"
+            className={`capitalize px-2 py-1 rounded-md font-[Inter-Medium] text-xs ${
+              info.getValue() === "Completed" || info.getValue() === "PASSED"
                 ? "bg-green-100 text-green-800"
                 : info.getValue() === "Accepted"
                 ? "bg-blue-100 text-blue-800"
-                : info.getValue() === "Rejected"
+                : info.getValue() === "Rejected" || info.getValue() === "FAILED"
                 ? "bg-red-100 text-red-800"
                 : "bg-yellow-100 text-yellow-800"
             }`}
@@ -97,7 +97,7 @@ const GradeBookExaminerTable = ({
         header: "Report",
         cell: (info) => (
           <span
-            className={`px-2 py-1 rounded-full text-xs ${
+            className={`px-2 py-1 rounded-md font-[Inter-Medium] text-xs ${
               info.getValue()
                 ? "bg-green-100 text-green-800"
                 : "bg-yellow-100 text-yellow-800"

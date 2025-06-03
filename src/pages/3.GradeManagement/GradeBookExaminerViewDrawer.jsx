@@ -36,11 +36,12 @@ const GradeBookExaminerViewDrawer = ({ selectedAssignment, isOpen, onClose }) =>
 
   const examiner = selectedAssignment?.examiner;
   const existingGrade = selectedAssignment?.grade;
+  const existingComments = selectedAssignment?.comments;
   const reportSubmitted = selectedAssignment?.reportSubmittedAt;
 
   const initialValues = {
-    mark: existingGrade?.mark?.toString() || "",
-    comments: existingGrade?.comments || "",
+    mark: existingGrade?.toString() || "",
+    comments: existingComments || "",
   };
 
   const submitGradeMutation = useMutation({
@@ -66,6 +67,8 @@ const GradeBookExaminerViewDrawer = ({ selectedAssignment, isOpen, onClose }) =>
     submitGradeMutation.mutate(gradeData);
   };
 
+
+
   const handleDownloadReport = () => {
     // Implement report download functionality
     toast.success("Report download started");
@@ -76,9 +79,9 @@ const GradeBookExaminerViewDrawer = ({ selectedAssignment, isOpen, onClose }) =>
   return (
     <>
       <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent side="right" className="min-w-[440px] p-0">
-          <SheetHeader className="p-4 border-b ">
-            <div className="flex justify-between items-center z-50 bg-white">
+        <SheetContent side="right" className="min-w-[440px] p-0 z-50 hover:z-50">
+          <SheetHeader className=" border-b z-50 bg-white">
+            <div className="p-4 flex justify-between items-center z-50 relative bg-white">
               <SheetTitle className="text-base font-[Inter-Medium]">
                 Examiner's Report
               </SheetTitle>
@@ -115,12 +118,12 @@ const GradeBookExaminerViewDrawer = ({ selectedAssignment, isOpen, onClose }) =>
               </Label>
               <div>
                 <span
-                  className={`px-2 py-1 rounded-full text-xs ${
-                    selectedAssignment?.status === "Completed"
+                  className={`px-2 py-1 rounded-md font-[Inter-Medium] text-xs ${
+                    selectedAssignment?.status === "Completed" || selectedAssignment?.status === "PASSED"
                       ? "bg-green-100 text-green-800"
                       : selectedAssignment?.status === "Accepted"
                       ? "bg-blue-100 text-blue-800"
-                      : selectedAssignment?.status === "Rejected"
+                      : selectedAssignment?.status === "Rejected" || selectedAssignment?.status === "FAILED"
                       ? "bg-red-100 text-red-800"
                       : "bg-yellow-100 text-yellow-800"
                   }`}
@@ -136,7 +139,7 @@ const GradeBookExaminerViewDrawer = ({ selectedAssignment, isOpen, onClose }) =>
                 Mark
               </Label>
               <div className="text-2xl font-[Inter-Medium]">
-                {existingGrade?.mark || "N/A"}%
+                {existingGrade || "N/A"}%
               </div>
             </div>
 
@@ -146,12 +149,12 @@ const GradeBookExaminerViewDrawer = ({ selectedAssignment, isOpen, onClose }) =>
                 Comments
               </Label>
               <div className="p-4 bg-gray-50 rounded-md text-sm font-[Inter-Regular] text-gray-700">
-                {existingGrade?.comments || "No comments provided"}
+                {existingComments|| "No comments provided"}
               </div>
             </div>
 
             {/* Report */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label className="text-sm font-[Inter-Regular] text-gray-800">
                 Report
               </Label>
@@ -180,20 +183,32 @@ const GradeBookExaminerViewDrawer = ({ selectedAssignment, isOpen, onClose }) =>
                   No report submitted yet
                 </div>
               )}
-            </div>
+            </div> */}
+
+{/** Date Submitted */}
+{reportSubmitted ? (
+
+<div className="text-xs text-gray-500">
+        Submitted on {format(new Date(selectedAssignment.reportSubmittedAt), "MMM dd, yyyy")}
+      </div>
+): (
+  <div className="p-4 bg-gray-50 rounded-md text-sm font-[Inter-Regular] text-gray-700">
+    No report submitted yet
+  </div>
+)}
 
             {/* Submission Type */}
-            <div className="space-y-2">
+            <div className=" flex items-center gap-2 justify-start">
               <Label className="text-sm font-[Inter-Regular] text-gray-800">
-                Submission Type
+                Submission Type 
               </Label>
-              <div className="text-sm font-[Inter-Regular] capitalize">
+              <div className="text-sm font-[Inter-Bold] capitalize">
                 {selectedAssignment?.submissionType || "First Submission"}
               </div>
             </div>
 
             {/* Last Update Info */}
-            <div className="flex items-center gap-2 text-sm font-[Inter-Regular] text-gray-500">
+            {/* <div className="flex items-center gap-2 text-sm font-[Inter-Regular] text-gray-500">
               <span>
                 Last Update:{" "}
                 {existingGrade?.updatedAt
@@ -204,7 +219,7 @@ const GradeBookExaminerViewDrawer = ({ selectedAssignment, isOpen, onClose }) =>
               <span>
                 Updated by {existingGrade?.updatedBy?.name || "System"}
               </span>
-            </div>
+            </div> */}
 
             {/* Edit Button */}
             <Button
