@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useNavigate } from 'react-router-dom'
 
 // Viva status constants
 const VIVA_STATUS = {
@@ -64,6 +65,7 @@ const GradeBookVivaTable = ({
   onViewClick,
   defenseGrades
 }) => {
+  const navigate = useNavigate();
   const [isScheduleVivaOpen, setIsScheduleVivaOpen] = useState(false);
   const [isVerdictDialogOpen, setIsVerdictDialogOpen] = useState(false);
   const [selectedVivaId, setSelectedVivaId] = useState(null);
@@ -74,6 +76,8 @@ const GradeBookVivaTable = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddPanelistMode, setIsAddPanelistMode] = useState(false);
   const [newPanelist, setNewPanelist] = useState({ name: '', email: '', institution: '' });
+  const [externalMark, setExternalMark] = useState('');
+  const [internalMark, setInternalMark] = useState('');
   
   // Fetch all available panelists
   const { data: allPanelists, isLoading: isPanelistsLoading } = useGetAllPanelists();
@@ -98,8 +102,8 @@ const GradeBookVivaTable = ({
 
   // Mutation for recording viva verdict
   const recordVerdictMutation = useMutation({
-    mutationFn: async ({ vivaId, verdict, comments }) => {
-      return await recordVivaVerdictService(vivaId, verdict, comments);
+    mutationFn: async ({ vivaId, verdict, comments, externalMark, internalMark }) => {
+      return await recordVivaVerdictService(vivaId, {verdict, comments, externalMark, internalMark});
     },
     onSuccess: () => {
       toast.success('Viva verdict recorded successfully');
@@ -155,6 +159,8 @@ const GradeBookVivaTable = ({
     setSelectedVivaId(vivaId);
     setVerdict('');
     setComments('');
+    setExternalMark('');
+    setInternalMark('');
     setIsVerdictDialogOpen(true);
   };
 
@@ -163,7 +169,9 @@ const GradeBookVivaTable = ({
     recordVerdictMutation.mutate({
       vivaId: selectedVivaId,
       verdict,
-      comments
+      comments,
+      externalMark: externalMark ? parseFloat(externalMark) : undefined,
+      internalMark: internalMark ? parseFloat(internalMark) : undefined
     });
   };
 
@@ -232,6 +240,35 @@ const GradeBookVivaTable = ({
       )
     },
     {
+      accessorKey: 'marks',
+      header: 'Marks',
+      cell: ({ row }) => {
+        const viva = row.original;
+        if (!viva.externalMark && !viva.internalMark) return '-';
+        
+        return (
+          <div className="space-y-1">
+            {viva.externalMark !== undefined && (
+              <div className="text-sm">
+                <span className="font-medium">External:</span> {viva.externalMark}% 
+                <span className="text-xs text-gray-500 ml-1">
+                  (Final: {viva.finalExternalMark?.toFixed(1)}%)
+                </span>
+              </div>
+            )}
+            {viva.internalMark !== undefined && (
+              <div className="text-sm">
+                <span className="font-medium">Internal:</span> {viva.internalMark}%
+                <span className="text-xs text-gray-500 ml-1">
+                  (Final: {viva.finalInternalMark?.toFixed(1)}%)
+                </span>
+              </div>
+            )}
+          </div>
+        );
+      }
+    },
+    {
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => (
@@ -261,13 +298,19 @@ const GradeBookVivaTable = ({
     },
   });
 
+
+  const toggleScheduleDialog = useCallback(() => {
+   
+    navigate(`/grades/book/schedule-viva/${bookId}`);
+  }, []);
+
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-[Inter-Medium]">Viva Details</h3>
         <button
           className="px-3 py-1.5 text-sm font-[Inter-Medium] text-white bg-primary-600 rounded hover:bg-primary-700"
-          onClick={() => setIsScheduleVivaOpen(true)}
+          onClick={toggleScheduleDialog}
         >
           {vivaHistory?.length > 0 ? 'Reschedule Viva' : 'Schedule Viva'}
         </button>
@@ -561,9 +604,49 @@ const GradeBookVivaTable = ({
                 ))}
               </select>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>External Mark (%)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={externalMark}
+                  onChange={(e) => setExternalMark(e.target.value)}
+                  placeholder="Enter external mark"
+                  className="h-10"
+                />
+                {externalMark && (
+                  <p className="text-xs font-[Inter-Medium] text-gray-500">
+                    Final mark: {(parseFloat(externalMark) * 0.2).toFixed(1)}%
+                  </p>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Internal Mark (%)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={internalMark}
+                  onChange={(e) => setInternalMark(e.target.value)}
+                  placeholder="Enter internal mark"
+                  className="h-10"
+                />
+                {internalMark && (
+                  <p className="text-xs font-[Inter-Medium] text-gray-500">
+                    Final mark: {(parseFloat(internalMark) * 0.2).toFixed(1)}%
+                  </p>
+                )}
+              </div>
+            </div>
             
             <div className="grid gap-2">
-              <Label>Comments</Label>
+              <Label>Comments (Optional)</Label>
               <textarea
                 value={comments}
                 onChange={(e) => setComments(e.target.value)}
