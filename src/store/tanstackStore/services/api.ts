@@ -981,18 +981,40 @@ export const updateUserPasswordService = async (userId: string, newPassword: str
 
 /* ********** VIVA MANAGEMENT ********** */
 
-export const scheduleVivaService = async (bookId: string, date: string, panelists: any) => {
+export interface VivaScheduleData {
+  location: string;
+  chairpersonId: string;
+  minutesSecretaryId: string;
+  panelistIds: string[];
+  reviewerIds: string[];
+}
+
+export const scheduleVivaService = async (bookId: string, scheduledDate: string, data: VivaScheduleData) => {
     try {
-        const response = await apiRequest.post(`/management/books/${bookId}/viva`, { date, panelists });
+        const response = await apiRequest.post(`/management/books/${bookId}/viva`, { 
+            scheduledDate,
+            location: data.location,
+            chairpersonId: data.chairpersonId,
+            minutesSecretaryId: data.minutesSecretaryId,
+            panelistIds: data.panelistIds,
+            reviewerIds: data.reviewerIds
+        });
         return response.data;   
     } catch (error) {
         errorHandling(error);
     }
 }   
 
-export const recordVivaVerdictService = async (vivaId: string, verdict: string, comments: string) => {
+export interface VivaVerdictData {
+  verdict: string;
+  comments: string;
+  externalMark?: number;
+  internalMark?: number;
+}
+
+export const recordVivaVerdictService = async (vivaId: string, data: VivaVerdictData) => {
     try {
-        const response = await apiRequest.put(`/management/viva/${vivaId}`, { verdict, comments });
+        const response = await apiRequest.put(`/management/viva/${vivaId}`, data);
         return response.data;
     } catch (error) {
         errorHandling(error);
