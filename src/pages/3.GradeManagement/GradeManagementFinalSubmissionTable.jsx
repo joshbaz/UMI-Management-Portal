@@ -418,83 +418,24 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     };
   };
 
-  // Column definitions for each tab
-  const pendingApprovalColumns = useMemo(() => [
-    {
+  // Use the same reportsColumns for all tabs, but add checkbox for first three tabs
+  const getColumnsForTab = (tab) => {
+    const checkboxColumn = {
       id: 'select',
       header: ({ table }) => <IndeterminateCheckbox {...{ checked: table.getIsAllRowsSelected(), indeterminate: table.getIsSomeRowsSelected(), onChange: table.getToggleAllRowsSelectedHandler() }} />,
       cell: ({ row }) => <IndeterminateCheckbox {...{ checked: row.getIsSelected(), disabled: !row.getCanSelect(), indeterminate: row.getIsSomeSelected(), onChange: row.getToggleSelectedHandler() }} />,
       size: 40,
-    },
-    columnHelper.accessor("student.registrationNumber", { header: "Registration No", id: "registrationNo" }),
-    columnHelper.accessor(row => `${row.student?.firstName || ""} ${row.student?.lastName || ""}`, { header: "Student Name", id: "studentName" }),
-    columnHelper.accessor("bookCode", { header: "Book Code", id: "bookCode" }),
-    columnHelper.accessor(row => {
-      const { textMarks } = getStudentMarks(row);
-      const textTotal = (textMarks.internal * 0.2) + (textMarks.external * 0.4);
-      return textTotal;
-    }, {
-      header: "Text Exam Total",
-      id: "textExamTotal",
-      cell: info => info.getValue() ? `${info.getValue().toFixed(2)}%` : "N/A"
-    }),
-    columnHelper.accessor(row => {
-      const { vivaMarks } = getStudentMarks(row);
-      const vivaTotal = (vivaMarks.internal * 0.2) + (vivaMarks.external * 0.2);
-      return vivaTotal;
-    }, {
-      header: "Viva Total",
-      id: "vivaTotal",
-      cell: info => `${info.getValue().toFixed(2)}%`
-    }),
-    columnHelper.accessor(row => row.finalGrade, {
-      header: "Final Grade",
-      id: "finalGrade",
-      cell: info => info.getValue() ? `${info.getValue().toFixed(2)}%` : "Not Available"
-    })
-  ], []);
+    };
+    if (["results-pending-approval", "results-approved-at-centre", "results-sent"].includes(tab)) {
+      return [checkboxColumn, ...reportsColumns];
+    }
+    return reportsColumns;
+  };
 
-  const approvedAtCentreColumns = useMemo(() => [
-    {
-      id: 'select',
-      header: ({ table }) => <IndeterminateCheckbox {...{ checked: table.getIsAllRowsSelected(), indeterminate: table.getIsSomeRowsSelected(), onChange: table.getToggleAllRowsSelectedHandler() }} />,
-      cell: ({ row }) => <IndeterminateCheckbox {...{ checked: row.getIsSelected(), disabled: !row.getCanSelect(), indeterminate: row.getIsSomeSelected(), onChange: row.getToggleSelectedHandler() }} />,
-      size: 40,
-    },
-    columnHelper.accessor("student.registrationNumber", { header: "Registration No", id: "registrationNo" }),
-    columnHelper.accessor(row => `${row.student?.firstName || ""} ${row.student?.lastName || ""}`, { header: "Student Name", id: "studentName" }),
-    columnHelper.accessor("bookCode", { header: "Book Code", id: "bookCode" }),
-    columnHelper.accessor(row => row.finalGrade, { header: "Final Grade", id: "finalGrade", cell: info => info.getValue() ? `${info.getValue().toFixed(2)}%` : "Not Available" }),
-    columnHelper.accessor(row => row.student?.resultsApprovedDate, { header: "Approval Date", id: "approvalDate", cell: info => info.getValue() ? format(new Date(info.getValue()), "dd-MMM-yyyy") : "Not Set" }),
-  ], []);
-
-  console.log("data", data)
-  const resultsSentColumns = useMemo(() => [
-    {
-      id: 'select',
-      header: ({ table }) => <IndeterminateCheckbox {...{ checked: table.getIsAllRowsSelected(), indeterminate: table.getIsSomeRowsSelected(), onChange: table.getToggleAllRowsSelectedHandler() }} />,
-      cell: ({ row }) => <IndeterminateCheckbox {...{ checked: row.getIsSelected(), disabled: !row.getCanSelect(), indeterminate: row.getIsSomeSelected(), onChange: row.getToggleSelectedHandler() }} />,
-      size: 40,
-    },
-    columnHelper.accessor("student.registrationNumber", { header: "Registration No", id: "registrationNo" }),
-    columnHelper.accessor(row => `${row.student?.firstName || ""} ${row.student?.lastName || ""}`, { header: "Student Name", id: "studentName" }),
-    columnHelper.accessor("bookCode", { header: "Book Code", id: "bookCode" }),
-    columnHelper.accessor(row => row.finalGrade, { header: "Final Grade", id: "finalGrade", cell: info => info.getValue() ? `${info.getValue().toFixed(2)}%` : "Not Available" }),
-    columnHelper.accessor(row => row.student?.resultsSentDate, { header: "Sent Date", id: "sentDate", cell: info => info.getValue() ? format(new Date(info.getValue()), "dd-MMM-yyyy") : "Not Set" }),
-  ], []);
-
-  const senateApprovalColumns = useMemo(() => [
-    columnHelper.accessor("student.registrationNumber", { header: "Registration No", id: "registrationNo" }),
-    columnHelper.accessor(row => `${row.student?.firstName || ""} ${row.student?.lastName || ""}`, { header: "Student Name", id: "studentName" }),
-    columnHelper.accessor("bookCode", { header: "Book Code", id: "bookCode" }),
-    columnHelper.accessor(row => row.finalGrade, { header: "Final Grade", id: "finalGrade", cell: info => info.getValue() ? `${info.getValue().toFixed(2)}%` : "Not Available" }),
-    columnHelper.accessor(row => row.student?.senateApprovalDate, { header: "Senate Approval Date", id: "senateApprovalDate", cell: info => info.getValue() ? format(new Date(info.getValue()), "dd-MMM-yyyy") : "Not Set" })
-  ], []);
-  
   const tableInstances = {
     "results-pending-approval": useReactTable({
       data: pendingApprovalData,
-      columns: pendingApprovalColumns,
+      columns: getColumnsForTab("results-pending-approval"),
       state: { rowSelection },
       onRowSelectionChange: setRowSelection,
       enableRowSelection: true,
@@ -502,22 +443,28 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     }),
     "results-approved-at-centre": useReactTable({
       data: approvedAtCentreData,
-      columns: approvedAtCentreColumns,
+      columns: getColumnsForTab("results-approved-at-centre"),
+      state: { rowSelection },
+      onRowSelectionChange: setRowSelection,
+      enableRowSelection: true,
       getCoreRowModel: getCoreRowModel(),
     }),
     "results-sent": useReactTable({
       data: resultsSentData,
-      columns: resultsSentColumns,
+      columns: getColumnsForTab("results-sent"),
+      state: { rowSelection },
+      onRowSelectionChange: setRowSelection,
+      enableRowSelection: true,
       getCoreRowModel: getCoreRowModel(),
     }),
     "senate-approval": useReactTable({
       data: senateApprovalData,
-      columns: senateApprovalColumns,
+      columns: getColumnsForTab("senate-approval"),
       getCoreRowModel: getCoreRowModel(),
     }),
     "reports": useReactTable({
       data: filteredData,
-      columns: reportsColumns,
+      columns: getColumnsForTab("reports"),
       getCoreRowModel: getCoreRowModel(),
     }),
   };
@@ -754,6 +701,88 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     </div>
   );
 
+  // Export all to Excel for any tab
+  const handleExportAllTab = () => {
+    let exportData = [];
+    let columns = [];
+    let sheetTitle = "";
+    let isGrouped = false;
+    switch (activeTab) {
+      case "results-pending-approval":
+        exportData = pendingApprovalData;
+        columns = getColumnsForTab("results-pending-approval").filter(col => col.id !== 'select');
+        sheetTitle = "Results Pending Approval";
+        break;
+      case "results-approved-at-centre":
+        exportData = approvedAtCentreData;
+        columns = getColumnsForTab("results-approved-at-centre").filter(col => col.id !== 'select');
+        sheetTitle = "Results Approved at Centre";
+        break;
+      case "results-sent":
+        exportData = resultsSentData;
+        columns = getColumnsForTab("results-sent").filter(col => col.id !== 'select');
+        sheetTitle = "Results Sent to School";
+        break;
+      case "senate-approval":
+        exportData = senateApprovalData;
+        columns = getColumnsForTab("senate-approval");
+        sheetTitle = "Senate Approval";
+        break;
+      case "reports":
+      default:
+        // Use grouped export for reports tab
+        handleExportAll();
+        return;
+    }
+    // Build headers from columns
+    const headers = columns.map(col => typeof col.header === 'string' ? col.header : (typeof col.header === 'function' ? col.header({}) : ''));
+    let ws_data = [];
+    ws_data.push(["UGANDA MANAGEMENT INSTITUTE"]);
+    ws_data.push([`PROVISIONAL DISSERTATION EXAMINATION RESULTS FOR THE ACADEMIC YEAR ${currentAcademicYear || '_____/_____'} - ${sheetTitle}`]);
+    ws_data.push([]);
+    ws_data.push(headers);
+    exportData.forEach((row, idx) => {
+      const rowData = columns.map((col, colIdx) => {
+        // If accessor is a function, call it; if string, get property
+        if (typeof col.accessorFn === 'function') {
+          return col.accessorFn(row, idx);
+        } else if (typeof col.accessorKey === 'string') {
+          // Support for string accessorKey
+          return row[col.accessorKey];
+        } else {
+          return '';
+        }
+      });
+      ws_data.push(rowData);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    // Set column widths for readability (reuse from reports tab)
+    ws['!cols'] = [
+      { wch: 5 },   // No
+      { wch: 22 },  // Name
+      { wch: 14 },  // Reg No
+      { wch: 8 },   // Gender
+      { wch: 18 },  // Course
+      { wch: 18 },  // Year
+      { wch: 12 },  // Branch
+      { wch: 12 },  // L.E. text (100%)
+      { wch: 12 },  // L.E. text (20%)
+      { wch: 12 },  // E.E. text (100%)
+      { wch: 12 },  // E.E. text (40%)
+      { wch: 18 },  // Total text mark
+      { wch: 12 },  // L.E. viva (100%)
+      { wch: 12 },  // L.E. viva (20%)
+      { wch: 12 },  // E.E. viva (100%)
+      { wch: 12 },  // E.E. viva (20%)
+      { wch: 18 },  // Total viva mark
+      { wch: 22 },  // Final Dissertation mark
+      { wch: 14 },  // Status
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Report");
+    XLSX.writeFile(wb, `grade_report_${activeTab}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+  };
+
   return (
     <div className="space-y-4">
       <div className="border-b border-gray-200 pb-4">
@@ -801,12 +830,11 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
               </h2>
             </div>
             <div className="flex justify-end mb-4">
-              <Button onClick={handleExportAll} className="flex items-center gap-2">
+              <Button onClick={handleExportAllTab} className="flex items-center gap-2" disabled={filteredData.length === 0}>
                 <Download className="h-4 w-4" />
-                Export to Excel
+                Export All to Excel
               </Button>
             </div>
-
             {/* Grouped tables by Course and School (using child component) */}
             {Object.entries(groupedByCourseAndSchool).map(([course, schools]) => (
               <div key={course} className="mb-8">
@@ -819,16 +847,20 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
                 ))}
               </div>
             ))}
-
             <div className="text-sm mt-4">
               <p><strong>From August 2014 - Marking Dissertations:</strong> Moderation = 20% and External Examinations = 40%</p>
               <p><strong>From August 2014 - VIVA VOCES:</strong> Moderation = 20% and External Examinations = 20%</p>
             </div>
           </div>
-        ) : (
-          <div>
+        ) : activeTab === 'results-pending-approval' ? (
+          <>
+            <div className="flex justify-end mb-4">
+              <Button onClick={handleExportAllTab} className="flex items-center gap-2" disabled={pendingApprovalData.length === 0}>
+                <Download className="h-4 w-4" />
+                Export All to Excel
+              </Button>
+            </div>
             <TableComponent table={currentTable} />
-            
             <div className="flex justify-end mt-4 space-x-2">
               {['results-pending-approval', 'results-approved-at-centre', 'results-sent'].includes(activeTab) && (
                 <Button 
@@ -841,27 +873,80 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
                   Export Selected ({Object.keys(rowSelection).length})
                 </Button>
               )}
-
               {activeTab === 'results-pending-approval' && (
                 <Button onClick={handleBulkApprove} disabled={Object.keys(rowSelection).length === 0 || approveMultipleMutation.isPending}>
                   {approveMultipleMutation.isPending ? "Approving..." : "Approve Selected"}
                 </Button>
               )}
-
+            </div>
+          </>
+        ) : activeTab === 'results-approved-at-centre' ? (
+          <>
+            <div className="flex justify-end mb-4">
+              <Button onClick={handleExportAllTab} className="flex items-center gap-2" disabled={approvedAtCentreData.length === 0}>
+                <Download className="h-4 w-4" />
+                Export All to Excel
+              </Button>
+            </div>
+            <TableComponent table={currentTable} />
+            <div className="flex justify-end mt-4 space-x-2">
+              {['results-pending-approval', 'results-approved-at-centre', 'results-sent'].includes(activeTab) && (
+                <Button 
+                  onClick={handleExportSelected} 
+                  disabled={Object.keys(rowSelection).length === 0}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Export Selected ({Object.keys(rowSelection).length})
+                </Button>
+              )}
               {activeTab === 'results-approved-at-centre' && (
                 <Button onClick={handleBulkSendToSchool} disabled={Object.keys(rowSelection).length === 0 || sendToSchoolMultipleMutation.isPending}>
                   {sendToSchoolMultipleMutation.isPending ? "Sending..." : "Send Selected to School"}
                 </Button>
               )}
-
+            </div>
+          </>
+        ) : activeTab === 'results-sent' ? (
+          <>
+            <div className="flex justify-end mb-4">
+              <Button onClick={handleExportAllTab} className="flex items-center gap-2" disabled={resultsSentData.length === 0}>
+                <Download className="h-4 w-4" />
+                Export All to Excel
+              </Button>
+            </div>
+            <TableComponent table={currentTable} />
+            <div className="flex justify-end mt-4 space-x-2">
+              {['results-pending-approval', 'results-approved-at-centre', 'results-sent'].includes(activeTab) && (
+                <Button 
+                  onClick={handleExportSelected} 
+                  disabled={Object.keys(rowSelection).length === 0}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Export Selected ({Object.keys(rowSelection).length})
+                </Button>
+              )}
               {activeTab === 'results-sent' && (
                 <Button onClick={handleBulkSenateApprove} disabled={Object.keys(rowSelection).length === 0 || senateApproveMultipleMutation.isPending}>
                   {senateApproveMultipleMutation.isPending ? "Approving..." : "Mark as Senate Approved"}
                 </Button>
               )}
             </div>
-          </div>
-        )}
+          </>
+        ) : activeTab === 'senate-approval' ? (
+          <>
+            <div className="flex justify-end mb-4">
+              <Button onClick={handleExportAllTab} className="flex items-center gap-2" disabled={senateApprovalData.length === 0}>
+                <Download className="h-4 w-4" />
+                Export All to Excel
+              </Button>
+            </div>
+            <TableComponent table={currentTable} />
+          </>
+        ) : null}
       </div>
 
       <Dialog open={isDateDialogOpen} onOpenChange={setIsDateDialogOpen}>
