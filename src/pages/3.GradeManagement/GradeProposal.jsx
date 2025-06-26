@@ -171,7 +171,7 @@ const GradeProposal = () => {
     <div className="space-y-4">
       {/* Top Search Bar */}
       <div className="flex px-6 justify-between items-center border-b border-gray-300 h-[89px]">
-        <p className="text-sm font-[Inter-SemiBold]  text-gray-900">Management Portal</p>
+        <p className="text-sm font-[Inter-SemiBold]  text-gray-900">Research Centre Portal</p>
       <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
       </div>
 

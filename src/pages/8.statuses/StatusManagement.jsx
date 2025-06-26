@@ -484,7 +484,7 @@ const StatusManagement = () => {
       {/* Global Search */}
       <div className="flex items-center justify-between py-6 px-6 pb-0 w-full h-[89px] border-b border-gray-200">
         {/* <h2 className="text-lg font-[Inter-SemiBold] text-gray-800">DRIMS</h2> */}
-        <p className="text-sm font-[Inter-Medium]  text-gray-900">Management Portal</p>
+        <p className="text-sm font-[Inter-Medium]  text-gray-900">Research Centre Portal</p>
         <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
       </div>
 

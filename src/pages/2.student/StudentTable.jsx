@@ -106,7 +106,7 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
             borderRadius: '0.375rem',
             display: 'inline-block'
           }}
-          className="capitalize"
+          className="capitalize whitespace-normal"
         >
           {row.original.statuses?.find(s => s.isCurrent)?.definition?.name?.toLowerCase() || 'Unknown'}
         </span>

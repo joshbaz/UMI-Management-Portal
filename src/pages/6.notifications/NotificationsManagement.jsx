@@ -216,7 +216,7 @@ const NotificationsManagement = () => {
     <div className="min-h-full">
       {/* Global Search */}
       <div className="flex px-6 justify-between items-center border-b border-gray-300 h-[89px]">
-        <p className="text-sm font-[Inter-SemiBold]  text-gray-900">Management Portal</p>
+        <p className="text-sm font-[Inter-SemiBold]  text-gray-900">Research Centre Portal</p>
       <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
       </div>
 
