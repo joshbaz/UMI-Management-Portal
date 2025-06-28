@@ -9,7 +9,8 @@ import { queryClient } from "../../utils/tanstack";
 import {
   updateResultsApprovalDateService,
   updateResultsSentDateService,
-  updateSenateApprovalDateService
+  updateSenateApprovalDateService,
+  sendResultsEmailService
 } from "../../store/tanstackStore/services/api";
 import {
   useReactTable,
@@ -57,6 +58,119 @@ const GroupedReportTable = ({ items, reportsColumns, TableComponent }) => {
   return <TableComponent table={table} />;
 };
 
+// Separate component for school tables to avoid Rules of Hooks violation
+const SchoolTable = ({ schoolName, schoolData, onExport, onSendToSchool, onSenateApprove, currentAcademicYear, getColumnsForTab, isEmailLoading, isSenateLoading, tab = "results-approved-at-centre" }) => {
+  const [rowSelection, setRowSelection] = useState({});
+
+  const table = useReactTable({
+    data: schoolData,
+    columns: getColumnsForTab(tab),
+    state: { rowSelection },
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: true,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  const handleSenateApproveSelected = () => {
+    const selectedBooks = Object.keys(rowSelection).map(index => schoolData[parseInt(index, 10)]);
+    if (selectedBooks.length > 0) {
+      onSenateApprove(selectedBooks);
+    } else {
+      toast.info("No items selected for senate approval.");
+    }
+  };
+
+  return (
+    <div className="border rounded-lg p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold text-gray-800">
+          {schoolName} ({schoolData.length} students)
+        </h3>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => onExport(schoolName, schoolData)}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Export {schoolName}
+          </Button>
+          {tab === "results-approved-at-centre" && (
+            <Button 
+              onClick={() => onSendToSchool(schoolName, schoolData)}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={isEmailLoading}
+            >
+              {isEmailLoading ? "Sending..." : `Send to ${schoolName}`}
+            </Button>
+          )}
+          {tab === "results-sent" && (
+            <Button 
+              onClick={handleSenateApproveSelected}
+              size="sm"
+              className="bg-green-600 hover:bg-green-700"
+              disabled={isSenateLoading || Object.keys(rowSelection).length === 0}
+            >
+              {isSenateLoading ? "Approving..." : `Mark as Senate Approved (${Object.keys(rowSelection).length})`}
+            </Button>
+          )}
+        </div>
+      </div>
+      
+      <div className="overflow-x-auto rounded-md border">
+        <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+          <thead className="bg-gray-50">
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <th 
+                    key={header.id} 
+                    colSpan={header.colSpan} 
+                    className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-gray-600 border border-gray-200"
+                    style={{ width: header.getSize() }}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {table.getRowModel().rows.length > 0 ? (
+              table.getRowModel().rows.map(row => (
+                <tr key={row.id} className="hover:bg-gray-50">
+                  {row.getVisibleCells().map(cell => (
+                    <td 
+                      key={cell.id} 
+                      className="px-2 py-2 text-xs border border-gray-200 text-center"
+                      style={{ width: cell.column.getSize() }}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={table.getAllColumns().length} className="text-center py-8 text-gray-500">
+                  No data available for this school.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
 const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, currentPage, setCurrentPage, totalCount }) => {
   const [activeTab, setActiveTab] = useState("results-pending-approval");
   const [selectedBook, setSelectedBook] = useState(null);
@@ -65,6 +179,14 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
   const [rowSelection, setRowSelection] = useState({});
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [approvalDate, setApprovalDate] = useState("");
+  const [isSendToSchoolDialogOpen, setIsSendToSchoolDialogOpen] = useState(false);
+  const [selectedSchoolData, setSelectedSchoolData] = useState(null);
+  const [emailRecipients, setEmailRecipients] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [isSenateApproveDialogOpen, setIsSenateApproveDialogOpen] = useState(false);
+  const [senateApprovalDate, setSenateApprovalDate] = useState("");
+  const [selectedSenateData, setSelectedSenateData] = useState(null);
 
   useEffect(() => {
     setRowSelection({});
@@ -75,12 +197,17 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     setApprovalDate(new Date().toISOString().split('T')[0]);
   }, []);
 
+  useEffect(() => {
+    // Set default senate approval date to today
+    setSenateApprovalDate(new Date().toISOString().split('T')[0]);
+  }, []);
+
   // Filter books based on criteria
   const filteredData = useMemo(() => {
     return data.filter(book => {
       const isCurrentBook = book.isCurrent === true;
       const hasFinalStatus = book.student?.statuses?.some(status =>
-        status.definition?.name === 'final dissertation & compliance report received'
+         status.definition?.name === 'final dissertation & compliance report received'
       );
       const isNotGraduated = !book.student?.statuses?.some(status =>
         status.isCurrent &&
@@ -95,7 +222,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     return filteredData.filter(book => {
       const hasResultsApprovedDate = book.student?.resultsApprovedDate;
       const hasResultsApprovedStatus = book.student?.statuses?.some(status =>
-        status.isCurrent && status.definition?.name === 'results approved'
+         status.definition?.name === 'results approved'
       );
       return !hasResultsApprovedDate && !hasResultsApprovedStatus;
     });
@@ -114,11 +241,26 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
   }, [filteredData]);
 
   const resultsSentData = useMemo(() => {
-    return filteredData.filter(book => book.student?.resultsSentDate && !book.student?.senateApprovalDate);
+    return filteredData.filter(book => {
+      const hasResultsSentDate = book.student?.resultsSentDate;
+      const hasResultsSentToSchoolsStatus = book.student?.statuses?.some(status =>
+        status.isCurrent && status.definition?.name === 'results sent to schools'
+      );
+      const hasSenateApprovalDate = book.student?.senateApprovalDate;
+      
+      return (hasResultsSentDate || hasResultsSentToSchoolsStatus) && !hasSenateApprovalDate;
+    });
   }, [filteredData]);
 
   const senateApprovalData = useMemo(() => {
-    return filteredData.filter(book => book.student?.senateApprovalDate);
+    return filteredData.filter(book => {
+      const hasSenateApprovalDate = book.student?.senateApprovalDate;
+      const hasResultsApprovedBySenateStatus = book.student?.statuses?.some(status =>
+        status.isCurrent && status.definition?.name === 'results approved by senate'
+      );
+      
+      return hasSenateApprovalDate || hasResultsApprovedBySenateStatus;
+    });
   }, [filteredData]);
 
   // Group data for reports tab
@@ -352,18 +494,33 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
 
   const senateApproveMultipleMutation = useMutation({
     mutationFn: (booksToApprove) => {
-      const approvalDate = new Date().toISOString().split('T')[0];
       const promises = booksToApprove.map(book =>
-        updateSenateApprovalDateService(book.student.id, { senateApprovalDate: approvalDate })
+        updateSenateApprovalDateService(book.student.id,  senateApprovalDate )
       );
       return Promise.all(promises);
     },
     onSuccess: () => {
       toast.success("Selected results marked as senate approved.");
       setRowSelection({});
+      setIsSenateApproveDialogOpen(false);
+      setSelectedSenateData(null);
       queryClient.invalidateQueries(['books']);
     },
     onError: (error) => toast.error(`Error during senate approval: ${error.message}`)
+  });
+
+  const sendResultsEmailMutation = useMutation({
+    mutationFn: sendResultsEmailService,
+    onSuccess: (data, variables) => {
+      toast.success(`Results sent to ${variables.schoolName} successfully.`);
+      setIsSendToSchoolDialogOpen(false);
+      setSelectedSchoolData(null);
+      queryClient.invalidateQueries(['books']);
+    },
+    onError: (error) => {
+      console.error('Email sending failed:', error);
+      toast.error(`Error sending results: ${error.message || 'Failed to send email'}`);
+    }
   });
 
   const handleDateUpdate = (e) => {
@@ -406,6 +563,23 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     const selectedBooks = Object.keys(rowSelection).map(index => resultsSentData[parseInt(index, 10)]);
     if (selectedBooks.length > 0) senateApproveMultipleMutation.mutate(selectedBooks);
     else toast.info("No items selected for senate approval.");
+  };
+
+  const handleSenateApproveSchool = (schoolData) => {
+    if (schoolData.length > 0) {
+      setSelectedSenateData(schoolData);
+      setIsSenateApproveDialogOpen(true);
+    } else {
+      toast.info("No data available for senate approval.");
+    }
+  };
+
+  const confirmSenateApprove = () => {
+    if (selectedSenateData && selectedSenateData.length > 0) {
+      senateApproveMultipleMutation.mutate(selectedSenateData);
+    } else {
+      toast.info("No data available for senate approval.");
+    }
   };
 
   const getDateField = (book) => {
@@ -757,7 +931,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
       case "senate-approval":
         exportData = senateApprovalData;
         columns = getColumnsForTab("senate-approval");
-        sheetTitle = "Senate Approval";
+        sheetTitle = "Results Approved by Senate";
         break;
       case "reports":
       default:
@@ -814,6 +988,246 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     XLSX.writeFile(wb, `grade_report_${activeTab}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
   };
 
+  // Group approved results by school
+  const groupedBySchool = useMemo(() => {
+    const groups = {};
+    approvedAtCentreData.forEach(book => {
+      const schoolName = book.student?.school?.name || 'Unknown School';
+      if (!groups[schoolName]) {
+        groups[schoolName] = [];
+      }
+      groups[schoolName].push(book);
+    });
+    return groups;
+  }, [approvedAtCentreData]);
+
+  // Group results sent to school by school
+  const groupedBySchoolForSentData = useMemo(() => {
+    const groups = {};
+    resultsSentData.forEach(book => {
+      const schoolName = book.student?.school?.name || 'Unknown School';
+      if (!groups[schoolName]) {
+        groups[schoolName] = [];
+      }
+      groups[schoolName].push(book);
+    });
+    return groups;
+  }, [resultsSentData]);
+
+  const handleSendToSchool = (schoolName, schoolData) => {
+    setSelectedSchoolData({ schoolName, data: schoolData });
+    setEmailRecipients("");
+    setEmailMessage("");
+    setEmailSubject(`Results for ${schoolName} - ${currentAcademicYear}`);
+    setIsSendToSchoolDialogOpen(true);
+  };
+
+  const confirmSendToSchool = async () => {
+    if (!emailRecipients.trim()) {
+      toast.error("Please enter email recipients");
+      return;
+    }
+
+    // Generate Excel file for the school
+    const schoolName = selectedSchoolData.schoolName;
+    const schoolData = selectedSchoolData.data;
+    
+    // Create Excel workbook
+    const wb = XLSX.utils.book_new();
+    
+    // Prepare data for Excel
+    const headers = [
+      "No", "NAME", "REG. NO", "GENDER", "COURSE", "YEAR OF ENROLLMENT", "BRANCH",
+      "L.E. text (100%)", "L.E. text (20%)", "E.E. text (100%)", "E.E. text (40%)", "Total text mark (out of 60)",
+      "L.E. viva (100%)", "L.E. viva (20%)", "E.E. viva (100%)", "E.E. viva (20%)", "Total viva mark (out of 40)",
+      "Final Dissertation mark (out of 100)", "Status"
+    ];
+
+    const ws_data = [
+      ["UGANDA MANAGEMENT INSTITUTE"],
+      [`PROVISIONAL DISSERTATION EXAMINATION RESULTS FOR ${schoolName} - ACADEMIC YEAR ${currentAcademicYear || '_____/_____'}`],
+      [],
+      headers
+    ];
+
+    schoolData.forEach((book, index) => {
+      const { textMarks, vivaMarks } = getStudentMarks(book);
+      const regNo = book.student?.registrationNumber || "";
+      const textTotal = (textMarks.internal * 0.2) + (textMarks.external * 0.4);
+      const vivaTotal = (vivaMarks.internal * 0.2) + (vivaMarks.external * 0.2);
+      const finalMark = textTotal + vivaTotal;
+      
+      ws_data.push([
+        index + 1,
+        `${book.student?.firstName || ""} ${book.student?.lastName || ""}`,
+        regNo,
+        book.student?.gender === "male" ? "M" : "F" || "N/A",
+        book.student?.course || regNo.split('/')[2] || "N/A",
+        book.student?.academicYear || `20${regNo.split('/')[0]}` || "N/A",
+        regNo.split('/')[3] || "N/A",
+        textMarks.internal.toFixed(0),
+        (textMarks.internal * 0.2).toFixed(0),
+        textMarks.external.toFixed(0),
+        (textMarks.external * 0.4).toFixed(0),
+        textTotal.toFixed(0),
+        vivaMarks.internal.toFixed(0),
+        (vivaMarks.internal * 0.2).toFixed(0),
+        vivaMarks.external.toFixed(0),
+        (vivaMarks.external * 0.2).toFixed(0),
+        vivaTotal.toFixed(0),
+        finalMark.toFixed(0),
+        book.vivaHistory?.find(v => v.isCurrent)?.status || 'Complete'
+      ]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    
+    // Apply formatting
+    ws['!cols'] = [
+      { wch: 5 }, { wch: 22 }, { wch: 14 }, { wch: 8 }, { wch: 18 }, { wch: 18 }, { wch: 12 },
+      { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 18 },
+      { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 18 },
+      { wch: 22 }, { wch: 14 }
+    ];
+
+    // Apply styles
+    for (let r = 0; r < ws_data.length; r++) {
+      for (let c = 0; c < ws_data[r].length; c++) {
+        const cellRef = XLSX.utils.encode_cell({ r, c });
+        if (ws[cellRef]) {
+          if (r === 0) {
+            ws[cellRef].s = { font: { bold: true, sz: 16 }, alignment: { horizontal: 'center' } };
+          } else if (r === 1) {
+            ws[cellRef].s = { font: { bold: true, sz: 13 }, alignment: { horizontal: 'center' } };
+          } else if (r === 3) {
+            ws[cellRef].s = { 
+              font: { bold: true }, 
+              fill: { fgColor: { rgb: 'D9E1F2' } },
+              border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } },
+              alignment: { horizontal: 'center' }
+            };
+          } else if (r > 3) {
+            ws[cellRef].s = { 
+              border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } },
+              alignment: { horizontal: 'center' }
+            };
+          }
+        }
+      }
+    }
+
+    XLSX.utils.book_append_sheet(wb, ws, schoolName);
+    
+    // Generate Excel file as base64 string
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+    const fileName = `${schoolName}_Results_${currentAcademicYear}.xlsx`;
+    
+    // Get student IDs for updating results sent date
+    const studentIds = schoolData.map(book => book.student.id);
+    
+    // Send email using the mutation
+    sendResultsEmailMutation.mutate({
+      to: emailRecipients,
+      subject: emailSubject,
+      message: emailMessage,
+      schoolName,
+      academicYear: currentAcademicYear,
+      studentCount: schoolData.length,
+      excelBuffer,
+      fileName,
+      studentIds
+    });
+  };
+
+  const handleExportSchoolData = (schoolName, schoolData) => {
+    // Create Excel workbook
+    const wb = XLSX.utils.book_new();
+    
+    // Prepare data for Excel
+    const headers = [
+      "No", "NAME", "REG. NO", "GENDER", "COURSE", "YEAR OF ENROLLMENT", "BRANCH",
+      "L.E. text (100%)", "L.E. text (20%)", "E.E. text (100%)", "E.E. text (40%)", "Total text mark (out of 60)",
+      "L.E. viva (100%)", "L.E. viva (20%)", "E.E. viva (100%)", "E.E. viva (20%)", "Total viva mark (out of 40)",
+      "Final Dissertation mark (out of 100)", "Status"
+    ];
+
+    const ws_data = [
+      ["UGANDA MANAGEMENT INSTITUTE"],
+      [`PROVISIONAL DISSERTATION EXAMINATION RESULTS FOR ${schoolName} - ACADEMIC YEAR ${currentAcademicYear || '_____/_____'}`],
+      [],
+      headers
+    ];
+
+    schoolData.forEach((book, index) => {
+      const { textMarks, vivaMarks } = getStudentMarks(book);
+      const regNo = book.student?.registrationNumber || "";
+      const textTotal = (textMarks.internal * 0.2) + (textMarks.external * 0.4);
+      const vivaTotal = (vivaMarks.internal * 0.2) + (vivaMarks.external * 0.2);
+      const finalMark = textTotal + vivaTotal;
+      
+      ws_data.push([
+        index + 1,
+        `${book.student?.firstName || ""} ${book.student?.lastName || ""}`,
+        regNo,
+        book.student?.gender === "male" ? "M" : "F" || "N/A",
+        book.student?.course || regNo.split('/')[2] || "N/A",
+        book.student?.academicYear || `20${regNo.split('/')[0]}` || "N/A",
+        regNo.split('/')[3] || "N/A",
+        textMarks.internal.toFixed(0),
+        (textMarks.internal * 0.2).toFixed(0),
+        textMarks.external.toFixed(0),
+        (textMarks.external * 0.4).toFixed(0),
+        textTotal.toFixed(0),
+        vivaMarks.internal.toFixed(0),
+        (vivaMarks.internal * 0.2).toFixed(0),
+        vivaMarks.external.toFixed(0),
+        (vivaMarks.external * 0.2).toFixed(0),
+        vivaTotal.toFixed(0),
+        finalMark.toFixed(0),
+        book.vivaHistory?.find(v => v.isCurrent)?.status || 'Complete'
+      ]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    
+    // Apply formatting
+    ws['!cols'] = [
+      { wch: 5 }, { wch: 22 }, { wch: 14 }, { wch: 8 }, { wch: 18 }, { wch: 18 }, { wch: 12 },
+      { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 18 },
+      { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 18 },
+      { wch: 22 }, { wch: 14 }
+    ];
+
+    // Apply styles
+    for (let r = 0; r < ws_data.length; r++) {
+      for (let c = 0; c < ws_data[r].length; c++) {
+        const cellRef = XLSX.utils.encode_cell({ r, c });
+        if (ws[cellRef]) {
+          if (r === 0) {
+            ws[cellRef].s = { font: { bold: true, sz: 16 }, alignment: { horizontal: 'center' } };
+          } else if (r === 1) {
+            ws[cellRef].s = { font: { bold: true, sz: 13 }, alignment: { horizontal: 'center' } };
+          } else if (r === 3) {
+            ws[cellRef].s = { 
+              font: { bold: true }, 
+              fill: { fgColor: { rgb: 'D9E1F2' } },
+              border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } },
+              alignment: { horizontal: 'center' }
+            };
+          } else if (r > 3) {
+            ws[cellRef].s = { 
+              border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } },
+              alignment: { horizontal: 'center' }
+            };
+          }
+        }
+      }
+    }
+
+    XLSX.utils.book_append_sheet(wb, ws, schoolName);
+    XLSX.writeFile(wb, `${schoolName}_Results_${currentAcademicYear}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+  };
+
   return (
     <div className="space-y-4">
       <div className="border-b border-gray-200 pb-4">
@@ -840,7 +1254,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
             onClick={() => setActiveTab("senate-approval")}
             className={`py-2 px-4 text-xs font-medium rounded-lg ${activeTab === "senate-approval" ? "bg-primary-50 text-primary-600 border-2 border-primary-600" : "text-gray-500 hover:text-gray-700 hover:border-gray-300 border-2 border-gray-200"}`}
           >
-            Senate Approval
+            Results Approved by Senate
           </button>
           <button
             onClick={() => setActiveTab("reports")}
@@ -913,57 +1327,57 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
           </>
         ) : activeTab === 'results-approved-at-centre' ? (
           <>
-            <div className="flex justify-end mb-4">
-              <Button onClick={handleExportAllTab} className="flex items-center gap-2" disabled={approvedAtCentreData.length === 0}>
-                <Download className="h-4 w-4" />
-                Export All to Excel
-              </Button>
-            </div>
-            <TableComponent table={currentTable} />
-            <div className="flex justify-end mt-4 space-x-2">
-              {['results-pending-approval', 'results-approved-at-centre', 'results-sent'].includes(activeTab) && (
-                <Button 
-                  onClick={handleExportSelected} 
-                  disabled={Object.keys(rowSelection).length === 0}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Export Selected ({Object.keys(rowSelection).length})
-                </Button>
-              )}
-              {activeTab === 'results-approved-at-centre' && (
-                <Button onClick={handleBulkSendToSchool} disabled={Object.keys(rowSelection).length === 0 || sendToSchoolMultipleMutation.isPending}>
-                  {sendToSchoolMultipleMutation.isPending ? "Sending..." : "Send Selected to School"}
-                </Button>
+            <div className="space-y-6">
+              {Object.entries(groupedBySchool).map(([schoolName, schoolData]) => {
+                return (
+                  <SchoolTable
+                    key={schoolName}
+                    schoolName={schoolName}
+                    schoolData={schoolData}
+                    onExport={handleExportSchoolData}
+                    onSendToSchool={handleSendToSchool}
+                    onSenateApprove={handleSenateApproveSchool}
+                    currentAcademicYear={currentAcademicYear}
+                    getColumnsForTab={getColumnsForTab}
+                    isEmailLoading={sendResultsEmailMutation.isPending}
+                    isSenateLoading={senateApproveMultipleMutation.isPending}
+                    tab="results-approved-at-centre"
+                  />
+                );
+              })}
+              
+              {Object.keys(groupedBySchool).length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No data available for Results Approved at Centre.
+                </div>
               )}
             </div>
           </>
         ) : activeTab === 'results-sent' ? (
           <>
-            <div className="flex justify-end mb-4">
-              <Button onClick={handleExportAllTab} className="flex items-center gap-2" disabled={resultsSentData.length === 0}>
-                <Download className="h-4 w-4" />
-                Export All to Excel
-              </Button>
-            </div>
-            <TableComponent table={currentTable} />
-            <div className="flex justify-end mt-4 space-x-2">
-              {['results-pending-approval', 'results-approved-at-centre', 'results-sent'].includes(activeTab) && (
-                <Button 
-                  onClick={handleExportSelected} 
-                  disabled={Object.keys(rowSelection).length === 0}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Export Selected ({Object.keys(rowSelection).length})
-                </Button>
-              )}
-              {activeTab === 'results-sent' && (
-                <Button onClick={handleBulkSenateApprove} disabled={Object.keys(rowSelection).length === 0 || senateApproveMultipleMutation.isPending}>
-                  {senateApproveMultipleMutation.isPending ? "Approving..." : "Mark as Senate Approved"}
-                </Button>
+            <div className="space-y-6">
+              {Object.entries(groupedBySchoolForSentData).map(([schoolName, schoolData]) => {
+                return (
+                  <SchoolTable
+                    key={schoolName}
+                    schoolName={schoolName}
+                    schoolData={schoolData}
+                    onExport={handleExportSchoolData}
+                    onSendToSchool={handleSendToSchool}
+                    onSenateApprove={handleSenateApproveSchool}
+                    currentAcademicYear={currentAcademicYear}
+                    getColumnsForTab={getColumnsForTab}
+                    isEmailLoading={sendResultsEmailMutation.isPending}
+                    isSenateLoading={senateApproveMultipleMutation.isPending}
+                    tab="results-sent"
+                  />
+                );
+              })}
+              
+              {Object.keys(groupedBySchoolForSentData).length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No data available for Results Sent to School.
+                </div>
               )}
             </div>
           </>
@@ -1063,6 +1477,128 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
                 className="bg-green-600 hover:bg-green-700"
               >
                 {approveMultipleMutation.isPending ? "Approving..." : "Confirm Approval"}
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send to School Dialog */}
+      <Dialog open={isSendToSchoolDialogOpen} onOpenChange={setIsSendToSchoolDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Send Results to School</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            <div className="text-sm text-gray-600">
+              Sending results for <strong>{selectedSchoolData?.schoolName}</strong> ({selectedSchoolData?.data?.length} students)
+            </div>
+            
+            <div className="grid gap-2">
+              <label className="text-sm font-medium leading-none">
+                Email Recipients
+              </label>
+              <input
+                type="email"
+                multiple
+                value={emailRecipients}
+                onChange={(e) => setEmailRecipients(e.target.value)}
+                placeholder="Enter email addresses separated by commas"
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                required
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <label className="text-sm font-medium leading-none">
+                Subject
+              </label>
+              <input
+                type="text"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                required
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <label className="text-sm font-medium leading-none">
+                Message
+              </label>
+              <textarea
+                value={emailMessage}
+                onChange={(e) => setEmailMessage(e.target.value)}
+                placeholder="Enter your message here..."
+                rows={4}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+            
+            <div className="text-sm text-gray-500">
+              <strong>Attachment:</strong> {selectedSchoolData?.schoolName}_Results_{currentAcademicYear}.xlsx
+            </div>
+            
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsSendToSchoolDialogOpen(false)}
+                disabled={sendResultsEmailMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmSendToSchool}
+                disabled={!emailRecipients.trim() || sendResultsEmailMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {sendResultsEmailMutation.isPending ? "Sending..." : "Send Email & Update Status"}
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Senate Approval Confirmation Dialog */}
+      <Dialog open={isSenateApproveDialogOpen} onOpenChange={setIsSenateApproveDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Senate Approval</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            <div className="text-sm text-gray-600">
+              Are you sure you want to mark the selected results as senate approved? This action will move the selected items to the "Senate Approval" tab.
+            </div>
+            <div className="grid gap-2">
+              <label className="text-sm font-medium leading-none">
+                Senate Approval Date
+              </label>
+              <input
+                type="date"
+                value={senateApprovalDate}
+                onChange={(e) => setSenateApprovalDate(e.target.value)}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                required
+              />
+            </div>
+            <div className="text-sm text-gray-500">
+              Selected items: {selectedSenateData?.length || 0}
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsSenateApproveDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmSenateApprove}
+                disabled={!senateApprovalDate || senateApproveMultipleMutation.isPending}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {senateApproveMultipleMutation.isPending ? "Approving..." : "Confirm Senate Approval"}
               </Button>
             </DialogFooter>
           </div>

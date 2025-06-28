@@ -1224,6 +1224,17 @@ export const addStudentToGraduationService = async (studentId: string, academicY
 
 /* ********** END OF GRADUATION MANAGEMENT ********** */
 
+/* ********** EMAIL ********** */
+
+export const sendResultsEmailService = async (emailData: any) => {
+    try {
+        const response = await apiRequest.post("/email/send-results", emailData);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}
+
 
 
 
