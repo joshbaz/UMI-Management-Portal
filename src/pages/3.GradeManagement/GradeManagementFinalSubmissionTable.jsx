@@ -63,10 +63,17 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
   const [isDateDialogOpen, setIsDateDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [rowSelection, setRowSelection] = useState({});
+  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
+  const [approvalDate, setApprovalDate] = useState("");
 
   useEffect(() => {
     setRowSelection({});
   }, [activeTab]);
+
+  useEffect(() => {
+    // Set default approval date to today
+    setApprovalDate(new Date().toISOString().split('T')[0]);
+  }, []);
 
   // Filter books based on criteria
   const filteredData = useMemo(() => {
@@ -85,11 +92,25 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
 
   // Data subsets for each tab
   const pendingApprovalData = useMemo(() => {
-    return filteredData.filter(book => !book.student?.resultsApprovedDate);
+    return filteredData.filter(book => {
+      const hasResultsApprovedDate = book.student?.resultsApprovedDate;
+      const hasResultsApprovedStatus = book.student?.statuses?.some(status =>
+        status.isCurrent && status.definition?.name === 'results approved'
+      );
+      return !hasResultsApprovedDate && !hasResultsApprovedStatus;
+    });
   }, [filteredData]);
 
   const approvedAtCentreData = useMemo(() => {
-    return filteredData.filter(book => book.student?.resultsApprovedDate && !book.student?.resultsSentDate);
+    return filteredData.filter(book => {
+      const hasResultsApprovedDate = book.student?.resultsApprovedDate;
+      const hasResultsApprovedStatus = book.student?.statuses?.some(status =>
+        status.isCurrent && status.definition?.name === 'results approved'
+      );
+      const hasResultsSentDate = book.student?.resultsSentDate;
+      
+      return (hasResultsApprovedDate || hasResultsApprovedStatus) && !hasResultsSentDate;
+    });
   }, [filteredData]);
 
   const resultsSentData = useMemo(() => {
@@ -297,17 +318,18 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
   });
 
   const approveMultipleMutation = useMutation({
-    mutationFn: (booksToApprove) => {
-      const approvalDate = new Date().toISOString().split('T')[0];
+    mutationFn: ({ booksToApprove, approvalDate }) => {
       const promises = booksToApprove.map(book =>
-        updateResultsApprovalDateService(book.student.id, { resultsApprovedDate: approvalDate })
+        updateResultsApprovalDateService(book.student.id, approvalDate )
       );
       return Promise.all(promises);
     },
     onSuccess: () => {
       toast.success("Selected results approved successfully.");
       setRowSelection({});
-      queryClient.invalidateQueries(['books']);
+      setIsApproveDialogOpen(false);
+      
+      queryClient.invalidateQueries({ queryKey: ['books'] });
     },
     onError: (error) => toast.error(`Error during approval: ${error.message}`)
   });
@@ -361,8 +383,17 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
 
   const handleBulkApprove = () => {
     const selectedBooks = Object.keys(rowSelection).map(index => pendingApprovalData[parseInt(index, 10)]);
-    if (selectedBooks.length > 0) approveMultipleMutation.mutate(selectedBooks);
-    else toast.info("No items selected for approval.");
+    if (selectedBooks.length > 0) {
+      setIsApproveDialogOpen(true);
+    } else {
+      toast.info("No items selected for approval.");
+    }
+  };
+
+  const confirmBulkApprove = () => {
+    const selectedBooks = Object.keys(rowSelection).map(index => pendingApprovalData[parseInt(index, 10)]);
+   
+    approveMultipleMutation.mutate({ booksToApprove: selectedBooks, approvalDate });
   };
 
   const handleBulkSendToSchool = () => {
@@ -990,6 +1021,51 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Approval Confirmation Dialog */}
+      <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Results Approval</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            <div className="text-sm text-gray-600">
+              Are you sure you want to approve the selected results? This action will move the selected items to the "Results Approved at Centre" tab.
+            </div>
+            <div className="grid gap-2">
+              <label className="text-sm font-medium leading-none">
+                Approval Date
+              </label>
+              <input
+                type="date"
+                value={approvalDate}
+                onChange={(e) => setApprovalDate(e.target.value)}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                required
+              />
+            </div>
+            <div className="text-sm text-gray-500">
+              Selected items: {Object.keys(rowSelection).length}
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsApproveDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmBulkApprove}
+                disabled={!approvalDate || approveMultipleMutation.isPending}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {approveMultipleMutation.isPending ? "Approving..." : "Confirm Approval"}
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
