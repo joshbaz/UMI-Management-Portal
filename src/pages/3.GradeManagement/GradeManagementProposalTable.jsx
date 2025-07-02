@@ -62,7 +62,7 @@ const GradeManagementProposalTable = ({
           </div>
         ),
       }),
-      columnHelper.accessor((row) => row.defenses?.[0]?.scheduledDate, {
+      columnHelper.accessor((row) => row.defenses?.find(d => d.isCurrent)?.scheduledDate, {
         header: "Defense Date",
         id: "defenseDate",
         cell: (info) => info.getValue() ? format(new Date(info.getValue()), "dd-MMM-yyyy") : "-",
