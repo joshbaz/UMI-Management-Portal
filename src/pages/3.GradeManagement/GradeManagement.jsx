@@ -13,6 +13,7 @@ import GradeManagementTableTabs from "./GradeManagementTableTabs";
 
 import GradeManagementBookTable from "./GradeManagementBookTable";
 import GradeManagementProposalTable from "./GradeManagementProposalTable";
+import GradeManagementVivaReportsTable from "./GradeManagementVivaReportsTable";
 import GradeManagementFinalSubmissionTable from "./GradeManagementFinalSubmissionTable";
 
 const GradeManagement = () => {
@@ -223,6 +224,16 @@ const GradeManagement = () => {
           ) : activeTab === "Dissertation Examination" ? (
             <GradeManagementBookTable 
               data={paginatedBooks}
+              pageSize={pageSize}
+              setPageSize={setPageSize}
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              totalCount={filteredBooks.length}
+            />
+          ) : activeTab === "Proposal Defense & Viva Reports" ? (
+            <GradeManagementVivaReportsTable 
+              data={booksData?.books}
+              proposalsData={proposalsData?.proposals}
               pageSize={pageSize}
               setPageSize={setPageSize}
               currentPage={currentPage}
