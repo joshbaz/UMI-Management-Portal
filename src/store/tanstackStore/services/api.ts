@@ -342,6 +342,16 @@ export const updateSupervisorService = async (supervisorId: string, data: any) =
     }
 };
 
+
+export const changeSupervisorPasswordService = async (supervisorId: string, data: any) => {
+    try {
+        const response = await apiRequest.put(`/management/supervisor/${supervisorId}/password`, data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
 export const deleteSupervisorService = async (supervisorId: string) => {
     try {
         const response = await apiRequest.delete(`/management/supervisor/${supervisorId}`);
