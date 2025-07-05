@@ -13,7 +13,7 @@ import SupervisorUserAccess from "./Forms/SupervisorUserAccess";
 const STEPS = [
   { id: 1, title: "Step 1", description: "Personal information" },
   { id: 2, title: "Step 2", description: "Professional Summary" },
-  // { id: 3, title: "Step 3", description: "User Access" },
+  { id: 3, title: "Step 3", description: "User Access" },
 ];
 
 // Progress Steps Component
@@ -129,8 +129,8 @@ const AddSupervisor = () => {
         return <SupervisorPersonalInfoForm formRef={formRef} handleNext={handleMoveToStep} />;
       case 2:
         return <SupervisorProfessionalSummary formRef={formRef} handleNext={handleMoveToStep} createSupervisorMutation={createSupervisorMutation} />;
-      // case 3:
-      //     return <SupervisorUserAccess formRef={formRef} handleNext={handleMoveToStep} createSupervisorMutation={createSupervisorMutation} />;
+      case 3:
+          return <SupervisorUserAccess formRef={formRef} handleNext={handleMoveToStep} createSupervisorMutation={createSupervisorMutation} />;
       default:
         return null;
     }

@@ -65,17 +65,18 @@ const SupervisorProfessionalSummary = ({ handleNext, formRef, createSupervisorMu
         // Encrypt data before storing
         const encryptedValues = encryptData(values)
         localStorage.setItem('supervisorProfessionalSummary', encryptedValues)
+        handleNext()  
          // Get and decrypt stored data from previous steps
-        const personalInfo = decryptData(localStorage.getItem('supervisorPersonalInfo') || '')
+        // const personalInfo = decryptData(localStorage.getItem('supervisorPersonalInfo') || '')
 
         // Combine all data
-        const finalFormData = {
-          ...personalInfo,
-          ...values,
-          password: generatePassword()
-        }
+        // const finalFormData = {
+        //   ...personalInfo,
+        //   ...values,
+        //   password: generatePassword()
+        // }
           // Call mutation to create supervisor
-      createSupervisorMutation.mutate(finalFormData);
+      // createSupervisorMutation.mutate(finalFormData);
       }}
     >
       {({ values, handleChange, errors, touched, setFieldValue }) => (

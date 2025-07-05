@@ -3,19 +3,19 @@ import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
   updateSupervisorService,
-//   changeSupervisorPasswordService,
+  changeSupervisorPasswordService,
   deleteSupervisorService,
 } from "../../store/tanstackStore/services/api";
 import { queryClient } from "@/utils/tanstack";
 import { toast } from "sonner";
 import EditSupervisorPersonalInfoForm from "./Forms/EditSupervisorPersonalInfoForm";
-// import EditSupervisorUserAccess from "./Forms/EditSupervisorUserAccess";
+import EditSupervisorUserAccess from "./Forms/EditSupervisorUserAccess";
 import EditSupervisorProfessionalSummary from "./Forms/EditSupervisorProfessionalSummary";
 import { useNavigate } from "react-router-dom";
 const TABS = [
   { id: 1, description: "Personal Information" },
   { id: 2, description: "Professional Summary" },
-  // { id: 3, description: "User Access" },
+  { id: 3, description: "User Access" },
 ];
 
 const SupervisorAccountSettings = ({ supervisorData }) => {
@@ -39,20 +39,20 @@ const SupervisorAccountSettings = ({ supervisorData }) => {
     },
   });
 
-//   const changeSupervisorPasswordMutation = useMutation({
-//     mutationFn: (data) => {
-//       return changeSupervisorPasswordService(supervisorData?.id, data);
-//     },
-//     onSuccess: () => {
-//       toast.success("Password updated successfully");
-//       queryClient.invalidateQueries({ queryKey: ["supervisor"] });
-//     },
-//     onError: (error) => {
-//       toast.error(error?.message, {
-//         duration: 3000,
-//       });
-//     },
-//   });
+  const changeSupervisorPasswordMutation = useMutation({
+    mutationFn: (data) => {
+      return changeSupervisorPasswordService(supervisorData?.supervisor?.id, data);
+    },
+    onSuccess: () => {
+      toast.success("Password updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["supervisor"] });
+    },
+    onError: (error) => {
+      toast.error(error?.message, {
+        duration: 3000,
+      });
+    },
+  });
 
   const deleteSupervisorMutation = useMutation({
     mutationFn: () => deleteSupervisorService(supervisorData?.supervisor?.id),
@@ -82,13 +82,13 @@ const SupervisorAccountSettings = ({ supervisorData }) => {
             updateSupervisorMutation={updateSupervisorMutation}
           />
         );
-    //   case 3:
-    //     return (
-    //       <EditSupervisorUserAccess
-    //         supervisorData={supervisorData}
-    //         changeSupervisorPasswordMutation={changeSupervisorPasswordMutation}
-    //       />
-    //     );
+      case 3:
+        return (
+          <EditSupervisorUserAccess
+            supervisorData={supervisorData?.supervisor}
+            changeSupervisorPasswordMutation={changeSupervisorPasswordMutation}
+          />
+        );
       default:
         return null;
     }
