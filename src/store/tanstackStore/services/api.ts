@@ -1243,7 +1243,32 @@ export const sendResultsEmailService = async (emailData: any) => {
     } catch (error) {
         errorHandling(error);
     }
-}
+} 
+
+/* ********** RESEARCH REQUEST MANAGEMENT ********** */
+
+export const getAllResearchRequestsService = async () => {
+    try {
+        const response = await apiRequest.get('/management/research-requests');
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const updateResearchRequestService = async ({ id, status, decision }) => {
+    try {
+        const response = await apiRequest.put(`/management/research-requests/${id}`, {
+            status,
+            decision,
+        });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+/* ********** END OF RESEARCH REQUEST MANAGEMENT ********** */
 
 
 

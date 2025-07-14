@@ -44,7 +44,11 @@ export const ROUTES = {
   },
   NOTIFICATIONS: '/notifications',
   TABLES: '/table-builder',
-  SETTINGS: '/settings'
+  SETTINGS: '/settings',
+  STUDENT_REQUESTS: {
+    ROOT: '/student-requests',
+   
+  }
 };
 
 export default ROUTES;
