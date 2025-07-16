@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -11,13 +11,11 @@ import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import {
   useGetBook,
-  useGetReviewers,
-  useGetChairpersons,
   useGetExternalPersons,
   useGetPanelists
 } from "@/store/tanstackStore/services/queries";
 
-import { createExternalPersonService, addNewPanelistService, createReviewerService, createChairpersonService, scheduleVivaService } from "@/store/tanstackStore/services/api";
+import { createExternalPersonService, addNewPanelistService, createExaminerService, scheduleVivaService } from "@/store/tanstackStore/services/api";
 import {
   Dialog,
   DialogContent,
@@ -56,9 +54,6 @@ const GradeBookScheduleViva = () => {
   // Fetch book details using the custom hook
   const { data: bookData, isLoading: bookLoading } = useGetBook(bookId);
 
-  // Fetch chairpersons
-  const { data: chairpersonData, isLoading: chairpersonLoading } = useGetChairpersons();
-
   // Fetch external persons
   const { data: externalPersonsData, isLoading: externalPersonsLoading } = useGetExternalPersons();
 
@@ -71,17 +66,31 @@ const GradeBookScheduleViva = () => {
     }
   }, [panelistsData]);
 
-  // Fetch available reviewers using the custom hook
-  const { data: reviewersData, isLoading: reviewersLoading } = useGetReviewers();
+  // Get internal and external examiners from book data
+  const { internalExaminers, externalExaminers } = useMemo(() => {
+    if (!bookData?.book?.examinerAssignments) {
+      return { internalExaminers: [], externalExaminers: [] };
+    }
+
+    const internal = bookData.book.examinerAssignments
+      .filter(assignment => assignment.isCurrent && assignment.examiner?.type === "Internal")
+      .map(assignment => assignment.examiner);
+
+    const external = bookData.book.examinerAssignments
+      .filter(assignment => assignment.isCurrent && assignment.examiner?.type === "External")
+      .map(assignment => assignment.examiner);
+
+    return { internalExaminers: internal, externalExaminers: external };
+  }, [bookData?.book?.examinerAssignments]);
 
   useEffect(() => {
-    if (reviewersData) {
-      setAvailableReviewers(reviewersData.reviewers || []);
+    if (externalExaminers) {
+      setAvailableReviewers(externalExaminers || []);
     }
-  }, [reviewersData]);
+  }, [externalExaminers]);
 
   const book = bookData?.book;
-  const loading = bookLoading || panelistsLoading || reviewersLoading;
+  const loading = bookLoading || panelistsLoading;
 
   const validateForm = () => {
     const errors = {};
@@ -89,10 +98,10 @@ const GradeBookScheduleViva = () => {
     if (!vivaDate) errors.vivaDate = "Viva date is required";
     if (!vivaTime) errors.vivaTime = "Viva time is required";
     if (!location.trim()) errors.location = "Location is required";
-    if (!chairperson.trim()) errors.chairperson = "Chairperson is required";
+    if (!chairperson.trim()) errors.chairperson = "Internal examiner (chairperson) is required";
     if (!minutesSecretary.trim()) errors.minutesSecretary = "Minutes secretary is required";
     if (selectedPanelists.length === 0) errors.panelists = "At least one panelist is required";
-    if (selectedReviewers.length === 0) errors.reviewers = "At least one reviewer is required";
+    if (selectedReviewers.length === 0) errors.reviewers = "At least one external examiner (reviewer) is required";
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -372,43 +381,53 @@ const GradeBookScheduleViva = () => {
               </div>
             </div>
 
-            {/* Chairperson Section */}
+            {/* Internal Examiner (Chairperson) Section */}
             <div className="mb-8">
               <div className="flex items-center mb-4">
                 <div className="flex-grow h-px bg-gray-200"></div>
-                <span className="px-3 text-gray-500 bg-white">Chairperson</span>
+                <span className="px-3 text-gray-500 bg-white">Internal Examiner (Chairperson)</span>
                 <div className="flex-grow h-px bg-gray-200"></div>
               </div>
 
               <div className="border border-gray-200 rounded-md p-4">
+                {internalExaminers.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-red-500 mb-2">No internal examiner assigned to this book</p>
+                    <p className="text-sm text-gray-600">An internal examiner must be assigned before scheduling a viva</p>
+                  </div>
+                ) : (
                 <div className="mb-4">
-                  <AddPersonDialog
-                    type="chairperson"
-                    onSelect={(id) => setChairperson(id)}
-                    availablePeople={chairpersonData?.chairpersons || []}
-                    selectedPeople={chairperson ? [{ id: chairperson }] : []}
-                    onCreateSuccess={(newChairperson) => {
-                      setChairperson(newChairperson.id);
-                      setSuccess("New chairperson added successfully");
-                    }}
-                  />
+                    <Label className="mb-2 block">Select Internal Examiner *</Label>
+                    <div className="space-y-2">
+                      {internalExaminers.map((examiner) => (
+                        <div key={examiner.id} className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            id={`internal-${examiner.id}`}
+                            name="chairperson"
+                            value={examiner.id}
+                            checked={chairperson === examiner.id}
+                            onChange={(e) => {
+                              setChairperson(e.target.value);
+                              setFormErrors(prev => ({ ...prev, chairperson: undefined }));
+                            }}
+                            className="w-4 h-4"
+                          />
+                          <label htmlFor={`internal-${examiner.id}`} className="flex-1 cursor-pointer">
+                            <div className="p-3 border rounded-md hover:bg-gray-50">
+                              <p className="font-medium">{examiner.name}</p>
+                              <p className="text-sm text-gray-500">{examiner.primaryEmail}</p>
+                              <p className="text-sm text-gray-400">{examiner.institution}</p>
+                            </div>
+                          </label>
+                        </div>
+                      ))}
                 </div>
-
-                {chairperson && chairpersonData?.chairpersons && (
-                  <div className="mt-2 p-2 bg-gray-50 rounded-md">
-                    <div className="flex justify-between items-center">
-                      <p className="font-medium">
-                        Current Chairperson: {chairpersonData.chairpersons.find(c => c.id === chairperson)?.name}
+                    {formErrors.chairperson && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors.chairperson}
                       </p>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-red-500 border-red-500 hover:bg-red-50"
-                        onClick={() => setChairperson("")}
-                      >
-                        Remove
-                      </Button>
-                    </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -509,33 +528,62 @@ const GradeBookScheduleViva = () => {
               </div>
             </div>
 
-            {/* Reviewers Section */}
+            {/* External Examiners (Reviewers) Section */}
             <div className="mb-8">
               <div className="flex items-center mb-4">
                 <div className="flex-grow h-px bg-gray-200"></div>
-                <span className="px-3 text-gray-500 bg-white">Reviewers</span>
+                <span className="px-3 text-gray-500 bg-white">External Examiners (Reviewers)</span>
                 <div className="flex-grow h-px bg-gray-200"></div>
               </div>
 
               <div className="border border-gray-200 rounded-md p-4">
+                {externalExaminers.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-red-500 mb-2">No external examiner assigned to this book</p>
+                    <p className="text-sm text-gray-600">An external examiner must be assigned before scheduling a viva</p>
+                  </div>
+                ) : (
                 <div className="mb-4">
-                  <AddPersonDialog
-                    type="reviewer"
-                    onSelect={handleAddReviewer}
-                    availablePeople={availableReviewers}
-                    selectedPeople={selectedReviewers}
-                    onCreateSuccess={(newReviewer) => {
-                      setAvailableReviewers([...availableReviewers, newReviewer]);
-                      setSelectedReviewers([...selectedReviewers, newReviewer]);
-                      setSuccess("New reviewer added successfully");
-                    }}
-                  />
+                    <Label className="mb-2 block">Select External Examiners *</Label>
+                    <div className="space-y-2">
+                      {externalExaminers.map((examiner) => (
+                        <div key={examiner.id} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`external-${examiner.id}`}
+                            checked={selectedReviewers.some(r => r.id === examiner.id)}
+                            onChange={() => {
+                              if (selectedReviewers.some(r => r.id === examiner.id)) {
+                                handleRemoveReviewer(examiner.id);
+                              } else {
+                                handleAddReviewer(examiner.id);
+                              }
+                              setFormErrors(prev => ({ ...prev, reviewers: undefined }));
+                            }}
+                            className="w-4 h-4"
+                          />
+                          <label htmlFor={`external-${examiner.id}`} className="flex-1 cursor-pointer">
+                            <div className="p-3 border rounded-md hover:bg-gray-50">
+                              <p className="font-medium">{examiner.name}</p>
+                              <p className="text-sm text-gray-500">{examiner.primaryEmail}</p>
+                              <p className="text-sm text-gray-400">{examiner.institution}</p>
+                            </div>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    {formErrors.reviewers && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors.reviewers}
+                      </p>
+                    )}
                 </div>
+                )}
 
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Selected Reviewers</h3>
+                <div className="mt-4">
+                  <h3 className="text-sm font-medium mb-2">Selected External Examiners</h3>
                   {selectedReviewers.length === 0 ? (
-                    <p className="text-gray-500">No reviewers selected</p>
+                    <p className="text-gray-500">No external examiners selected</p>
                   ) : (
                     <ul className="border border-gray-200 bg-gray-50 rounded-md divide-y divide-gray-200">
                       {selectedReviewers.map((reviewer) => (
@@ -545,7 +593,7 @@ const GradeBookScheduleViva = () => {
                         >
                           <div>
                             <p className="font-medium">{reviewer.name}</p>
-                            <p className="text-sm text-gray-500">{reviewer.email}</p>
+                            <p className="text-sm text-gray-500">{reviewer.primaryEmail}</p>
                           </div>
                           <Button
                             variant="ghost"
@@ -573,7 +621,10 @@ const GradeBookScheduleViva = () => {
               </Button>
 
               <div className="space-x-4">
-                <Button onClick={handleScheduleViva} disabled={scheduleVivaMutation?.isPending}>
+                <Button 
+                  onClick={handleScheduleViva} 
+                  disabled={scheduleVivaMutation?.isPending || internalExaminers.length === 0 || externalExaminers.length === 0}
+                >
                   {scheduleVivaMutation?.isPending ? "Scheduling..." : "Schedule Viva"}
                 </Button>
               </div>
@@ -650,28 +701,6 @@ const AddPersonDialog = ({
     }
   });
 
-  const createReviewerMutation = useMutation({
-    mutationFn: createReviewerService,
-    onSuccess: (data) => {
-      onCreateSuccess(data.reviewer);
-      setNewPerson({ name: "", email: "", institution: "" });
-    },
-    onError: (err) => {
-      setError(err.response?.data?.message || "Failed to create reviewer");
-    }
-  });
-
-  const createChairpersonMutation = useMutation({
-    mutationFn: createChairpersonService,
-    onSuccess: (data) => {
-      onCreateSuccess(data.chairperson);
-      setNewPerson({ name: "", email: "", institution: "" });
-    },
-    onError: (err) => {
-      setError(err.response?.data?.message || "Failed to create chairperson");
-    }
-  });
-
   const createExternalPersonMutation = useMutation({
     mutationFn: (values) => createExternalPersonService(values.name, values.email, values.role),
     onSuccess: (data) => {
@@ -706,16 +735,6 @@ const AddPersonDialog = ({
         email: newPerson.email,
         institution: newPerson.institution
       });
-    } else if (type === 'reviewer') {
-      createReviewerMutation.mutate({
-        name: newPerson.name,
-        email: newPerson.email
-      });
-    } else if (type === 'chairperson') {
-      createChairpersonMutation.mutate({
-        name: newPerson.name,
-        email: newPerson.email
-      });
     } else if (type === 'minutesSecretary') {
       createExternalPersonMutation.mutate({
         name: newPerson.name,
@@ -727,8 +746,6 @@ const AddPersonDialog = ({
 
   const isLoading = 
     addPanelistMutation.isPending || 
-    createReviewerMutation.isPending || 
-    createChairpersonMutation.isPending || 
     createExternalPersonMutation.isPending;
 
   return (
