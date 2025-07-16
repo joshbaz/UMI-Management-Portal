@@ -1268,6 +1268,36 @@ export const updateResearchRequestService = async ({ id, status, decision }) => 
     }
 };
 
+/* ********** EVALUATION ANALYTICS SERVICES ********** */
+
+export const getEvaluationAnalyticsService = async () => {
+    try {
+        const response = await apiRequest.get('/management/evaluations/analytics');
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const getDetailedEvaluationsService = async (params = {}) => {
+    try {
+        const queryParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+                queryParams.append(key, value.toString());
+            }
+        });
+        
+        const url = `/management/evaluations/detailed${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+        const response = await apiRequest.get(url);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+/* ********** END OF EVALUATION ANALYTICS SERVICES ********** */
+
 /* ********** END OF RESEARCH REQUEST MANAGEMENT ********** */
 
 

@@ -59,6 +59,7 @@ import ChangeSupervisor from "./pages/2.student/ChangeSupervisor";
 import GradeProposalScheduleDefense from "./pages/3.GradeManagement/GradeProposalScheduleDefense";
 import GradeBookScheduleViva from "./pages/3.GradeManagement/GradeBookScheduleViva";
 import ManageResearchRequests from "./pages/ResearchRequests/ManageResearchRequests";
+import StudentEvaluationsManagement from "./pages/11.StudentEvaluations/StudentEvaluationsManagement";
 // PublicRoute: Redirects authenticated users away from public pages (like login)
 // If user is authenticated, redirects to dashboard
 // If user is not authenticated, shows the public page content
@@ -192,6 +193,11 @@ const AppRoutes = () => {
         {/* Faculty Statistics */}
         <Route path={ROUTES.STATISTICS.ROOT}>
           <Route index element={<FacultyStatsManagement />} />
+        </Route>
+
+        {/* Student Evaluations */}
+        <Route path={ROUTES.EVALUATIONS.ROOT}>
+          <Route index element={<StudentEvaluationsManagement />} />
         </Route>
 
         {/* Other Routes */}

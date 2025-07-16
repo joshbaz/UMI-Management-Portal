@@ -42,6 +42,9 @@ export const ROUTES = {
     ROOT: '/statistics',
    
   },
+  EVALUATIONS: {
+    ROOT: '/evaluations',
+  },
   NOTIFICATIONS: '/notifications',
   TABLES: '/table-builder',
   SETTINGS: '/settings',

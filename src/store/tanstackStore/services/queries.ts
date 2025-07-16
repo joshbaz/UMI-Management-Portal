@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '../../../utils/tanstack';
-import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService, getGraduationStatisticsService, getChairpersonsService, getExternalPersonsService, getProposalDefenseReportsService, getAllResearchRequestsService, updateResearchRequestService } from './api';
+import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService, getGraduationStatisticsService, getChairpersonsService, getExternalPersonsService, getProposalDefenseReportsService, getAllResearchRequestsService, updateResearchRequestService, getEvaluationAnalyticsService, getDetailedEvaluationsService } from './api';
 
 export const useGetLoggedInUserDetails = () => {
   return useQuery({
@@ -469,4 +469,26 @@ export const useUpdateResearchRequest = (options = {}) => {
   });
 };
 /* ********** END OF RESEARCH REQUEST MANAGEMENT ********** */
+
+/* ********** EVALUATION ANALYTICS ********** */
+
+export const useGetEvaluationAnalytics = () => {
+  return useQuery({
+    queryKey: ['evaluationAnalytics'],
+    queryFn: getEvaluationAnalyticsService,
+    staleTime: 1 * 60 * 1000, // 1 minute
+    refetchInterval: false,
+  });
+};
+
+export const useGetDetailedEvaluations = (params = {}) => {
+  return useQuery({
+    queryKey: ['detailedEvaluations', params],
+    queryFn: () => getDetailedEvaluationsService(params),
+    staleTime: 30 * 1000, // 30 seconds
+    refetchInterval: false,
+  });
+};
+
+/* ********** END OF EVALUATION ANALYTICS ********** */
 
