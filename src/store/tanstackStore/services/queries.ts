@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '../../../utils/tanstack';
-import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService, getGraduationStatisticsService, getChairpersonsService, getExternalPersonsService, getProposalDefenseReportsService, getAllResearchRequestsService, updateResearchRequestService, getEvaluationAnalyticsService, getDetailedEvaluationsService } from './api';
+import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService, getGraduationStatisticsService, getChairpersonsService, getExternalPersonsService,  getAllResearchRequestsService, updateResearchRequestService, getEvaluationAnalyticsService, getDetailedEvaluationsService } from './api';
 
 export const useGetLoggedInUserDetails = () => {
   return useQuery({
@@ -425,15 +425,15 @@ export const useGetProposalDefenses = () => {
   });
 };
 
-export const useGetProposalDefenseReports = (proposalId: string) => {
-  return useQuery({
-    queryKey: ['proposalDefenseReports', proposalId],
-    queryFn: () => getProposalDefenseReportsService(proposalId),
-    staleTime: 300000, // 5 minutes
-    refetchInterval: false,
-    retry: 1,
-  });
-}; 
+// export const useGetProposalDefenseReports = (proposalId: string) => {
+//   return useQuery({
+//     queryKey: ['proposalDefenseReports', proposalId],
+//     queryFn: () => getProposalDefenseReportsService(proposalId),
+//     staleTime: 300000, // 5 minutes
+//     refetchInterval: false,
+//     retry: 1,
+//   });
+// }; 
 
 
 /* ********** END OF PROPOSAL DEFENSE MANAGEMENT ********** */

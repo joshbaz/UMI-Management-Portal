@@ -15,7 +15,7 @@ import { queryClient } from "../../utils/tanstack";
 import GradeProposalGenerateFieldLetter from "./GradeProposalGenerateFieldLetter";
 import GradeProposalDefenseTable from "./GradeProposalDefenseTable";
 import GradeProposalDefenseReport from "./GradeProposalDefenseReport";
-import GradeProposalReportsTable from "./GradeProposalReportsTable";
+// import GradeProposalReportsTable from "./GradeProposalReportsTable";
 
 const GradeProposal = () => {
   let navigate = useNavigate();
@@ -27,7 +27,7 @@ const GradeProposal = () => {
   const [isFieldLetterDateDialogOpen, setIsFieldLetterDateDialogOpen] = useState(false);
   (false);
   const [isEthicsCommitteeDialogOpen, setIsEthicsCommitteeDialogOpen] = useState(false);
-  const [isDefenseReportDialogOpen, setIsDefenseReportDialogOpen] = useState(false);
+  // const [isDefenseReportDialogOpen, setIsDefenseReportDialogOpen] = useState(false);
   const [complianceReportDate, setComplianceReportDate] = useState("");
   const [fieldLetterDate, setFieldLetterDate] = useState("");
   const [ethicsCommitteeDate, setEthicsCommitteeDate] = useState("");
@@ -359,13 +359,15 @@ const GradeProposal = () => {
           )}
 
 
+{/* 
+needs to be removed for cleanups
 {activeTab === "Reports" && (
   <GradeProposalReportsTable
     reports={proposal?.proposal?.defenseReports || []}
     isLoading={isLoading}
     onGenerateReportClick={() => setIsDefenseReportDialogOpen(true)}
   />
-)}
+)} */}
         </div>
       </div>
 
@@ -509,11 +511,13 @@ const GradeProposal = () => {
       <GradeProposalGenerateFieldLetter isOpen={isFieldLetterDialogOpen} onClose={() => setIsFieldLetterDialogOpen(false)} proposalId={proposalId} proposal={proposal?.proposal} />
 
          {/** Defense Report Dialog */}
+      {/* 
+      Needs to be removed for cleanups
       <GradeProposalDefenseReport
         isOpen={isDefenseReportDialogOpen}
         onClose={() => setIsDefenseReportDialogOpen(false)}
         proposal={proposal?.proposal}
-      />
+      /> */}
     </div>  
   );
 };
