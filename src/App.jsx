@@ -38,6 +38,8 @@ import StatusManagement from "./pages/8.statuses/StatusManagement";
 import NotificationsManagement from "./pages/6.notifications/NotificationsManagement";
 
 import TableBuilder from "./pages/tables";
+// PWA Component
+import PWAInstaller from "./components/PWAInstaller";
 import Settings from "./pages/settings";
 import EditSchool from "./pages/5.schools/EditSchool";
 import RegisterSuperAdmin from "./pages/0.auth/RegisterSuperAdmin";
@@ -218,8 +220,9 @@ const App = () => {
   return (
     <AuthProvider>
       <Router>
-        
         <AppRoutes />
+        {/* PWA Installer - shows on all pages including login */}
+        <PWAInstaller />
       </Router>
     </AuthProvider>
   );
