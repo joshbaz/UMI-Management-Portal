@@ -6,6 +6,7 @@ const PWAInstaller = () => {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [debugInfo, setDebugInfo] = useState('');
+  const [debugPanelClosed, setDebugPanelClosed] = useState(false);
 
   useEffect(() => {
     // Check if app is already installed
@@ -101,22 +102,35 @@ const PWAInstaller = () => {
     console.log('PWA: Cleared dismissal flag');
   };
 
+  const handleCloseDebugPanel = () => {
+    setDebugPanelClosed(true);
+    console.log('PWA: Debug panel closed');
+  };
+
   // Show debug info in development
   const isDev = import.meta.env.DEV;
   const isDismissed = sessionStorage.getItem('pwa-install-dismissed');
   
   // In development, always show something for debugging
-  if (isDev) {
+  if (isDev && !debugPanelClosed) {
     return (
       <div className="fixed bottom-4 left-4 bg-gray-900 text-white text-xs p-3 rounded z-50 max-w-xs">
         <div className="flex items-center justify-between mb-2">
           <span className="font-bold">PWA Debug</span>
-          <button
-            onClick={handleClearDismissal}
-            className="text-green-400 hover:text-green-300"
-          >
-            <RefreshCw className="h-3 w-3" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleClearDismissal}
+              className="text-green-400 hover:text-green-300"
+            >
+              <RefreshCw className="h-3 w-3" />
+            </button>
+            <button
+              onClick={handleCloseDebugPanel}
+              className="text-gray-400 hover:text-gray-300"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
         </div>
         <div>Status: {debugInfo || 'Initializing...'}</div>
         <div>Prompt Available: {deferredPrompt ? 'Yes' : 'No'}</div>
