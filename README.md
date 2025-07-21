@@ -1,6 +1,6 @@
-# UMI Management Portal 📱💼
+# UMI Research Centre Portal 📱💼
 
-A Progressive Web App (PWA) for the University Management Information System - Management Portal. This application can be installed on desktop and mobile devices for a native app-like experience, providing comprehensive administrative control.
+A Progressive Web App (PWA) for the University Management Information System - Research Centre Portal. This application can be installed on desktop and mobile devices for a native app-like experience, providing comprehensive administrative control.
 
 ## 🚀 PWA Features
 
@@ -109,4 +109,4 @@ The PWA can be customized by modifying:
 
 ---
 
-**Administrative Excellence!** Your UMI Management Portal is now a fully functional Progressive Web App, providing comprehensive university management capabilities with the convenience of native app installation. 🎓💼
+**Administrative Excellence!** Your UMI Research Centre Portal is now a fully functional Progressive Web App, providing comprehensive university management capabilities with the convenience of native app installation. 🎓💼

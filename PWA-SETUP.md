@@ -1,6 +1,6 @@
-# UMI Management Portal - PWA Installation Guide
+# UMI Research Centre Portal - PWA Installation Guide
 
-Your UMI Management Portal has been successfully converted into a Progressive Web App (PWA)! This means you can now install it on your desktop, mobile device, or tablet for quick access and offline functionality.
+Your UMI Research Centre Portal has been successfully converted into a Progressive Web App (PWA)! This means you can now install it on your desktop, mobile device, or tablet for quick access and offline functionality.
 
 ## 🚀 What's New - PWA Features
 
@@ -19,7 +19,7 @@ Your UMI Management Portal has been successfully converted into a Progressive We
 2. **Look for the install prompt** - You'll see a small notification in the bottom-right corner
 3. **Click "Install"** or look for the install icon (⬇️) in your browser's address bar
 4. **Follow the prompts** to install the app to your desktop
-5. **Launch from desktop** - Find the "UMI Management Portal" icon on your desktop or in your applications
+5. **Launch from desktop** - Find the "UMI Research Centre Portal" icon on your desktop or in your applications
 
 ### Mobile Installation
 
@@ -142,7 +142,7 @@ The PWA appearance can be customized by modifying:
 
 ## 🏢 Management-Specific Features
 
-When installed, the UMI Management Portal provides quick access to:
+When installed, the UMI Research  Centre Portal provides quick access to:
 - **Dashboard**: View comprehensive analytics and system overview
 - **Student Management**: Manage student records, applications, and academic progress
 - **Faculty Management**: Oversee faculty profiles, assignments, and evaluations
@@ -163,4 +163,4 @@ Consider implementing additional PWA features:
 
 ---
 
-**Congratulations!** Your UMI Management Portal is now a fully functional Progressive Web App. Administrators can install it like any native application while enjoying all the benefits of web technology and maintaining efficient university operations! 🎓💼 
+**Congratulations!** Your UMI Research Centre Portal is now a fully functional Progressive Web App. Administrators can install it like any native application while enjoying all the benefits of web technology and maintaining efficient university operations! 🎓💼 
