@@ -11,9 +11,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'safari-pinned-tab.svg'],
       manifest: {
-        name: 'UMI Management Portal',
-        short_name: 'UMI Management',
-        description: 'University Management Information System - Management Portal',
+        name: 'UMI Research Centre Portal',
+        short_name: 'UMI Research Centre',
+        description: 'UMI DRIMS - Research Centre Portal',
         theme_color: '#059669',
         background_color: '#ffffff',
         display: 'standalone',

@@ -257,7 +257,7 @@ const StudentEvaluationsManagement = () => {
     <div className="min-h-full bg-gray-50">
       {/* Header */}
       <div className="flex items-center justify-between py-6 px-6 pb-0 w-full h-[64px]">
-        <p className="text-sm font-[Inter-Medium] text-gray-900">Management Portal</p>
+        <p className="text-sm font-[Inter-Medium] text-gray-900">Research Centre Portal</p>
         <p className="text-sm font-[Inter-Medium] text-gray-600">Digital Research Information Management System</p>
       </div>
 
