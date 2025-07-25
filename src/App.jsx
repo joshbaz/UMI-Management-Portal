@@ -62,6 +62,7 @@ import GradeProposalScheduleDefense from "./pages/3.GradeManagement/GradeProposa
 import GradeBookScheduleViva from "./pages/3.GradeManagement/GradeBookScheduleViva";
 import ManageResearchRequests from "./pages/ResearchRequests/ManageResearchRequests";
 import StudentEvaluationsManagement from "./pages/11.StudentEvaluations/StudentEvaluationsManagement";
+import StaffManagement from "./pages/12.staff/StaffManagement";
 // PublicRoute: Redirects authenticated users away from public pages (like login)
 // If user is authenticated, redirects to dashboard
 // If user is not authenticated, shows the public page content
@@ -171,6 +172,8 @@ const AppRoutes = () => {
           <Route path="user-list/:id" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
         </Route>
 
+        
+
         {/* Schools Management */}
         <Route path={ROUTES.SCHOOLS.ROOT}>
           <Route index element={<SchoolManagement />} />
@@ -200,6 +203,11 @@ const AppRoutes = () => {
         {/* Student Evaluations */}
         <Route path={ROUTES.EVALUATIONS.ROOT}>
           <Route index element={<StudentEvaluationsManagement />} />
+        </Route>
+
+        {/* Staff Management */}
+        <Route path={ROUTES.STAFF.ROOT}>
+          <Route index element={<StaffManagement />} />
         </Route>
 
         {/* Other Routes */}
