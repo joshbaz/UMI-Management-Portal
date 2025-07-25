@@ -18,6 +18,7 @@ const menuItems = {
     { name: 'Students Management', icon: RiUserLine, path: '/students' },
     { name: 'Grade Management', icon: RiTableLine, path: '/grades' },
     { name: 'Faculty Management', icon: RiTeamLine, path: '/faculty' },
+    { name: 'Staff Management', icon: RiTeamLine, path: '/staff' },
     { name: 'Student Requests', icon: RiFileListLine, path: '/student-requests' },
     { name: 'Student Evaluations', icon: RiTableLine, path: '/evaluations' },
     { name: 'Schools Management', icon: RiBuilding4Line, path: '/schools' },

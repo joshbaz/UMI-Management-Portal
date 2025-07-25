@@ -45,6 +45,13 @@ export const ROUTES = {
   EVALUATIONS: {
     ROOT: '/evaluations',
   },
+  STAFF: {
+    ROOT: '/staff',
+    LIST: '/staff',
+    ADD: '/staff/add',
+    DETAILS: '/staff/:id',
+    PROFILE: '/staff/profile/:id'
+  },
   NOTIFICATIONS: '/notifications',
   TABLES: '/table-builder',
   SETTINGS: '/settings',
