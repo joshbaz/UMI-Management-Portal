@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '../../../utils/tanstack';
+import apiRequest from '../../../utils/apiRequestUrl';
 import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService, getGraduationStatisticsService, getChairpersonsService, getExternalPersonsService,  getAllResearchRequestsService, updateResearchRequestService, getEvaluationAnalyticsService, getDetailedEvaluationsService } from './api';
 
 export const useGetLoggedInUserDetails = () => {
@@ -491,4 +492,109 @@ export const useGetDetailedEvaluations = (params = {}) => {
 };
 
 /* ********** END OF EVALUATION ANALYTICS ********** */
+
+/* ********** STAFF MEMBERS ********** */
+export const useGetStaffMembers = (searchTerm = '', statusFilter = '', isExternal?: boolean, schoolId?: string, departmentId?: string, campusId?: string) => {
+  return useQuery({
+    queryKey: ['staffMembers', searchTerm, statusFilter, isExternal, schoolId, departmentId, campusId],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (statusFilter && statusFilter !== 'all') params.append('isActive', statusFilter);
+      if (isExternal !== undefined) params.append('isExternal', isExternal.toString());
+      if (schoolId) params.append('schoolId', schoolId);
+      if (departmentId) params.append('departmentId', departmentId);
+      if (campusId) params.append('campusId', campusId);
+
+      const response = await apiRequest.get(`/management/staff?${params.toString()}`);
+      return response.data.staffMembers;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
+
+export const useGetStaffMember = (id: string) => {
+  return useQuery({
+    queryKey: ['staffMember', id],
+    queryFn: async () => {
+      const response = await apiRequest.get(`/management/staff/${id}`);
+      return response.data.staffMember;
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useGetStaffMembersByRole = (role: string) => {
+  return useQuery({
+    queryKey: ['staffMembersByRole', role],
+    queryFn: async () => {
+      const response = await apiRequest.get(`/management/staff/role/${role}`);
+      return response.data.staffMembers;
+    },
+    enabled: !!role,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useCreateStaffMember = () => {
+  return useMutation({
+    mutationFn: async (staffData: any) => {
+      const response = await apiRequest.post('/management/staff', staffData);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffMembers'] });
+    },
+  });
+};
+
+export const useUpdateStaffMember = () => {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiRequest.put(`/management/staff/${id}`, data);
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['staffMembers'] });
+      queryClient.invalidateQueries({ queryKey: ['staffMember', variables.id] });
+    },
+  });
+};
+
+export const useDeleteStaffMember = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest.delete(`/management/staff/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffMembers'] });
+    },
+  });
+};
+
+export const useGetStaffMembersForSupervisor = () => {
+  return useQuery({
+    queryKey: ['staffMembersForSupervisor'],
+    queryFn: async () => {
+      const response = await apiRequest.get('/management/staff/for-supervisor');
+      return response.data.staffMembers;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
+
+export const useGetStaffMembersWithoutSupervisor = () => {
+  return useQuery({
+    queryKey: ['staffMembersWithoutSupervisor'],
+    queryFn: async () => {
+      const response = await apiRequest.get('/management/staff/without-supervisor');
+      return response.data.staffMembers;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
 

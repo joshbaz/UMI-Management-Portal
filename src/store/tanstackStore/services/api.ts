@@ -943,8 +943,8 @@ export const updateUserService = async (userId: string, data: any) => {
     try {
         const response = await apiRequest.put(`/management/users/${userId}`, data);
         return response.data;
-    } catch (error) {
-        errorHandling(error);   
+    } catch (error) {   
+        errorHandling(error);
     }
 }
 
@@ -1299,6 +1299,15 @@ export const getDetailedEvaluationsService = async (params = {}) => {
 /* ********** END OF EVALUATION ANALYTICS SERVICES ********** */
 
 /* ********** END OF RESEARCH REQUEST MANAGEMENT ********** */
+
+export const createSupervisorFromStaffService = async (staffMemberId: string) => {
+    try {
+        const response = await apiRequest.post(`/management/supervisor/from-staff/${staffMemberId}`);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
 
 
 
