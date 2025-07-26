@@ -8,14 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, User, Building, Mail, Phone } from "lucide-react";
 import {
   useGetBook,
   useGetExternalPersons,
-  useGetPanelists
+  useGetPanelists,
+  useGetStaffMembers
 } from "@/store/tanstackStore/services/queries";
 
-import { createExternalPersonService, addNewPanelistService, createExaminerService, scheduleVivaService } from "@/store/tanstackStore/services/api";
+import { createExternalPersonService, addNewPanelistService, createExaminerService, scheduleVivaService, createPanelistFromStaffService } from "@/store/tanstackStore/services/api";
 import {
   Dialog,
   DialogContent,
@@ -23,9 +24,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, AlertCircle, CheckCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { queryClient } from "@/utils/tanstack";
+import { toast } from "sonner";
+import AddStaffMember from "@/pages/12.staff/AddStaffMember";
 
 const GradeBookScheduleViva = () => {
   const { id: bookId } = useParams();
@@ -60,6 +63,12 @@ const GradeBookScheduleViva = () => {
   // Fetch available panelists
   const { data: panelistsData, isLoading: panelistsLoading } = useGetPanelists();
 
+  // Fetch staff members for panelist conversion
+  const { data: staffMembersData, isLoading: staffMembersLoading } = useGetStaffMembers();
+
+  console.log('Staff members loading:', staffMembersLoading);
+  console.log('Staff members data:', staffMembersData);
+
   useEffect(() => {
     if (panelistsData) {
       setAvailablePanelists(panelistsData.panelists || []);
@@ -90,7 +99,7 @@ const GradeBookScheduleViva = () => {
   }, [externalExaminers]);
 
   const book = bookData?.book;
-  const loading = bookLoading || panelistsLoading;
+  const loading = bookLoading || panelistsLoading || staffMembersLoading;
 
   const validateForm = () => {
     const errors = {};
@@ -686,6 +695,13 @@ const AddPersonDialog = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [newPerson, setNewPerson] = useState({ name: "", email: "", institution: "" });
   const [error, setError] = useState(null);
+  const [showConversionDialog, setShowConversionDialog] = useState(false);
+  const [selectedStaffMember, setSelectedStaffMember] = useState(null);
+  const [conversionLoading, setConversionLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Get staff members for panelist conversion
+  const { data: staffMembersData } = useGetStaffMembers();
 
   // Define mutations for different person types
   const addPanelistMutation = useMutation({
@@ -698,6 +714,25 @@ const AddPersonDialog = ({
     },
     onError: (err) => {
       setError(err.response?.data?.message || "Failed to create panelist");
+    }
+  });
+
+  const createPanelistFromStaffMutation = useMutation({
+    mutationFn: createPanelistFromStaffService,
+    onSuccess: (data) => {
+      setConversionLoading(false);
+      setShowConversionDialog(false);
+      setSelectedStaffMember(null);
+      onCreateSuccess(data.panelist);
+      queryClient.resetQueries({ queryKey: ['panelists'] });
+      queryClient.invalidateQueries({ queryKey: ['panelists'] });
+      queryClient.resetQueries({ queryKey: ['staffMembers'] });
+      queryClient.invalidateQueries({ queryKey: ['staffMembers'] });
+      toast.success('Staff member converted to panelist successfully');
+    },
+    onError: (err) => {
+      setConversionLoading(false);
+      setError(err.response?.data?.message || "Failed to convert staff member to panelist");
     }
   });
 
@@ -714,12 +749,67 @@ const AddPersonDialog = ({
     }
   });
 
-  const filteredPeople = availablePeople.filter(
-    (p) => 
-      !selectedPeople.some((sp) => sp.id === p.id) &&
-      (p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-       p.email.toLowerCase().includes(searchQuery.toLowerCase()))
+  // For panelists, use staff members who don't have panelistId
+  const getAvailablePeople = () => {
+    if (type === 'panelist') {
+      const staffMembers = staffMembersData || [];
+      
+      console.log('Staff members data:', staffMembers);
+      
+      // Get all staff members (both convertible and already panelists)
+      const allStaffMembers = staffMembers.map(staff => ({
+        ...staff,
+        id: staff.id,
+        name: staff.name,
+        email: staff.email,
+        institution: staff.isExternal ? staff.externalInstitution : 'Uganda Management Institute',
+        specialization: staff.specialization || 'Not specified',
+        phone: staff.phone,
+        designation: staff.designation,
+        school: staff.school,
+        department: staff.department,
+        isStaffMember: true,
+        isAlreadyPanelist: !!staff.panelistId
+      }));
+
+      console.log('Mapped staff members:', allStaffMembers);
+      return allStaffMembers;
+    }
+    return availablePeople;
+  };
+
+  const filteredPeople = getAvailablePeople().filter(
+    (p) => {
+      // For staff members who are already panelists, check against panelistId
+      if (p.isStaffMember && p.isAlreadyPanelist && type === 'panelist') {
+        const isSelected = selectedPeople.some((sp) => sp.id === p.panelistId);
+        const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                             p.email.toLowerCase().includes(searchQuery.toLowerCase());
+        console.log(`Staff member ${p.name} (already panelist): isSelected=${isSelected}, matchesSearch=${matchesSearch}`);
+        return !isSelected && matchesSearch;
+      }
+      // For other cases, check against the person's id
+      const isSelected = selectedPeople.some((sp) => sp.id === p.id);
+      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           p.email.toLowerCase().includes(searchQuery.toLowerCase());
+      console.log(`Person ${p.name}: isSelected=${isSelected}, matchesSearch=${matchesSearch}`);
+      return !isSelected && matchesSearch;
+    }
   );
+
+  console.log('Filtered people:', filteredPeople);
+
+  const handleStaffMemberSelect = (staffMember) => {
+    setSelectedStaffMember(staffMember);
+    setShowConversionDialog(true);
+  };
+
+  const handleConversionConfirm = () => {
+    if (!selectedStaffMember) return;
+    
+    setConversionLoading(true);
+    createPanelistFromStaffMutation.mutate(selectedStaffMember.id);
+  };
 
   const handleCreate = async () => {
     if (!newPerson.name.trim() || !newPerson.email.trim()) {
@@ -749,109 +839,282 @@ const AddPersonDialog = ({
     createExternalPersonMutation.isPending;
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <div className="w-full flex justify-end">
-          <Button variant="outline" className="w-full bg-primary-500 text-white max-w-max">
-            <Plus className="w-4 h-4 mr-2" />
-            Add {type.charAt(0).toUpperCase() + type.slice(1)}
-          </Button>
-        </div>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Add {type.charAt(0).toUpperCase() + type.slice(1)}</DialogTitle>
-        </DialogHeader>
-        
-        <Tabs defaultValue="search" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="search" className="data-[state=active]:border-gray-300">Search</TabsTrigger>
-            <TabsTrigger value="create" className="data-[state=active]:border-gray-300">Create New</TabsTrigger>
-          </TabsList>
+    <>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <div className="w-full flex justify-end">
+            <Button variant="outline" className="w-full bg-primary-500 text-white max-w-max">
+              <Plus className="w-4 h-4 mr-2" />
+              Add {type.charAt(0).toUpperCase() + type.slice(1)}
+            </Button>
+          </div>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Add {type.charAt(0).toUpperCase() + type.slice(1)}</DialogTitle>
+          </DialogHeader>
+          
+          <Tabs defaultValue="search" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="search" className="data-[state=active]:border-gray-300">Search</TabsTrigger>
+              <TabsTrigger value="create" className="data-[state=active]:border-gray-300">Create New</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="search" className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search by name or email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
+            <TabsContent value="search" className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by name or email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
 
-            <div className="max-h-[300px] overflow-y-auto">
-              {filteredPeople.length === 0 ? (
-                <div className="text-center py-4">
-                  <p className="text-gray-500">No {type}s found</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {filteredPeople.map((person) => (
-                    <div
-                      key={person.id}
-                      className="flex items-center justify-between p-2 bg-gray-100 hover:bg-gray-2000 rounded-md cursor-pointer"
-                      onClick={() => onSelect(person.id)}
-                    >
-                      <div>
-                        <p className="font-medium">{person.name}</p>
-                        <p className="text-sm text-gray-500">{person.email}</p>
+              <div className="max-h-[60vh] overflow-y-auto pr-2">
+                {filteredPeople.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-gray-500">No {type}s found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {filteredPeople.map((person) => (
+                      <div
+                        key={person.id}
+                        className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer border border-gray-200"
+                        onClick={() => {
+                          if (person.isStaffMember && !person.isAlreadyPanelist && type === 'panelist') {
+                            handleStaffMemberSelect(person);
+                          } else if (person.isStaffMember && person.isAlreadyPanelist && type === 'panelist') {
+                            // Use the panelistId for staff members who are already panelists
+                            onSelect(person.panelistId);
+                          } else {
+                            onSelect(person.id);
+                          }
+                        }}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                            <User className="w-5 h-5 text-primary-600" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              <p className="font-semibold text-gray-900">{person.name}</p>
+                              {person.isStaffMember && (
+                                <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                                  Staff Member
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-4 text-sm text-gray-600">
+                              <div className="flex items-center space-x-1">
+                                <Mail className="w-3 h-3" />
+                                <span>{person.email}</span>
+                              </div>
+                              {person.phone && (
+                                <div className="flex items-center space-x-1">
+                                  <Phone className="w-3 h-3" />
+                                  <span>{person.phone}</span>
+                                </div>
+                              )}
+                              {person.designation && (
+                                <div className="flex items-center space-x-1">
+                                  <Building className="w-3 h-3" />
+                                  <span>{person.designation}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                              {person.school && (
+                                <div className="flex items-center space-x-1">
+                                  <Building className="w-3 h-3" />
+                                  <span>{person.school.name}</span>
+                                </div>
+                              )}
+                              {person.department && (
+                                <div className="flex items-center space-x-1">
+                                  <Building className="w-3 h-3" />
+                                  <span>{person.department.name}</span>
+                                </div>
+                              )}
+                            </div>
+                            {person.specialization && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Specialization: {person.specialization}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="border border-primary-500 text-primary-600 hover:bg-primary-50 hover:text-primary-700"
+                        >
+                          {person.isStaffMember && !person.isAlreadyPanelist && type === 'panelist' ? 'Convert' : 
+                           person.isStaffMember && person.isAlreadyPanelist && type === 'panelist' ? 'Add Panelist' : 'Add'}
+                        </Button>
                       </div>
-                      <Button variant="ghost" size="sm" className="border-1 border-primary-500 text-primary-500 hover:text-primary-500">
-                        Add
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
 
-          <TabsContent value="create" className="space-y-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={newPerson.name}
-                  onChange={(e) => setNewPerson(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newPerson.email}
-                  onChange={(e) => setNewPerson(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Enter email"
-                />
-              </div>
-              {type === 'panelist' && (
-                <div className="space-y-2">
-                  <Label htmlFor="institution">Institution</Label>
-                  <Input
-                    id="institution"
-                    value={newPerson.institution}
-                    onChange={(e) => setNewPerson(prev => ({ ...prev, institution: e.target.value }))}
-                    placeholder="Enter institution"
+            <TabsContent value="create" className="space-y-4">
+              {type === 'panelist' ? (
+                <div className="max-h-[60vh] overflow-y-auto pr-2">
+                  <AddStaffMember 
+                    onSuccess={(newStaffMember) => {
+                      console.log('AddStaffMember onSuccess called with:', newStaffMember);
+                      // Staff member created successfully - no automatic conversion
+                      toast.success('Staff member created successfully');
+                      // Close the dialog
+                      setIsDialogOpen(false);
+                    }}
+                    onCancel={() => {
+                      setIsDialogOpen(false);
+                    }}
                   />
                 </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      value={newPerson.name}
+                      onChange={(e) => setNewPerson(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Enter name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={newPerson.email}
+                      onChange={(e) => setNewPerson(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="Enter email"
+                    />
+                  </div>
+                  {type === 'panelist' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="institution">Institution</Label>
+                      <Input
+                        id="institution"
+                        value={newPerson.institution}
+                        onChange={(e) => setNewPerson(prev => ({ ...prev, institution: e.target.value }))}
+                        placeholder="Enter institution"
+                      />
+                    </div>
+                  )}
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
+                  <Button 
+                    onClick={handleCreate} 
+                    className="w-full"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Creating..." : "Create"}
+                  </Button>
+                </div>
               )}
-              {error && <p className="text-red-500 text-sm">{error}</p>}
-              <Button 
-                onClick={handleCreate} 
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? "Creating..." : "Create"}
-              </Button>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      {/* Conversion Confirmation Dialog */}
+      <Dialog open={showConversionDialog} onOpenChange={setShowConversionDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <AlertCircle className="w-5 h-5 text-blue-600" />
+              <span>Convert Staff Member to Panelist</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedStaffMember && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <User className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{selectedStaffMember.name}</h3>
+                    <p className="text-sm text-gray-600">{selectedStaffMember.email}</p>
+                    {selectedStaffMember.designation && (
+                      <p className="text-sm text-gray-600">{selectedStaffMember.designation}</p>
+                    )}
+                    <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                      {selectedStaffMember.school && (
+                        <div className="flex items-center space-x-1">
+                          <Building className="w-3 h-3" />
+                          <span>{selectedStaffMember.school.name}</span>
+                        </div>
+                      )}
+                      {selectedStaffMember.department && (
+                        <div className="flex items-center space-x-1">
+                          <Building className="w-3 h-3" />
+                          <span>{selectedStaffMember.department.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-yellow-800">Conversion Notice</h4>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      This staff member will be converted to a panelist role. The conversion will:
+                    </p>
+                    <ul className="text-sm text-yellow-700 mt-2 space-y-1">
+                      <li>• Create a new panelist record</li>
+                      <li>• Link the staff member to the panelist role</li>
+                      <li>• Allow the staff member to serve as a panelist</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowConversionDialog(false);
+                    setSelectedStaffMember(null);
+                  }}
+                  disabled={conversionLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleConversionConfirm}
+                  disabled={conversionLoading}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {conversionLoading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Converting...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Convert to Panelist</span>
+                    </div>
+                  )}
+                </Button>
+              </div>
             </div>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

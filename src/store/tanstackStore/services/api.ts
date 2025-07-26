@@ -1302,7 +1302,16 @@ export const getDetailedEvaluationsService = async (params = {}) => {
 
 export const createSupervisorFromStaffService = async (staffMemberId: string) => {
     try {
-        const response = await apiRequest.post(`/management/supervisor/from-staff/${staffMemberId}`);
+        const response = await apiRequest.post(`/management/staff/${staffMemberId}/convert-to-supervisor`);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const createPanelistFromStaffService = async (staffMemberId: string) => {
+    try {
+        const response = await apiRequest.post(`/management/staff/${staffMemberId}/convert-to-panelist`);
         return response.data;
     } catch (error) {
         errorHandling(error);
