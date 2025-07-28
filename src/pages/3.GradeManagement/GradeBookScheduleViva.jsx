@@ -16,7 +16,7 @@ import {
   useGetStaffMembers
 } from "@/store/tanstackStore/services/queries";
 
-import { createExternalPersonService, addNewPanelistService, createExaminerService, scheduleVivaService, createPanelistFromStaffService } from "@/store/tanstackStore/services/api";
+import { createExternalPersonService, addNewPanelistService, scheduleVivaService, createPanelistFromStaffService } from "@/store/tanstackStore/services/api";
 import {
   Dialog,
   DialogContent,
