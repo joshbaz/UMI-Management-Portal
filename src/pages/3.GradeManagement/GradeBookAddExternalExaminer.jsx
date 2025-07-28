@@ -1,13 +1,38 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import { HiArrowLeft } from "react-icons/hi";
-import { format } from "date-fns";
-import { Search, Plus, X } from "lucide-react";
+import { Search, Plus, X, ArrowLeft, Building, Globe } from "lucide-react";
 import { toast } from "sonner";
-import { useGetBook, useGetAllExaminers } from "../../store/tanstackStore/services/queries";
-import { createExaminerService, assignExaminersToBookService } from "../../store/tanstackStore/services/api";
+import { useGetBook, useGetStaffMembers } from "../../store/tanstackStore/services/queries";
+import { assignExaminersToBookService } from "../../store/tanstackStore/services/api";
 import { queryClient } from "@/utils/tanstack";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import AddStaffMember from '../12.staff/AddStaffMember';
 
 const GradeBookAddExternalExaminer = () => {
   const navigate = useNavigate();
@@ -21,21 +46,13 @@ const GradeBookAddExternalExaminer = () => {
   );
   const [selectedExaminers, setSelectedExaminers] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [newExaminer, setNewExaminer] = useState({
-    name: "",
-    primaryEmail: "",
-    secondaryEmail: "",
-    primaryPhone: "",
-    secondaryPhone: "",
-    institution: "",
-    type: "External"
-  });
 
   // Query to fetch book details
   const { data: bookData, isLoading: isBookLoading, error: bookError } = useGetBook(id);
   
-  // Query to fetch all examiners
-  const { data: examinersData, isLoading: isExaminersLoading, error: examinersError } = useGetAllExaminers();
+  // Query to fetch all staff members
+  const { data: staffMembersData, isLoading: isStaffMembersLoading, error: staffMembersError, refetch } = useGetStaffMembers();
+  console.log(staffMembersData)
 
   // Mutation for assigning examiners
   const assignExaminersMutation = useMutation({
@@ -63,37 +80,90 @@ const GradeBookAddExternalExaminer = () => {
     }
   });
 
-  // Mutation for creating a new examiner
-  const createExaminerMutation = useMutation({
-    mutationFn: createExaminerService,
-    onSuccess: (data) => {
-      toast.success(data?.message || "Examiner created successfully");
-      setSelectedExaminers(prev => [...prev, data.examiner]);
-      setShowModal(false);
-      setNewExaminer({ 
-        name: "", 
-        primaryEmail: "", 
-        secondaryEmail: "", 
-        primaryPhone: "", 
-        secondaryPhone: "", 
-        institution: "", 
-        type: "External" 
-      });
-      queryClient.resetQueries({ queryKey: ['examiners'] });
-    },
-    onError: (error) => {
-      console.error("Error creating examiner:", error);
-      toast.error(error?.message || "Error creating examiner. Please try again.");
-    }
-  });
+  // Handle staff member added
+  const handleStaffMemberAdded = () => {
+    setShowModal(false);
+    refetch();
+    toast.success('Staff member added successfully');
+  };
 
-  // Manage column visibility state
-  const [columnVisibility, setColumnVisibility] = useState({
-    name: true,
-    email: true,
-    type: true,
-    actions: true,
-  });
+  // Handle add dialog cancel
+  const handleAddDialogCancel = () => {
+    setShowModal(false);
+  };
+
+  // Helper function to get initials
+  const getInitials = (name) => {
+    if (!name) return "?";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Helper function to get institutional information
+  const getInstitutionalInfo = (member) => {
+    // Handle different possible institution data structures
+    let primary = "Not specified";
+    let secondary = "";
+    
+    if (member.isExternal) {
+      // For external staff members, use external institution fields
+      primary = member.externalInstitution || "External Institution";
+      secondary = member.externalDepartment || "";
+    } else {
+      // For internal staff members, use internal institution structure
+      if (member.school) {
+        // Handle school information (this is the actual data structure we have)
+        if (typeof member.school === 'string') {
+          primary = member.school;
+        } else if (typeof member.school === 'object' && member.school.name) {
+          primary = member.school.name;
+        }
+      } else if (member.institution) {
+        if (typeof member.institution === 'string') {
+          primary = member.institution;
+        } else if (typeof member.institution === 'object' && member.institution.name) {
+          primary = member.institution.name;
+        } else if (typeof member.institution === 'object') {
+          primary = member.institution.id || member.institution.code || "Institution";
+        }
+      } else if (member.organization) {
+        primary = member.organization;
+      } else if (member.campus) {
+        // Use campus as fallback if no institution/school data
+        if (typeof member.campus === 'string') {
+          primary = member.campus;
+        } else if (typeof member.campus === 'object' && member.campus.name) {
+          primary = member.campus.name;
+        }
+      }
+      
+      // Handle secondary information for internal staff
+      if (member.department) {
+        if (typeof member.department === 'string') {
+          secondary = member.department;
+        } else if (typeof member.department === 'object' && member.department.name) {
+          secondary = member.department.name;
+        }
+      } else if (member.faculty) {
+        secondary = member.faculty;
+      } else if (member.school && typeof member.school === 'object' && member.school.department) {
+        secondary = member.school.department;
+      } else if (member.institution && typeof member.institution === 'object' && member.institution.department) {
+        secondary = member.institution.department;
+      }
+    }
+    
+    let icon = <Building className="h-4 w-4 text-muted-foreground" />;
+    if (member.isExternal) {
+      icon = <Globe className="h-4 w-4 text-blue-600" />;
+    }
+    
+    return { primary, secondary, icon };
+  };
 
   // Save pagination state to localStorage
   useEffect(() => {
@@ -101,89 +171,98 @@ const GradeBookAddExternalExaminer = () => {
     localStorage.setItem("currentPage", currentPage);
   }, [pageSize, currentPage]);
 
-  // Filter examiners based on search and type (only External)
-  const filteredExaminers = useMemo(() => {
-    if (!examinersData?.examiners) return [];
+  // Filter staff members based on search and external status
+  const filteredStaffMembers = useMemo(() => {
+    const staffMembers = staffMembersData || [];
     
-    return examinersData.examiners.filter((examiner) => {
+    // Combine and normalize the data
+    const allStaffMembers = staffMembers.map(staff => ({
+      ...staff,
+      type: 'staff',
+      displayName: staff.name,
+      displayEmail: staff.email,
+      displayPhone: staff.phone,
+      displayCampus: staff.campus?.name || staff.campus,
+      displaySchool: staff.school?.name || staff.school,
+      displayDepartment: staff.department?.name || staff.department,
+      displayInstitution: staff.institution?.name || staff.institution,
+      // For external staff members
+      displayExternalInstitution: staff.externalInstitution,
+      displayExternalDepartment: staff.externalDepartment,
+      displayExternalLocation: staff.externalLocation
+    }));
+    
+    if (!searchTerm) return allStaffMembers.filter(member => member.isExternal);
+    
+    return allStaffMembers.filter((member) => {
       const matchesSearch =
-        examiner?.name
+        member.displayName
           ?.toLowerCase()
           ?.includes(searchTerm?.toLowerCase()) ||
-        examiner?.email?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
-        examiner?.primaryEmail?.toLowerCase()?.includes(searchTerm?.toLowerCase());
+        member.displayEmail?.toLowerCase()?.includes(searchTerm?.toLowerCase());
       
-      // Only include external examiners
-      const isExternal = examiner?.type === "External";
+      // Only include external staff members
+      const isExternal = member.isExternal === true;
 
       return matchesSearch && isExternal;
     });
-  }, [examinersData, searchTerm]);
+  }, [staffMembersData, searchTerm]);
 
   // Pagination logic with useMemo
-  const paginatedExaminers = useMemo(() => {
+  const paginatedStaffMembers = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
-    let paginatedData = filteredExaminers.slice(
+    let paginatedData = filteredStaffMembers.slice(
       startIndex,
       startIndex + pageSize
     );
 
-    if (paginatedData.length === 0 && filteredExaminers.length > 0) {
+    if (paginatedData.length === 0 && filteredStaffMembers.length > 0) {
       // Reset the current page when the selected page size is too large for the available data
       setCurrentPage(1);
-      paginatedData = filteredExaminers.slice(0, pageSize);
+      paginatedData = filteredStaffMembers.slice(0, pageSize);
     }
 
     return paginatedData;
-  }, [filteredExaminers, currentPage, pageSize]);
+  }, [filteredStaffMembers, currentPage, pageSize]);
 
-  const handleAssignToggle = (examiner) => {
+  const handleAssignToggle = (member) => {
     setSelectedExaminers(prev => {
-      const isSelected = prev.find(e => e.id === examiner.id);
+      const isSelected = prev.find(e => e.id === member.id);
       if (isSelected) {
-        return prev.filter(e => e.id !== examiner.id);
+        return prev.filter(e => e.id !== member.id);
       } else {
-        return [...prev, examiner];
+        return [...prev, member];
       }
     });
   };
 
   const handleSave = () => {
     console.log(selectedExaminers);
-    const examinerIds = selectedExaminers.map(examiner => examiner.id);
-    console.log(examinerIds);
-    assignExaminersMutation.mutate({ bookId: id, examinerIds });
-  };
-
-  const handleCreateExaminer = (e) => {
-    e.preventDefault();
-    createExaminerMutation.mutate(newExaminer);
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewExaminer(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    const staffMemberIds = selectedExaminers.map(examiner => examiner.id);
+    console.log(staffMemberIds);
+    assignExaminersMutation.mutate({ bookId: id, staffMemberIds });
   };
 
   // Calculate total pages
-  const totalPages = Math.ceil(filteredExaminers.length / pageSize);
+  const totalPages = Math.ceil(filteredStaffMembers.length / pageSize);
 
   // Handle page change
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
-  if (isBookLoading || isExaminersLoading) {
-    return <div className="p-6">Loading...</div>;
+  if (isBookLoading || isStaffMembersLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
-  if (bookError || examinersError) {
+  if (bookError || staffMembersError) {
     return (
       <div className="p-6 text-red-500">
-        Error loading data: {bookError?.message || examinersError?.message}
+        Error loading data: {bookError?.message || staffMembersError?.message}
       </div>
     );
   }
@@ -198,13 +277,14 @@ const GradeBookAddExternalExaminer = () => {
         <div className="bg-white p-4 rounded-lg shadow-sm">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <button
+              <Button
                 onClick={() => navigate(-1)}
-                className="inline-flex items-center px-4 py-2 bg-primary-500 text-white rounded-lg gap-2 hover:bg-primary-900"
+                variant="outline"
+                className="inline-flex items-center gap-2"
               >
-                <HiArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-5 h-5" />
                 Back
-              </button>
+              </Button>
               <div className="flex flex-col">
                 <span className="text-lg font-medium text-gray-900">
                   Book: {bookData?.book?.title || "Loading..."}
@@ -218,335 +298,235 @@ const GradeBookAddExternalExaminer = () => {
         </div>
       </div>
 
-      {/* Tabs, Search, Table, and Pagination */}
+      {/* Main Content */}
       <div className="p-6">
-        <div className="bg-white pb-6 rounded-lg shadow-md">
-          {/* Tabs */}
-          <div className="flex flex-row items-center gap-8 border-b min-h-[68px] px-6 ">
-            <h2 className="text-lg font-semibold">
-              Assign External Examiners:{" "}
-              <span className="text-sm text-gray-500">
-                ({selectedExaminers.length}) Examiners Selected
-              </span>
-            </h2>
-          </div>
-
-          <div className="flex justify-between items-center my-4 px-6">
-            <div className="relative w-[600px]">
-              <h2 className="text-sm font-normal text-[#626263]">
-                All available external examiners are shown in this table. Use the search to find the examiner you want, then click 'Assign' to link them to the book.
-              </h2>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Assign External Staff Members</CardTitle>
+                <CardDescription>
+                  Select external staff members to assign as examiners to this book. 
+                  {selectedExaminers.length > 0 && (
+                    <span className="ml-2 text-sm text-blue-600">
+                      ({selectedExaminers.length}) Selected
+                    </span>
+                  )}
+                </CardDescription>
+              </div>
+              <Button onClick={() => setShowModal(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add New Staff Member
+              </Button>
             </div>
-          </div>
-
-          {/* Search, Page Size, Add New Button */}
-          <div className="flex justify-between items-center my-4 px-6">
-            <div className="relative w-[600px]">
-              <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Search by Name or Email"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowModal(true)}
-                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg gap-2 hover:bg-green-700"
-              >
-                <Plus className="w-4 h-4" />
-                Add New Examiner
-              </button>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Show:</span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="px-2 py-1 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                >
-                  {[5, 10, 15, 20, 25].map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
+            <div className="flex items-center space-x-2">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name or email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
               </div>
             </div>
-          </div>
-
-          <div className="px-6">
-            {/* Examiner Table */}
-            <div className="min-w-full overflow-hidden border border-gray-200 rounded-lg">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedExaminers.map((examiner) => {
-                    const isSelected = selectedExaminers.some(e => e.id === examiner.id);
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Staff Member</TableHead>
+                  <TableHead>Institutional Affiliation</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Campus</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedStaffMembers.length > 0 ? (
+                  paginatedStaffMembers.map((member) => {
+                    const isSelected = selectedExaminers.some(e => e.id === member.id);
+                    const institutionalInfo = getInstitutionalInfo(member);
+                    
+                    // Safety check: ensure we have valid data
+                    if (!member || typeof member !== 'object') {
+                      return null;
+                    }
+                    
                     return (
-                      <tr 
-                        key={examiner.id} 
-                        className={`hover:bg-gray-50 ${isSelected ? 'bg-blue-50' : ''}`}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{examiner.name}</div>
-                          <div className="text-xs text-gray-500">{examiner.institution}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">{examiner.email || examiner.primaryEmail}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            {examiner.type}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() => handleAssignToggle(examiner)}
-                            className={`px-3 py-1 text-xs font-medium rounded-md ${
-                              isSelected
-                                ? 'bg-red-100 text-red-800 hover:bg-red-200'
-                                : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                            }`}
+                      <TableRow key={member.id} className={isSelected ? 'bg-blue-50' : ''}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar>
+                              <AvatarImage src={member.profileImage} />
+                              <AvatarFallback>
+                                {getInitials(member.displayName || member.name || '')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">{member.displayName || member.name || 'Unknown'}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {member.title} {member.designation && `• ${member.designation}`}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {institutionalInfo.icon}
+                            <div>
+                              <div className="font-medium">
+                                {member.isExternal 
+                                  ? (member.displayExternalInstitution || 'External Institution')
+                                  : (member.displaySchool || member.displayInstitution || institutionalInfo.primary || 'Not specified')
+                                }
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {member.isExternal
+                                  ? (member.displayExternalDepartment || '')
+                                  : (member.displayDepartment || institutionalInfo.secondary || '')
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{member.displayEmail || member.email || 'No email'}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {member.displayPhone || member.phone || 'No phone'}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm text-muted-foreground">
+                            {member.isExternal 
+                              ? (member.displayExternalLocation || 'External Location')
+                              : (member.displayCampus || member.campus?.name || member.campus || "Not specified")
+                            }
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={member.isActive ? "default" : "secondary"}>
+                              {member.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                            {member.isExternal && (
+                              <Badge variant="outline" className="text-blue-600 border-blue-600">
+                                External
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            onClick={() => handleAssignToggle(member)}
+                            variant={isSelected ? "destructive" : "default"}
+                            size="sm"
                           >
                             {isSelected ? 'Unassign' : 'Assign'}
-                          </button>
-                        </td>
-                      </tr>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
                     );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                  }).filter(Boolean) // Remove any null entries
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan="6" className="text-center py-8">
+                      <div className="text-muted-foreground">
+                        <p className="text-sm font-medium">No external staff members found</p>
+                        <p className="text-xs mt-1">Please add a new staff member or adjust your search criteria</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
 
-            {/* Pagination and Entries Info */}
-            <div className="flex justify-between items-center mt-4 px-2">
-              <div className="text-sm text-gray-600">
-                Showing {Math.min(filteredExaminers.length, (currentPage - 1) * pageSize + 1)} to {Math.min(filteredExaminers.length, currentPage * pageSize)} of {filteredExaminers.length} entries
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => handlePageChange(1)}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 border rounded-md text-sm disabled:opacity-50"
-                >
-                  First
-                </button>
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 border rounded-md text-sm disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <div className="flex items-center space-x-1">
-                  {[...Array(totalPages).keys()].map((page) => (
-                    <button
-                      key={page + 1}
-                      onClick={() => handlePageChange(page + 1)}
-                      className={`px-3 py-1 border rounded-md text-sm ${
-                        currentPage === page + 1
-                          ? 'bg-primary-500 text-white'
-                          : 'hover:bg-gray-100'
-                      }`}
-                    >
-                      {page + 1}
-                    </button>
-                  ))}
+            {/* Pagination */}
+            {filteredStaffMembers.length > 0 && (
+              <div className="flex justify-between items-center mt-4">
+                <div className="text-sm text-muted-foreground">
+                  Showing {Math.min(filteredStaffMembers.length, (currentPage - 1) * pageSize + 1)} to {Math.min(filteredStaffMembers.length, currentPage * pageSize)} of {filteredStaffMembers.length} entries
                 </div>
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  className="px-3 py-1 border rounded-md text-sm disabled:opacity-50"
-                >
-                  Next
-                </button>
-                <button
-                  onClick={() => handlePageChange(totalPages)}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  className="px-3 py-1 border rounded-md text-sm disabled:opacity-50"
-                >
-                  Last
-                </button>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={() => handlePageChange(1)}
+                    disabled={currentPage === 1}
+                    variant="outline"
+                    size="sm"
+                  >
+                    First
+                  </Button>
+                  <Button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Previous
+                  </Button>
+                  <div className="flex items-center space-x-1">
+                    {[...Array(totalPages).keys()].map((page) => (
+                      <Button
+                        key={page + 1}
+                        onClick={() => handlePageChange(page + 1)}
+                        variant={currentPage === page + 1 ? "default" : "outline"}
+                        size="sm"
+                        className="w-8 h-8 p-0"
+                      >
+                        {page + 1}
+                      </Button>
+                    ))}
+                  </div>
+                  <Button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Next
+                  </Button>
+                  <Button
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Last
+                  </Button>
+                </div>
               </div>
-            </div>
-          </div>
+            )}
+          </CardContent>
+        </Card>
 
-          <div className="flex justify-center items-center gap-4 pt-8">
-            <button 
-              onClick={handleSave}
-              disabled={selectedExaminers.length === 0 || assignExaminersMutation.isPending}
-              className="min-w-[200px] text-lg flex items-center justify-center px-4 py-2 bg-primary-500 text-white rounded-lg gap-2 hover:bg-primary-900 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {assignExaminersMutation.isPending ? 'Saving...' : 'Save'}
-            </button>
-          </div>
+        {/* Save Button */}
+        <div className="flex justify-center items-center gap-4 pt-8">
+          <Button 
+            onClick={handleSave}
+            disabled={selectedExaminers.length === 0 || assignExaminersMutation.isPending}
+            size="lg"
+            className="min-w-[200px]"
+          >
+            {assignExaminersMutation.isPending ? 'Saving...' : 'Save Assignments'}
+          </Button>
         </div>
       </div>
 
-      {/* Dialog for adding new examiner */}
-      <dialog
-        open={showModal}
-        className="fixed inset-0 z-50 bg-transparent"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) setShowModal(false);
-        }}
-      >
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Add New External Examiner</h3>
-              <button 
-                onClick={() => setShowModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleCreateExaminer}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={newExaminer.name}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Dr. John Smith"
-                />
-              </div>
-              
-              <div className="mb-4 grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Primary Email
-                  </label>
-                  <input
-                    type="email"
-                    name="primaryEmail"
-                    value={newExaminer.primaryEmail}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="john.smith@work.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Secondary Email
-                  </label>
-                  <input
-                    type="email"
-                    name="secondaryEmail"
-                    value={newExaminer.secondaryEmail}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="john.smith@personal.com"
-                  />
-                </div>
-              </div>
-              
-              <div className="mb-4 grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Primary Phone
-                  </label>
-                  <input
-                    type="tel"
-                    name="primaryPhone"
-                    value={newExaminer.primaryPhone}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="+1 (555) 123-4567"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Secondary Phone
-                  </label>
-                  <input
-                    type="tel"
-                    name="secondaryPhone"
-                    value={newExaminer.secondaryPhone}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="+1 (555) 987-6543"
-                  />
-                </div>
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Institution
-                </label>
-                <input
-                  type="text"
-                  name="institution"
-                  value={newExaminer.institution}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="University of Example"
-                />
-              </div>
-              
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Type
-                </label>
-                <select
-                  name="type"
-                  value={newExaminer.type}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="External">External</option>
-                
-                </select>
-              </div>
-              
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={createExaminerMutation.isPending}
-                  className="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:opacity-50"
-                >
-                  {createExaminerMutation.isPending ? 'Creating...' : 'Create Examiner'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </dialog>
+      {/* Add Staff Member Dialog */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Staff Member</DialogTitle>
+            <DialogDescription>
+              Add a new academic staff member to the system.
+            </DialogDescription>
+          </DialogHeader>
+          <AddStaffMember onSuccess={handleStaffMemberAdded} onCancel={handleAddDialogCancel} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

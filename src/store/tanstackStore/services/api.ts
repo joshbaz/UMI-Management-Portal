@@ -840,16 +840,6 @@ export const getBookService = async (bookId: string) => {
 
 /* ********** EXAMINER MANAGEMENT ********** */
 
-export const createExaminerService = async (data: any) => {
-    try {
-        const response = await apiRequest.post('/management/examiners', data);
-        return response.data;
-    } catch (error) {
-        errorHandling(error);
-    }
-}
-
-
 
 
 
@@ -880,9 +870,9 @@ export const updateExaminerService = async (examinerId: string, data: any) => {
     }
 }
 
-export const assignExaminersToBookService = async (bookId: string, examinerIds: string[]) => {
+export const assignExaminersToBookService = async (bookId: string, staffMemberIds: string[]) => {
     try {
-        const response = await apiRequest.post(`/management/books/${bookId}/examiners`, { examinerIds });
+        const response = await apiRequest.post(`/management/books/${bookId}/examiners`, { staffMemberIds });
         return response.data;
     } catch (error) {
         errorHandling(error);
@@ -1303,6 +1293,15 @@ export const getDetailedEvaluationsService = async (params = {}) => {
 export const createSupervisorFromStaffService = async (staffMemberId: string) => {
     try {
         const response = await apiRequest.post(`/management/staff/${staffMemberId}/convert-to-supervisor`);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const createExaminerFromStaffService = async (staffMemberId: string) => {
+    try {
+        const response = await apiRequest.post(`/management/staff/${staffMemberId}/convert-to-examiner`);
         return response.data;
     } catch (error) {
         errorHandling(error);
