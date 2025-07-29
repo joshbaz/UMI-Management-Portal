@@ -58,6 +58,11 @@ export const ROUTES = {
   STUDENT_REQUESTS: {
     ROOT: '/student-requests',
    
+  },
+  RESEARCH_CLINIC: {
+    ROOT: '/research-clinic',
+    LIST: '/research-clinic',
+    DETAILS: '/research-clinic/:id'
   }
 };
 

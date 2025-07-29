@@ -1317,6 +1317,76 @@ export const createPanelistFromStaffService = async (staffMemberId: string) => {
     }
 };
 
+/* ********** RESEARCH CLINIC SERVICES ********** */
+
+export const createResearchClinicDayService = async (data: any) => {
+    try {
+        const response = await apiRequest.post('/management/research-clinic-days', data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const getAllResearchClinicDaysService = async () => {
+    try {
+        const response = await apiRequest.get('/management/research-clinic-days');
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const updateResearchClinicDayService = async (id: string, data: any) => {
+    try {
+        const response = await apiRequest.put(`/management/research-clinic-days/${id}`, data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const generateRecurringSessionsService = async (clinicDayId: string) => {
+    try {
+        const response = await apiRequest.post(`/management/research-clinic-days/${clinicDayId}/generate-recurring`);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const getResearchClinicBookingsService = async () => {
+    try {
+        const response = await apiRequest.get('/management/research-clinic-bookings');
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const updateBookingStatusService = async (bookingId: string, data: any) => {
+    try {
+        const response = await apiRequest.put(`/management/research-clinic-bookings/${bookingId}/status`, data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const getResearchClinicStatisticsService = async () => {
+    try {
+        const response = await apiRequest.get('/management/research-clinic-statistics');
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+}; 
+
+export const deleteResearchClinicDayService = async (clinicDayId: string) => {
+  const response = await apiRequest.delete(`/management/research-clinic-days/${clinicDayId}`);
+  return response.data;
+};
+
 
 
 

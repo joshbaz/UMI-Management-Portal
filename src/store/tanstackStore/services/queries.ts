@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '../../../utils/tanstack';
 import apiRequest from '../../../utils/apiRequestUrl';
-import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService, getGraduationStatisticsService, getChairpersonsService, getExternalPersonsService,  getAllResearchRequestsService, updateResearchRequestService, getEvaluationAnalyticsService, getDetailedEvaluationsService } from './api';
+import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService, getGraduationStatisticsService, getChairpersonsService, getExternalPersonsService,  getAllResearchRequestsService, updateResearchRequestService, getEvaluationAnalyticsService, getDetailedEvaluationsService, createResearchClinicDayService, getAllResearchClinicDaysService, updateResearchClinicDayService, generateRecurringSessionsService, getResearchClinicBookingsService, updateBookingStatusService, getResearchClinicStatisticsService, deleteResearchClinicDayService } from './api';
 
 export const useGetLoggedInUserDetails = () => {
   return useQuery({
@@ -595,6 +595,86 @@ export const useGetStaffMembersWithoutSupervisor = () => {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
+
+/* ********** RESEARCH CLINIC ********** */
+
+export const useGetAllResearchClinicDays = () => {
+  return useQuery({
+    queryKey: ['researchClinicDays'],
+    queryFn: getAllResearchClinicDaysService,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: false,
+  });
+};
+
+export const useGetResearchClinicBookings = () => {
+  return useQuery({
+    queryKey: ['researchClinicBookings'],
+    queryFn: getResearchClinicBookingsService,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: false,
+  });
+};
+
+export const useGetResearchClinicStatistics = () => {
+  return useQuery({
+    queryKey: ['researchClinicStatistics'],
+    queryFn: getResearchClinicStatisticsService,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: false,
+  });
+};
+
+export const useCreateResearchClinicDay = () => {
+  return useMutation({
+    mutationFn: createResearchClinicDayService,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['researchClinicDays'] });
+    },
+  });
+};
+
+export const useUpdateResearchClinicDay = () => {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return updateResearchClinicDayService(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['researchClinicDays'] });
+    },
+  });
+};
+
+export const useGenerateRecurringSessions = () => {
+  return useMutation({
+    mutationFn: generateRecurringSessionsService,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['researchClinicDays'] });
+    },
+  });
+};
+
+export const useUpdateBookingStatus = () => {
+  return useMutation({
+    mutationFn: async ({ bookingId, data }: { bookingId: string; data: any }) => {
+      return updateBookingStatusService(bookingId, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['researchClinicBookings'] });
+    },
+  });
+};
+
+export const useDeleteResearchClinicDay = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await deleteResearchClinicDayService(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['researchClinicDays'] });
+    },
   });
 };
 
