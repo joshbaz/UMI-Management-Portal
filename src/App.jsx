@@ -64,6 +64,7 @@ import ManageResearchRequests from "./pages/ResearchRequests/ManageResearchReque
 import StudentEvaluationsManagement from "./pages/11.StudentEvaluations/StudentEvaluationsManagement";
 import StaffManagement from "./pages/12.staff/StaffManagement";
 import ResearchClinicManagement from "./pages/13.ResearchClinic/ResearchClinicManagement";
+import ReallocationMonitoring from "./pages/14.ReallocationMonitoring/ReallocationMonitoring";
 // PublicRoute: Redirects authenticated users away from public pages (like login)
 // If user is authenticated, redirects to dashboard
 // If user is not authenticated, shows the public page content
@@ -215,6 +216,9 @@ const AppRoutes = () => {
         <Route path={ROUTES.RESEARCH_CLINIC.ROOT}>
           <Route index element={<ResearchClinicManagement />} />
         </Route>
+
+        {/* Reallocation Monitoring */}
+        <Route path={ROUTES.REALLOCATION_MONITORING.ROOT} element={<ReallocationMonitoring />} />
 
         {/* Other Routes */}
         <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsManagement />} />

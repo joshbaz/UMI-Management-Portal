@@ -11,6 +11,7 @@ import {
   RiTableLine,
   RiFileListLine,
   RiMedicineBottleLine,
+  RiExchangeLine,
 } from 'react-icons/ri';
 import { HiOutlineUserGroup, HiOutlineAcademicCap } from 'react-icons/hi';
 const menuItems = {
@@ -25,6 +26,7 @@ const menuItems = {
     { name: 'Schools Management', icon: RiBuilding4Line, path: '/schools' },
     { name: 'Notifications', icon: RiNotification3Line, path: '/notifications' },
     { name: 'Research Clinic', icon: RiMedicineBottleLine, path: '/research-clinic' },
+    { name: 'Reallocation Monitoring', icon: RiExchangeLine, path: '/reallocation-monitoring' },
   ],
   otherOptions: [
   

@@ -399,7 +399,14 @@ export const changeStudentSupervisorService = async (studentId: string, data: { 
     }
 };
 
-
+export const getReallocationStatisticsService = async (params?: { startDate?: string, endDate?: string, supervisorId?: string }) => {
+    try {
+        const response = await apiRequest.get('/management/reallocation-statistics', { params });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
 
 
 /* ********** STUDENT ********** */

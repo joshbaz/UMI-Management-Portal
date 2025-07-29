@@ -63,6 +63,10 @@ export const ROUTES = {
     ROOT: '/research-clinic',
     LIST: '/research-clinic',
     DETAILS: '/research-clinic/:id'
+  },
+  REALLOCATION_MONITORING: {
+    ROOT: '/reallocation-monitoring',
+    LIST: '/reallocation-monitoring'
   }
 };
 
