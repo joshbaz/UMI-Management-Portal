@@ -89,7 +89,7 @@ const GradeBookAddExternalExaminer = () => {
 
   // Handle add dialog cancel
   const handleAddDialogCancel = () => {
-    setShowModal(false);
+      setShowModal(false);
   };
 
   // Helper function to get initials
@@ -310,10 +310,10 @@ const GradeBookAddExternalExaminer = () => {
                   {selectedExaminers.length > 0 && (
                     <span className="ml-2 text-sm text-blue-600">
                       ({selectedExaminers.length}) Selected
-                    </span>
+              </span>
                   )}
                 </CardDescription>
-              </div>
+          </div>
               <Button onClick={() => setShowModal(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add New Staff Member
@@ -324,8 +324,8 @@ const GradeBookAddExternalExaminer = () => {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by name or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
                 />
               </div>
@@ -437,7 +437,7 @@ const GradeBookAddExternalExaminer = () => {
                       <div className="text-muted-foreground">
                         <p className="text-sm font-medium">No external staff members found</p>
                         <p className="text-xs mt-1">Please add a new staff member or adjust your search criteria</p>
-                      </div>
+            </div>
                     </TableCell>
                   </TableRow>
                 )}
@@ -449,52 +449,52 @@ const GradeBookAddExternalExaminer = () => {
               <div className="flex justify-between items-center mt-4">
                 <div className="text-sm text-muted-foreground">
                   Showing {Math.min(filteredStaffMembers.length, (currentPage - 1) * pageSize + 1)} to {Math.min(filteredStaffMembers.length, currentPage * pageSize)} of {filteredStaffMembers.length} entries
-                </div>
-                <div className="flex items-center space-x-2">
+              </div>
+              <div className="flex items-center space-x-2">
                   <Button
-                    onClick={() => handlePageChange(1)}
-                    disabled={currentPage === 1}
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
                     variant="outline"
                     size="sm"
-                  >
-                    First
+                >
+                  First
                   </Button>
                   <Button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
                     variant="outline"
                     size="sm"
-                  >
-                    Previous
+                >
+                  Previous
                   </Button>
-                  <div className="flex items-center space-x-1">
-                    {[...Array(totalPages).keys()].map((page) => (
+                <div className="flex items-center space-x-1">
+                  {[...Array(totalPages).keys()].map((page) => (
                       <Button
-                        key={page + 1}
-                        onClick={() => handlePageChange(page + 1)}
+                      key={page + 1}
+                      onClick={() => handlePageChange(page + 1)}
                         variant={currentPage === page + 1 ? "default" : "outline"}
                         size="sm"
                         className="w-8 h-8 p-0"
-                      >
-                        {page + 1}
+                    >
+                      {page + 1}
                       </Button>
-                    ))}
-                  </div>
+                  ))}
+                </div>
                   <Button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages || totalPages === 0}
                     variant="outline"
                     size="sm"
-                  >
-                    Next
+                >
+                  Next
                   </Button>
                   <Button
-                    onClick={() => handlePageChange(totalPages)}
-                    disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => handlePageChange(totalPages)}
+                  disabled={currentPage === totalPages || totalPages === 0}
                     variant="outline"
                     size="sm"
-                  >
-                    Last
+                >
+                  Last
                   </Button>
                 </div>
               </div>
@@ -503,13 +503,13 @@ const GradeBookAddExternalExaminer = () => {
         </Card>
 
         {/* Save Button */}
-        <div className="flex justify-center items-center gap-4 pt-8">
+          <div className="flex justify-center items-center gap-4 pt-8">
           <Button 
-            onClick={handleSave}
-            disabled={selectedExaminers.length === 0 || assignExaminersMutation.isPending}
+              onClick={handleSave}
+              disabled={selectedExaminers.length === 0 || assignExaminersMutation.isPending}
             size="lg"
             className="min-w-[200px]"
-          >
+            >
             {assignExaminersMutation.isPending ? 'Saving...' : 'Save Assignments'}
           </Button>
         </div>
