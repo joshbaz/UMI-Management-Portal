@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '../../../utils/tanstack';
 import apiRequest from '../../../utils/apiRequestUrl';
-import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService, getGraduationStatisticsService, getChairpersonsService, getExternalPersonsService,  getAllResearchRequestsService, updateResearchRequestService, getEvaluationAnalyticsService, getDetailedEvaluationsService, createResearchClinicDayService, getAllResearchClinicDaysService, updateResearchClinicDayService, generateRecurringSessionsService, getResearchClinicBookingsService, updateBookingStatusService, getResearchClinicStatisticsService, deleteResearchClinicDayService, getReallocationStatisticsService } from './api';
+import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService, getGraduationStatisticsService, getChairpersonsService, getExternalPersonsService,  getAllResearchRequestsService, updateResearchRequestService, getEvaluationAnalyticsService, getDetailedEvaluationsService, createResearchClinicDayService, getAllResearchClinicDaysService, updateResearchClinicDayService, generateRecurringSessionsService, getResearchClinicBookingsService, updateBookingStatusService, getResearchClinicStatisticsService, deleteResearchClinicDayService, getReallocationStatisticsService, createCourseService, getAllCoursesService, updateCourseService, deleteCourseService, uploadStudentsService } from './api';
 
 export const useGetLoggedInUserDetails = () => {
   return useQuery({
@@ -153,6 +153,16 @@ export const useGetStudentStatuses = (studentId: string) => {
     staleTime: Infinity, // 1 minute
     refetchInterval: false,
     enabled: !!studentId
+  });
+};
+
+export const useUploadStudents = () => {
+  return useMutation({
+    mutationFn: uploadStudentsService,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+    },
   });
 };
 
@@ -684,5 +694,47 @@ export const useGetReallocationStatistics = (params?: { startDate?: string, endD
         queryFn: () => getReallocationStatisticsService(params),
         enabled: true
     });
+};
+
+/* ********** COURSE MANAGEMENT ********** */
+
+export const useGetAllCourses = (params?: { campusId?: string, schoolId?: string, isActive?: boolean, page?: number, limit?: number }) => {
+  return useQuery({
+    queryKey: ['courses', params],
+    queryFn: () => getAllCoursesService(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: false,
+  });
+};
+
+export const useCreateCourse = () => {
+  return useMutation({
+    mutationFn: createCourseService,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+    },
+  });
+};
+
+export const useUpdateCourse = () => {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return updateCourseService(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+    },
+  });
+};
+
+export const useDeleteCourse = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      return deleteCourseService(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+    },
+  });
 };
 

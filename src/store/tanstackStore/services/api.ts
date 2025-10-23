@@ -465,6 +465,15 @@ export const getAllStudentsService = async () => {
     }
 };
 
+export const uploadStudentsService = async (students: any[]) => {
+    try {
+        const response = await apiRequest.post('/management/students/upload', { students });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
 export const getStudentStatusesService = async (studentId: string) => {
     try {
         const response = await apiRequest.get(`/management/students/${studentId}/statuses`);
@@ -1392,6 +1401,44 @@ export const getResearchClinicStatisticsService = async () => {
 export const deleteResearchClinicDayService = async (clinicDayId: string) => {
   const response = await apiRequest.delete(`/management/research-clinic-days/${clinicDayId}`);
   return response.data;
+};
+
+/* ********** COURSE MANAGEMENT ********** */
+
+export const createCourseService = async (data: any) => {
+    try {
+        const response = await apiRequest.post('/management/courses', data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const getAllCoursesService = async (params?: { campusId?: string, schoolId?: string, isActive?: boolean, page?: number, limit?: number }) => {
+    try {
+        const response = await apiRequest.get('/management/courses', { params });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const updateCourseService = async (id: string, data: any) => {
+    try {
+        const response = await apiRequest.put(`/management/courses/${id}`, data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const deleteCourseService = async (id: string) => {
+    try {
+        const response = await apiRequest.delete(`/management/courses/${id}`);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
 };
 
 

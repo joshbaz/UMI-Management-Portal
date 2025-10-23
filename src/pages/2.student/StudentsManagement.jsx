@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { useNavigate } from 'react-router-dom';
 import { HiPlus } from "react-icons/hi";
+import { MdOutlineFileUpload } from "react-icons/md";
 import StudentTabs from "./StudentTabs";
 import SStats from "./SStats";
 import StudentTableControlPanel from "./StudentTableControlPanel";
@@ -130,11 +131,18 @@ const StudentsManagement = () => {
           <div className="flex items-center gap-3">
             <SPageSize pageSize={pageSize} setPageSize={setPageSize} />
             <button
+              onClick={() => navigate("/students/upload-students")}
+              className="inline-flex items-center px-4 py-2 bg-[#23388F] text-white rounded-lg text-sm font-medium hover:bg-[#2d48b8] gap-2"
+            >
+              <MdOutlineFileUpload className="w-5 h-5" />
+              Upload CSV/ Excel
+            </button>
+            <button
               onClick={() => navigate(ROUTES.STUDENT.ADD)}
               className="inline-flex items-center px-4 py-2 bg-[#23388F] text-white rounded-lg text-sm font-medium hover:bg-[#2d48b8] gap-2"
             >
               <HiPlus className="w-5 h-5" />
-              Add Student
+              Add Student Manually
             </button>
           </div>
         </div>

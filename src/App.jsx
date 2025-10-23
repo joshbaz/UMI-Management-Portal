@@ -65,6 +65,9 @@ import StudentEvaluationsManagement from "./pages/11.StudentEvaluations/StudentE
 import StaffManagement from "./pages/12.staff/StaffManagement";
 import ResearchClinicManagement from "./pages/13.ResearchClinic/ResearchClinicManagement";
 import ReallocationMonitoring from "./pages/14.ReallocationMonitoring/ReallocationMonitoring";
+import AddStudentUpload from "./pages/2.student/AddStudentUpload";
+import CourseManagement from "./pages/15.CourseManagement/CourseManagement";
+import AddCourse from "./pages/15.CourseManagement/AddCourse";
 // PublicRoute: Redirects authenticated users away from public pages (like login)
 // If user is authenticated, redirects to dashboard
 // If user is not authenticated, shows the public page content
@@ -144,6 +147,7 @@ const AppRoutes = () => {
         {/* Student Management */}
         <Route path={ROUTES.STUDENT.LIST} element={<StudentsManagement />} />
         <Route path={ROUTES.STUDENT.ADD} element={<AddStudent />} />
+        <Route  path={"/students/upload-students"} element={<AddStudentUpload />} />
         <Route path="/students/profile/:id" element={<StudentProfile />} />
         <Route path="/students/submit-book/:id" element={<StudentSubmitBook />} />
         <Route path="/students/add-supervisors/:id" element={<AddSupervisors/>} />
@@ -219,6 +223,9 @@ const AppRoutes = () => {
 
         {/* Reallocation Monitoring */}
         <Route path={ROUTES.REALLOCATION_MONITORING.ROOT} element={<ReallocationMonitoring />} />
+
+        <Route path={"/courses"} element={<CourseManagement  />} />
+        <Route path={"/courses/add"} element={<AddCourse  />} />
 
         {/* Other Routes */}
         <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsManagement />} />
