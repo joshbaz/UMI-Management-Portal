@@ -33,6 +33,7 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
     title: storedData.title || "",
     firstName: storedData.firstName || "",
     lastName: storedData.lastName || "",
+    registrationNumber: storedData?.registrationNumber || "",
     email: storedData.email || "",
     phoneNumber: storedData.phoneNumber || "",
     dateOfBirth: storedData.dateOfBirth || "",
@@ -50,6 +51,7 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
     title: Yup.string().required("Title is required"),
     firstName: Yup.string().required("First name is required"),
     lastName: Yup.string().required("Last name is required"),
+    // registrationNumber: Yup.string().required("Registration Number is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
     phoneNumber: Yup.string().required("Phone number is required"),
     dateOfBirth: Yup.date().required("Date of birth is required"),
@@ -82,6 +84,36 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
       {({ errors, touched, handleChange, handleBlur, values, setFieldValue }) => (
         <Form className="space-y-6">
           <div className="flex flex-col gap-6">
+            {/** Rehistration Number */}
+            <div className="grid grid-cols-3 gap-6">
+            
+              <div>
+                <label
+                  htmlFor="registrationNumber"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Registration Number
+                </label>
+                <input
+                  type="text"
+                  id="registrationNumber"
+                  name="registrationNumber"
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.registrationNumber}
+                  className={`w-full h-9 rounded-md border ${
+                    errors?.registrationNumber ? "border-red-500" : "border-gray-200"
+                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`} 
+                />
+                <FormErrorHandler
+                  errors={errors?.registrationNumber}
+                  message={errors?.registrationNumber}
+                />
+              </div>
+
+             
+            </div>
+            {/** Name */}
             <div className="grid grid-cols-3 gap-6">
               {/** title */}
               <div>
@@ -172,6 +204,7 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
               </div>
             </div>
 
+{/** Email */}
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <label

@@ -23,6 +23,7 @@ const EditStudentPersonalInfoForm = ({ studentData, formRef, handleNext, updateS
     title: studentData?.student?.title || "",
     firstName: studentData?.student?.firstName || "",
     lastName: studentData?.student?.lastName || "",
+    registrationNumber: studentData?.student?.registrationNumber || "",
     email: studentData?.student?.email || "",
     phoneNumber: studentData?.student?.phoneNumber || "",
     dateOfBirth: studentData?.student?.dateOfBirth
@@ -92,6 +93,39 @@ const EditStudentPersonalInfoForm = ({ studentData, formRef, handleNext, updateS
 
           {/** Form */}
           <div className="flex flex-col gap-6">
+            {/** registrationNumber */}
+            <div className="grid grid-cols-3 gap-6">
+             
+             
+
+              {/** registrationNumber */}
+              <div>
+                <label
+                  htmlFor="registrationNumber"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Registration Number
+                </label>
+                <input
+                  type="text"
+                  id="registrationNumber"
+                  name="registrationNumber"
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.registrationNumber}
+                  className={`w-full h-9 rounded-md border ${
+                    errors?.registrationNumber ? "border-red-500" : "border-gray-200"
+                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                />
+                <FormErrorHandler
+                  errors={errors?.registrationNumber}
+                  message={errors?.registrationNumber}
+                />
+              </div>
+
+           
+            </div>
+            {/** Name */}
             <div className="grid grid-cols-3 gap-6">
               {/** title */}
               <div>
