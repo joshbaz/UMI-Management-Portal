@@ -1461,3 +1461,14 @@ export const deleteCourseService = async (id: string) => {
 
 
 
+/* ********** ACTIVITY LOGS ********** */
+export const getAllActivitiesService = async () => {
+    try {
+        const response = await apiRequest.get("/management/activities");
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+/* ********** END OF ACTIVITY LOGS ********** */
