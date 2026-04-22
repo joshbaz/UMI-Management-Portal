@@ -36,7 +36,6 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
     registrationNumber: storedData?.registrationNumber || "",
     email: storedData.email || "",
     phoneNumber: storedData.phoneNumber || "",
-    dateOfBirth: storedData.dateOfBirth || "",
     gender: storedData.gender || "",
     nationality: storedData.nationality || "",
     address: storedData.address || "",
@@ -54,7 +53,6 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
     // registrationNumber: Yup.string().required("Registration Number is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
     phoneNumber: Yup.string().required("Phone number is required"),
-    dateOfBirth: Yup.date().required("Date of birth is required"),
     gender: Yup.string().required("Gender is required"),
     schoolId: Yup.string().required("School is required"),
     campusId: Yup.string().required("Campus is required"),
@@ -256,30 +254,6 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
             </div>
 
             <div className="grid grid-cols-2 gap-6">
-              {/** date of birth */}
-              <div>
-                <label
-                  htmlFor="dateOfBirth" 
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  id="dateOfBirth"
-                  name="dateOfBirth"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.dateOfBirth}
-                  className={`w-full h-9 rounded-md border ${
-                    errors?.dateOfBirth ? "border-red-500" : "border-gray-200"
-                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`} 
-                />
-                <FormErrorHandler
-                  errors={errors?.dateOfBirth}
-                  message={errors?.dateOfBirth}
-                />
-              </div>
 
               {/** gender */}
               <div>
