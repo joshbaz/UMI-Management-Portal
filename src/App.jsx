@@ -68,6 +68,7 @@ import ReallocationMonitoring from "./pages/14.ReallocationMonitoring/Reallocati
 import AddStudentUpload from "./pages/2.student/AddStudentUpload";
 import CourseManagement from "./pages/15.CourseManagement/CourseManagement";
 import AddCourse from "./pages/15.CourseManagement/AddCourse";
+import ActivityLogs from "./pages/9.roles/ActivityLogs";
 // PublicRoute: Redirects authenticated users away from public pages (like login)
 // If user is authenticated, redirects to dashboard
 // If user is not authenticated, shows the public page content
@@ -231,6 +232,7 @@ const AppRoutes = () => {
         <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsManagement />} />
         <Route path={"/users"} element={<UserRolesManagement />} />
         <Route path={"/users/:userId"} element={<UserManagementView />} />
+        <Route path={ROUTES.ACTIVITIES} element={<ActivityLogs />} />
         <Route path={ROUTES.TABLES} element={<TableBuilder />} />
         <Route path={ROUTES.SETTINGS} element={<Settings />} />
       </Route>
