@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { Link } from "react-router-dom";
 import { FiSearch } from "react-icons/fi";
+import { useIsReadOnly } from "../../hooks/useIsReadOnly";
 
 import { useMutation } from "@tanstack/react-query";
 import { deleteSchoolService } from "../../store/tanstackStore/services/api";
@@ -140,6 +141,7 @@ const FacultyTable = ({
   });
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [schoolToDelete, setSchoolToDelete] = useState(null);
+  const isReadOnly = useIsReadOnly();
 
   const deleteSchoolMutation = useMutation({
     mutationFn: deleteSchoolService,
@@ -316,6 +318,7 @@ const FacultyTable = ({
           setPageSize={setPageSize}
           setPageIndex={setPageIndex}
         /> */}
+        {!isReadOnly && (
           <div className="flex items-center gap-4">
             <Link
               to="/faculty/add"
@@ -333,6 +336,7 @@ const FacultyTable = ({
               <span className="ml-2">+</span>
             </Link>
           </div>
+        )}
         </div>
       </div>
 

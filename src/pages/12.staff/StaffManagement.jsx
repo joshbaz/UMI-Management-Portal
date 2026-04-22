@@ -48,6 +48,7 @@ import { useGetStaffMembers, useDeleteStaffMember } from '../../store/tanstackSt
 import AddStaffMember from './AddStaffMember';
 import EditStaffMember from './EditStaffMember';
 import StaffMemberProfile from './StaffMemberProfile';
+import { useIsReadOnly } from '../../hooks/useIsReadOnly';
 
 const StaffManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -58,7 +59,9 @@ const StaffManagement = () => {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [lastTriggerElement, setLastTriggerElement] = useState(null);
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const isReadOnly = useIsReadOnly();
 
+  console.log("isReadOnly", isReadOnly);
   const {
     data: staffMembers = [],
     isLoading,
@@ -164,16 +167,16 @@ const StaffManagement = () => {
 
   const filteredStaffMembers = staffMembers.filter(member => {
     const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         member.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         member.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (member.isExternal ? 
-                           (member.externalInstitution?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            member.externalDepartment?.toLowerCase().includes(searchTerm.toLowerCase())) :
-                           (member.department?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            member.school?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            member.campus?.name?.toLowerCase().includes(searchTerm.toLowerCase())));
-    
+      member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (member.isExternal ?
+        (member.externalInstitution?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.externalDepartment?.toLowerCase().includes(searchTerm.toLowerCase())) :
+        (member.department?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.school?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.campus?.name?.toLowerCase().includes(searchTerm.toLowerCase())));
+
     return matchesSearch;
   });
 
@@ -211,10 +214,12 @@ const StaffManagement = () => {
             Manage academic staff members including supervisors, examiners, reviewers, and panelists.
           </p>
         </div>
-        <Button onClick={() => setShowAddDialog(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Staff Member
-        </Button>
+        {!isReadOnly && (
+          <Button onClick={() => setShowAddDialog(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Staff Member
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -318,15 +323,15 @@ const StaffManagement = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <DropdownMenu 
+                        <DropdownMenu
                           open={openDropdownId === member.id}
                           onOpenChange={(open) => {
                             setOpenDropdownId(open ? member.id : null);
                           }}
                         >
                           <DropdownMenuTrigger asChild>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               className="h-8 w-8 p-0"
                             >
                               <MoreHorizontal className="h-4 w-4" />
@@ -351,32 +356,36 @@ const StaffManagement = () => {
                               <Eye className="mr-2 h-4 w-4" />
                               View Profile
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setLastTriggerElement(e.currentTarget.closest('button'));
-                                setSelectedStaffMember(member);
-                                setShowEditDialog(true);
-                                setOpenDropdownId(null);
-                                // Force blur to prevent focus retention
-                                setTimeout(() => {
-                                  document.activeElement?.blur();
-                                }, 0);
-                              }}
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => handleDeleteStaffMember(member.id)}
-                              className="text-red-600"
-                              disabled={deleteStaffMemberMutation.isPending}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              {deleteStaffMemberMutation.isPending ? 'Deleting...' : 'Delete'}
-                            </DropdownMenuItem>
+                            {!isReadOnly && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setLastTriggerElement(e.currentTarget.closest('button'));
+                                    setSelectedStaffMember(member);
+                                    setShowEditDialog(true);
+                                    setOpenDropdownId(null);
+                                    // Force blur to prevent focus retention
+                                    setTimeout(() => {
+                                      document.activeElement?.blur();
+                                    }, 0);
+                                  }}
+                                >
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteStaffMember(member.id)}
+                                  className="text-red-600"
+                                  disabled={deleteStaffMemberMutation.isPending}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  {deleteStaffMemberMutation.isPending ? 'Deleting...' : 'Delete'}
+                                </DropdownMenuItem>
+                              </>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -386,7 +395,7 @@ const StaffManagement = () => {
               </TableBody>
             </Table>
           )}
-          
+
           {!isLoading && filteredStaffMembers.length === 0 && (
             <div className="text-center py-8">
               <p className="text-muted-foreground">No staff members found.</p>
@@ -418,9 +427,9 @@ const StaffManagement = () => {
             </DialogDescription>
           </DialogHeader>
           {selectedStaffMember && (
-            <EditStaffMember 
+            <EditStaffMember
               key={selectedStaffMember.id}
-              staffMember={selectedStaffMember} 
+              staffMember={selectedStaffMember}
               onSuccess={handleStaffMemberUpdated}
               onCancel={handleEditDialogCancel}
             />
@@ -438,9 +447,9 @@ const StaffManagement = () => {
             </DialogDescription>
           </DialogHeader>
           {selectedStaffMember && (
-            <StaffMemberProfile 
+            <StaffMemberProfile
               key={selectedStaffMember.id}
-              staffMember={selectedStaffMember} 
+              staffMember={selectedStaffMember}
             />
           )}
         </DialogContent>

@@ -157,6 +157,10 @@ const UserRolesManagement = () => {
           displayText = "Super Admin";
           color = "#23388F";
           bgColor = "#ECF6FB";
+        } else if (role === "AUDITOR") {
+          displayText = "Auditor";
+          color = "#0EA5E9";
+          bgColor = "#F0F9FF";
         } else if (role === "RESEARCH_ADMIN") {
           displayText = "Research Centre Admin";
         } else if (role === "MANAGER") {
@@ -537,6 +541,7 @@ const UserRolesManagement = () => {
                       <Field as="select" name="role" className="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         <option value="">Select a role</option>
                         <option value="SUPERADMIN">Super Admin</option>
+                        <option value="AUDITOR">Auditor</option>
                         <option value="RESEARCH_ADMIN">Research Admin</option>
                         <option value="MANAGER">Manager</option>
                         <option value="REGISTRY_ADMIN">Registry Admin</option>

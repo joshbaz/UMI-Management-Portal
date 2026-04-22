@@ -67,7 +67,8 @@ export const ROUTES = {
   REALLOCATION_MONITORING: {
     ROOT: '/reallocation-monitoring',
     LIST: '/reallocation-monitoring'
-  }
+  },
+  ACTIVITIES: '/activities'
 };
 
 export default ROUTES;
