@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { queryClient } from '../../utils/tanstack';
 
 const AuthContext = createContext(null);
 
@@ -23,6 +24,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
+    localStorage.removeItem('role');
+    queryClient.clear();
     setToken(null);
   };
 

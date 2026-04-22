@@ -8,7 +8,6 @@ import { HiOutlineAcademicCap, HiOutlineUserGroup } from 'react-icons/hi';
 import { NavLink } from 'react-router-dom';
 import { ROUTES } from '../../config/routes';
 import { useGetLoggedInUserDetails } from '../../store/tanstackStore/services/queries';
-import { useQueryClient } from '@tanstack/react-query';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -19,8 +18,6 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     logout();
-    const queryClient = useQueryClient();
-    queryClient.clear(); 
     navigate('/login', { replace: true });
   };
 
