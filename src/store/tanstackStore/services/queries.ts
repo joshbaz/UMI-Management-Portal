@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '../../../utils/tanstack';
 import apiRequest from '../../../utils/apiRequestUrl';
-import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService, getGraduationStatisticsService, getChairpersonsService, getExternalPersonsService,  getAllResearchRequestsService, updateResearchRequestService, getEvaluationAnalyticsService, getDetailedEvaluationsService, createResearchClinicDayService, getAllResearchClinicDaysService, updateResearchClinicDayService, generateRecurringSessionsService, getResearchClinicBookingsService, updateBookingStatusService, getResearchClinicStatisticsService, deleteResearchClinicDayService, getReallocationStatisticsService, createCourseService, getAllCoursesService, updateCourseService, deleteCourseService, uploadStudentsService, getAllActivitiesService } from './api';
+import { getAllBooksService, getAllCampusesService, getAllDepartmentsService, getAllExaminersService, getAllFacultyService, getAllProposalsService, getAllSchoolsService, getAllStatusDefinitionsService, getAllStudentsService, getAllSupervisorsService, getAllUsersService, getAssignedStudentsService, getBookService, getCampusService, getDepartmentService, getExaminerService, getFacultyService, getLoggedInUserDetails, getPanelistsService, getProposalService, getReviewersService, getSchoolService, getStatusDefinitionService, getStudentBooksService, getStudentProposalsService, getStudentService, getStudentStatusesService, getSupervisorService, getUserService, getAllPanelistsService, getBookVivasService, getDashboardStatsService, getStatusStatisticsService, getProgressTrendsService, getNotificationsService, getProposalDefensesService, getGraduationStatisticsService, getChairpersonsService, getExternalPersonsService,  getAllResearchRequestsService, updateResearchRequestService, getEvaluationAnalyticsService, getDetailedEvaluationsService, createResearchClinicDayService, getAllResearchClinicDaysService, updateResearchClinicDayService, generateRecurringSessionsService, getResearchClinicBookingsService, updateBookingStatusService, getResearchClinicStatisticsService, deleteResearchClinicDayService, getReallocationStatisticsService, createCourseService, getAllCoursesService, updateCourseService, deleteCourseService, createSpecializationService, getAllSpecializationsService, updateSpecializationService, deleteSpecializationService, uploadStudentsService, getAllActivitiesService } from './api';
 
 export const useGetLoggedInUserDetails = () => {
   return useQuery({
@@ -734,6 +734,48 @@ export const useDeleteCourse = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+    },
+  });
+};
+
+/* ********** SPECIALIZATION MANAGEMENT ********** */
+
+export const useGetAllSpecializations = (params?: { courseId?: string, schoolId?: string, departmentId?: string, isActive?: boolean }) => {
+  return useQuery({
+    queryKey: ['specializations', params],
+    queryFn: () => getAllSpecializationsService(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: false,
+  });
+};
+
+export const useCreateSpecialization = () => {
+  return useMutation({
+    mutationFn: createSpecializationService,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['specializations'] });
+    },
+  });
+};
+
+export const useUpdateSpecialization = () => {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return updateSpecializationService(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['specializations'] });
+    },
+  });
+};
+
+export const useDeleteSpecialization = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      return deleteSpecializationService(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['specializations'] });
     },
   });
 };

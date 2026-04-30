@@ -1426,6 +1426,44 @@ export const deleteCourseService = async (id: string) => {
     }
 };
 
+/* ********** SPECIALIZATION MANAGEMENT ********** */
+
+export const createSpecializationService = async (data: any) => {
+    try {
+        const response = await apiRequest.post('/management/specializations', data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const getAllSpecializationsService = async (params?: { courseId?: string, schoolId?: string, departmentId?: string, isActive?: boolean }) => {
+    try {
+        const response = await apiRequest.get('/management/specializations', { params });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const updateSpecializationService = async (id: string, data: any) => {
+    try {
+        const response = await apiRequest.put(`/management/specializations/${id}`, data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const deleteSpecializationService = async (id: string) => {
+    try {
+        const response = await apiRequest.delete(`/management/specializations/${id}`);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
 
 
 

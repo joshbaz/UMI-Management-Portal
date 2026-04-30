@@ -19,29 +19,16 @@ const StepHeader = () => {
 
 const AddCourse = () => {
   const navigate = useNavigate();
-  const { data: schoolsData } = useGetAllSchools();
   const { data: campusesData } = useGetAllCampuses();
   const createCourseMutation = useCreateCourse();
   const [form, setForm] = useState({
-    schoolCode: '',
     campusId: '',
     code: '',
     title: '',
     description: '',
   });
 
-  const selectedSchool = useMemo(
-    () => (schoolsData?.schools || []).find((s) => s.code === form.schoolCode),
-    [form.schoolCode, schoolsData?.schools]
-  );
-
   // Set sensible defaults when data arrives
-  useEffect(() => {
-    if (!form.schoolCode && schoolsData?.schools?.length > 0) {
-      setForm((prev) => ({ ...prev, schoolCode: schoolsData.schools[0].code }));
-    }
-  }, [schoolsData?.schools]);
-
   useEffect(() => {
     if (!form.campusId && campusesData?.campuses?.length > 0) {
       setForm((prev) => ({ ...prev, campusId: campusesData.campuses[0].id }));
@@ -57,15 +44,8 @@ const AddCourse = () => {
 
   const onSave = () => {
     // Minimal client validation
-    if (!form.schoolCode || !form.campusId || !form.code || !form.title) {
-      toast.error('Please fill in School, Campus, Course Code and Course Title.');
-      return;
-    }
-
-    // Find the school ID from the school code
-    const selectedSchoolData = (schoolsData?.schools || []).find((s) => s.code === form.schoolCode);
-    if (!selectedSchoolData) {
-      toast.error('Selected school not found.');
+    if (!form.campusId || !form.code || !form.title) {
+      toast.error('Please fill in Campus, Course Code and Course Title.');
       return;
     }
 
@@ -75,7 +55,6 @@ const AddCourse = () => {
       title: form.title,
       description: form.description || null,
       campusId: form.campusId,
-      schoolId: selectedSchoolData.id,
     };
 
     // Create course using mutation
@@ -119,22 +98,6 @@ const AddCourse = () => {
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
-          </div>
-
-          {/* School Code */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">School Code</label>
-            <select
-              name="schoolCode"
-              value={form.schoolCode}
-              onChange={onChange}
-              className="w-full h-10 px-3 rounded-md border border-gray-300 text-sm"
-            >
-              {(schoolsData?.schools || []).map((s) => (
-                <option key={s.code} value={s.code}>{s.code}</option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-400 mt-2">{selectedSchool?.name || '\u00A0'}</p>
           </div>
 
           {/* Course Code */}

@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { format } from "date-fns";
-import { HiPlus, HiPencil, HiTrash, HiX } from "react-icons/hi";
+import { HiPlus, HiPencil, HiTrash, HiX, HiExternalLink } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { useGetAllCourses, useGetAllCampuses, useGetAllSchools, useUpdateCourse, useDeleteCourse } from '@/store/tanstackStore/services/queries';
 import { toast } from 'sonner';
@@ -82,6 +82,7 @@ const PageSize = ({ pageSize, setPageSize }) => {
 };
 
 const Table = ({ data, isLoading, onEdit, onDelete }) => {
+  const navigate = useNavigate();
   if (isLoading) {
     return (
       <div className="overflow-x-auto border border-gray-200 rounded-lg">
@@ -91,7 +92,7 @@ const Table = ({ data, isLoading, onEdit, onDelete }) => {
               <th className="px-4 py-3">Crs. Code</th>
               <th className="px-4 py-3">Course Title</th>
               <th className="px-4 py-3">Campus</th>
-              <th className="px-4 py-3">School</th>
+              <th className="px-4 py-3">Specializations</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Action</th>
             </tr>
@@ -116,7 +117,7 @@ const Table = ({ data, isLoading, onEdit, onDelete }) => {
             <th className="px-4 py-3">Crs. Code</th>
             <th className="px-4 py-3">Course Title</th>
             <th className="px-4 py-3">Campus</th>
-            <th className="px-4 py-3">School</th>
+            <th className="px-4 py-3">Specializations</th>
             <th className="px-4 py-3">Status</th>
             <th className="px-4 py-3">Action</th>
           </tr>
@@ -128,23 +129,27 @@ const Table = ({ data, isLoading, onEdit, onDelete }) => {
               <td className="px-4 py-4">{c.title}</td>
               <td className="px-4 py-4">{c.campus?.name || 'Unknown'}</td>
               <td className="px-4 py-4">
-                <span className="inline-flex items-center gap-1">
-                  <span className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200">
-                    {c.school?.code || 'N/A'}
-                  </span>
+                <span className="text-xs text-gray-500">
+                  {c.specializations?.length || 0} specializations
                 </span>
               </td>
               <td className="px-4 py-4">
-                <span className={`px-2 py-0.5 text-xs rounded border ${
-                  c.isActive 
-                    ? 'border-green-200 bg-green-50 text-green-700' 
+                <span className={`px-2 py-0.5 text-xs rounded border ${c.isActive
+                    ? 'border-green-200 bg-green-50 text-green-700'
                     : 'border-red-200 bg-red-50 text-red-700'
-                }`}>
+                  }`}>
                   {c.isActive ? 'Active' : 'Inactive'}
                 </span>
               </td>
               <td className="px-4 py-4">
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigate(`/courses/specializations/${c.id}`)}
+                    className="p-1.5 text-green-600 hover:bg-green-50 rounded-md transition-colors"
+                    title="Manage Specializations"
+                  >
+                    <HiPlus className="w-4 h-4" />
+                  </button>
                   <button
                     onClick={() => onEdit(c)}
                     className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
@@ -197,7 +202,6 @@ const Pagination = ({ totalItems, pageSize, currentPage, setCurrentPage }) => {
 
 const EditCourseModal = ({ isOpen, onClose, course, schoolsData, campusesData, onSave, isLoading }) => {
   const [form, setForm] = useState({
-    schoolCode: '',
     campusId: '',
     code: '',
     title: '',
@@ -208,7 +212,6 @@ const EditCourseModal = ({ isOpen, onClose, course, schoolsData, campusesData, o
   useEffect(() => {
     if (course) {
       setForm({
-        schoolCode: course.school?.code || '',
         campusId: course.campus?.id || '',
         code: course.code || '',
         title: course.title || '',
@@ -217,10 +220,7 @@ const EditCourseModal = ({ isOpen, onClose, course, schoolsData, campusesData, o
     }
   }, [course]);
 
-  const selectedSchool = useMemo(
-    () => (schoolsData?.schools || []).find((s) => s.code === form.schoolCode),
-    [form.schoolCode, schoolsData?.schools]
-  );
+
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -228,14 +228,8 @@ const EditCourseModal = ({ isOpen, onClose, course, schoolsData, campusesData, o
   };
 
   const handleSave = () => {
-    if (!form.schoolCode || !form.campusId || !form.code || !form.title) {
-      toast.error('Please fill in School, Campus, Course Code and Course Title.');
-      return;
-    }
-
-    const selectedSchoolData = (schoolsData?.schools || []).find((s) => s.code === form.schoolCode);
-    if (!selectedSchoolData) {
-      toast.error('Selected school not found.');
+    if (!form.campusId || !form.code || !form.title) {
+      toast.error('Please fill in Campus, Course Code and Course Title.');
       return;
     }
 
@@ -245,7 +239,6 @@ const EditCourseModal = ({ isOpen, onClose, course, schoolsData, campusesData, o
       title: form.title,
       description: form.description || null,
       campusId: form.campusId,
-      schoolId: selectedSchoolData.id,
     };
 
     onSave(courseData);
@@ -284,21 +277,7 @@ const EditCourseModal = ({ isOpen, onClose, course, schoolsData, campusesData, o
               </select>
             </div>
 
-            {/* School Code */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">School Code</label>
-              <select
-                name="schoolCode"
-                value={form.schoolCode}
-                onChange={onChange}
-                className="w-full h-10 px-3 rounded-md border border-gray-300 text-sm"
-              >
-                {(schoolsData?.schools || []).map((s) => (
-                  <option key={s.code} value={s.code}>{s.code}</option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-400 mt-2">{selectedSchool?.name || '\u00A0'}</p>
-            </div>
+
 
             {/* Course Code */}
             <div>
@@ -339,15 +318,15 @@ const EditCourseModal = ({ isOpen, onClose, course, schoolsData, campusesData, o
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 mt-8">
-            <button 
-              onClick={onClose} 
+            <button
+              onClick={onClose}
               disabled={isLoading}
               className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
-            <button 
-              onClick={handleSave} 
+            <button
+              onClick={handleSave}
               disabled={isLoading}
               className="px-4 py-2 text-sm rounded-md bg-[#23388F] text-white hover:bg-[#2d48b8] disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -386,26 +365,26 @@ const DeleteCourseModal = ({ isOpen, onClose, course, onConfirm, isLoading }) =>
             <div className="flex-1">
               <h3 className="text-lg font-medium text-gray-900 mb-2">Are you sure?</h3>
               <p className="text-sm text-gray-600 mb-4">
-                You are about to delete the course <strong>"{course?.title}"</strong> ({course?.code}). 
+                You are about to delete the course <strong>"{course?.title}"</strong> ({course?.code}).
                 This action cannot be undone.
               </p>
               <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-md">
                 <strong>Course Details:</strong><br />
                 Campus: {course?.campus?.name || 'Unknown'}<br />
-                School: {course?.school?.code || 'N/A'}
+                Specializations: {course?.specializations?.length || 0}
               </div>
             </div>
           </div>
 
           <div className="flex items-center justify-end gap-3 mt-6">
-            <button 
-              onClick={onClose} 
+            <button
+              onClick={onClose}
               disabled={isLoading}
               className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
-            <button 
+            <button
               onClick={() => onConfirm(course)}
               disabled={isLoading}
               className="px-4 py-2 text-sm rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -456,7 +435,9 @@ const CourseManagement = () => {
   };
 
   const handleEditSave = (courseData) => {
-    updateCourseMutation.mutate(courseData, {
+    console.log('handleEditSave called with:', courseData);
+    const { id, ...data } = courseData;
+    updateCourseMutation.mutate({ id, data }, {
       onSuccess: () => {
         toast.success('Course updated successfully!');
         setEditModalOpen(false);
@@ -464,6 +445,7 @@ const CourseManagement = () => {
         refetchCourses();
       },
       onError: (error) => {
+        console.error('Update course error:', error);
         toast.error(error.message || 'Failed to update course. Please try again.');
       },
     });
@@ -505,7 +487,7 @@ const CourseManagement = () => {
   // Get courses and stats
   const courses = coursesData?.courses || [];
   const pagination = coursesData?.pagination || {};
-  
+
   // Stats
   const allCoursesCount = pagination.totalCount || 0;
   const activeCoursesCount = courses.filter(c => c.isActive).length;
@@ -514,22 +496,21 @@ const CourseManagement = () => {
   // Filtered by campus + search
   const filtered = useMemo(() => {
     let filteredCourses = courses;
-    
+
     // Filter by campus if selected
     if (selectedCampus) {
       filteredCourses = courses.filter(c => c.campus?.name === selectedCampus);
     }
-    
+
     // Filter by search term
     const term = searchTerm.trim().toLowerCase();
     if (term) {
       filteredCourses = filteredCourses.filter(c =>
-        c.code.toLowerCase().includes(term) || 
-        c.title.toLowerCase().includes(term) ||
-        c.school?.code.toLowerCase().includes(term)
+        c.code.toLowerCase().includes(term) ||
+        c.title.toLowerCase().includes(term)
       );
     }
-    
+
     return filteredCourses;
   }, [courses, selectedCampus, searchTerm]);
 
@@ -580,9 +561,9 @@ const CourseManagement = () => {
         </div>
 
         {/* Table */}
-        <Table 
-          data={filtered} 
-          isLoading={coursesLoading} 
+        <Table
+          data={filtered}
+          isLoading={coursesLoading}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
