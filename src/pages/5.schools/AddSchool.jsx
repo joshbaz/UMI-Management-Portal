@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { IoArrowBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import SchoolDetailsForm from "./Forms/SchoolDetailsForm";
-import SchoolMembersForm from "./Forms/SchoolMembersForm";
 import SchoolDepartmentForm from "./Forms/SchoolDepartmentForm";
 import FormNavigationButtons from "@/components/FormButton/FormNavigationButtons";
 
@@ -20,8 +19,7 @@ export const useSchoolForm = () => {
 
 const STEPS = [
   { id: 1, title: "Step 1", description: "School details" },
-  { id: 2, title: "Step 2", description: "School Members" },
-  { id: 3, title: "Step 3", description: "Departments" },
+  { id: 2, title: "Step 2", description: "Departments" },
 ];
 
 // Progress Stepper Component
@@ -71,7 +69,6 @@ const AddSchool = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     schoolDetails: {},
-    schoolMembers: {},
     departments: []
   });
 
@@ -113,8 +110,6 @@ const AddSchool = () => {
         case 1:
           return { ...prev, schoolDetails: data };
         case 2:
-          return { ...prev, schoolMembers: data };
-        case 3:
           return { ...prev, departments: data };
         default:
           return prev;
@@ -127,8 +122,6 @@ const AddSchool = () => {
       case 1:
         return <SchoolDetailsForm  handleNext={handleNext} />;
       case 2:
-        return <SchoolMembersForm  handleNext={handleNext} />;
-      case 3:
         return <SchoolDepartmentForm  />;
       default:
         return null;

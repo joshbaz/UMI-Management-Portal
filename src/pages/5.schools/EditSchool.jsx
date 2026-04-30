@@ -34,20 +34,18 @@ const StepTabs = ({ currentStep }) => (
         >
           {(isActive || isCompleted) && (
             <div
-              className={`absolute top-0 left-0 right-0 ${
-                isCompleted ? "bg-primary-500" : "bg-[#F59E0B]"
-              }`}
+              className={`absolute top-0 left-0 right-0 ${isCompleted ? "bg-primary-500" : "bg-[#F59E0B]"
+                }`}
               style={{ height: "4px", top: "-4px" }}
             />
           )}
           <div
-            className={`text-sm font-medium ${
-              isCompleted
-                ? "text-primary-500"
-                : isActive
+            className={`text-sm font-medium ${isCompleted
+              ? "text-primary-500"
+              : isActive
                 ? "text-[#F59E0B]"
                 : "text-gray-500"
-            }`}
+              }`}
           >
             {step.title}
           </div>
@@ -63,14 +61,14 @@ const EditSchool = () => {
   const [currentStep, setCurrentStep] = useState(1);
   let formRef = useRef();
   const { id } = useParams(); // Get school id from URL params
-  
+
   // Query to fetch school details
   const { data: schoolData, isLoading, error } = useGetSchool(id);
   const school = schoolData?.school || {};
 
-  const handlePrevStep = () => {};
+  const handlePrevStep = () => { };
 
-  const handleNextStep = () => {};
+  const handleNextStep = () => { };
   const handleCancel = () => {
     navigate("/students");
   };
@@ -92,7 +90,7 @@ const EditSchool = () => {
       case 2:
         return <EditSchoolMembersForm handleNext={handleNext} handlePrevious={handleBack} schoolData={schoolData} />;
       case 3:
-        return <EditSchoolDepartmentForm  handlePrevious={handleBack}  />;  
+        return <EditSchoolDepartmentForm handlePrevious={handleBack} />;
       default:
         return null;
     }
@@ -142,11 +140,11 @@ const EditSchool = () => {
         {/* All three steps of school forms */}
         <div className="w-[968] min-h-full mx-8 mb-8 rounded-lg p-6 bg-white shadow-sm ">
           {/* Tabs section */}
-        
+
           <StepTabs currentStep={currentStep} />
 
-         
-          
+
+
           {/** Form Display */}
           {FormDisplay(currentStep)}
 

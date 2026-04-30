@@ -5,16 +5,16 @@ import { queryClient } from "../../../utils/tanstack"
 
 const errorHandling = (error: any) => {
     if (error?.response) {
-      
-        throw {message: `Error ${error.response.status}: ${error.response.statusText}. ${error.response?.data?.message}`}
-       
-      } else if (error.request) {
-        throw {message: "No response from server. Please check your network connection."}
-        
-      } else {
-        throw {message: `Request failed: ${error.message}`}
-       
-      }
+
+        throw { message: `Error ${error.response.status}: ${error.response.statusText}. ${error.response?.data?.message}` }
+
+    } else if (error.request) {
+        throw { message: "No response from server. Please check your network connection." }
+
+    } else {
+        throw { message: `Request failed: ${error.message}` }
+
+    }
 }
 
 /* ********** AUTH ********** */
@@ -54,7 +54,7 @@ export const getLoggedInUserDetails = async () => {
     try {
         const response = await apiRequest.get("/management/user/details");
 
-      
+
         return {
             ...response.data,
             loginTime: new Date().toISOString()
@@ -102,22 +102,7 @@ export const addSchoolService = async (data: any) => {
     }
 };
 
-export const addSchoolMembersService = async (schoolId: string, data: any) => {
-    try {
-        const response = await apiRequest.post(`/management/schools/${schoolId}/members`, data);
-        return response.data;
-    } catch (error) {
-        errorHandling(error);
-    }
-};
-export const updateSchoolMembersService = async (schoolId: string, data: any) => {
-    try {
-        const response = await apiRequest.put(`/management/schools/${schoolId}/members`, data);
-        return response.data;
-    } catch (error) {
-        errorHandling(error);
-    }
-};
+
 
 
 export const getAllSchoolsService = async () => {
@@ -584,43 +569,43 @@ export const addComplianceReportDateService = async (proposalId: string, complia
 
 export const generateDefenseReportService = async (proposalId: string, reportData: FormData) => {
     try {
-      const response = await apiRequest.post(`/management/generate-defense-report/${proposalId}`, reportData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      return response.data;
+        const response = await apiRequest.post(`/management/generate-defense-report/${proposalId}`, reportData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
     } catch (error) {
-      errorHandling(error);
+        errorHandling(error);
     }
-  }
+}
 
-  export const getProposalDefenseReportsService = async (proposalId: string) => {
+export const getProposalDefenseReportsService = async (proposalId: string) => {
     try {
-    const response = await apiRequest.get(`/management/proposal/${proposalId}/defense-reports`);
-    return response.data;
+        const response = await apiRequest.get(`/management/proposal/${proposalId}/defense-reports`);
+        return response.data;
     } catch (error) {
-    errorHandling(error);
+        errorHandling(error);
     }
 }
 
 export const downloadProposalDefenseReportService = async (reportId) => {
     try {
-      const response = await apiRequest.get(
-        `/management/defense-reports/${reportId}/download`,
-        {
-          responseType: 'blob', // Important: This tells axios to expect binary data
-          headers: {
-            'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-          }
-        }
-      );
-      return response;
+        const response = await apiRequest.get(
+            `/management/defense-reports/${reportId}/download`,
+            {
+                responseType: 'blob', // Important: This tells axios to expect binary data
+                headers: {
+                    'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                }
+            }
+        );
+        return response;
     } catch (error) {
-      console.error('Error downloading report:', error);
-      throw error;
+        console.error('Error downloading report:', error);
+        throw error;
     }
-  }; 
+};
 
 
 /* ********** END OF PROPOSAL MANAGEMENT ********** */
@@ -661,13 +646,13 @@ export const addPanelistsService = async (proposalId: string, panelists: any) =>
 }
 
 export const getPanelistsService = async () => {
-    try {   
+    try {
         const response = await apiRequest.get("/management/panelists")
         return response.data
     } catch (error) {
         errorHandling(error)
     }
-}   
+}
 
 
 export const deletePanelistService = async (proposalId: string, panelistId: string) => {
@@ -690,7 +675,7 @@ export const addReviewerMarkService = async (proposalId: string, reviewerId: str
     } catch (error) {
         errorHandling(error)
     }
-}   
+}
 
 /* ********** PANELIST MARK MANAGEMENT ********** */
 
@@ -749,7 +734,7 @@ export const submitStudentBookService = async (studentId: string, data: any) => 
     } catch (error) {
         errorHandling(error);
     }
-    }
+}
 
 export const getStudentBooksService = async (studentId: string) => {
     try {
@@ -765,26 +750,26 @@ export const getStudentBooksService = async (studentId: string) => {
 /** Chairperson */
 export const getChairpersonsService = async () => {
     try {
-      const response = await apiRequest.get('/management/chairperson');
-      return response.data;
+        const response = await apiRequest.get('/management/chairperson');
+        return response.data;
     } catch (error) {
-      errorHandling(error);
+        errorHandling(error);
     }
-  }
+}
 
-  export const createChairpersonService = async (name: string, email: string) => {
+export const createChairpersonService = async (name: string, email: string) => {
     try {
-      const response = await apiRequest.post('/management/chairperson', {
-        name,
-        email
-      });
-      return response.data;
+        const response = await apiRequest.post('/management/chairperson', {
+            name,
+            email
+        });
+        return response.data;
     } catch (error) {
-      errorHandling(error);
+        errorHandling(error);
     }
-  }
+}
 
-  /* ********** EXTERNAL PERSONS MANAGEMENT ********** */
+/* ********** EXTERNAL PERSONS MANAGEMENT ********** */
 
 export const getExternalPersonsService = async () => {
     try {
@@ -852,7 +837,7 @@ export const getBookService = async (bookId: string) => {
         errorHandling(error);
     }
 }
-    /* ********** END OF GRADE BOOK MANAGEMENT ********** */
+/* ********** END OF GRADE BOOK MANAGEMENT ********** */
 
 /* ********** EXAMINER MANAGEMENT ********** */
 
@@ -919,7 +904,7 @@ export const updateExternalExaminerMarkService = async (assignmentId: string, ma
 
 export const getAllUsersService = async () => {
     try {
-        const response = await apiRequest.get('/management/users'); 
+        const response = await apiRequest.get('/management/users');
         return response.data;
     } catch (error) {
         errorHandling(error);
@@ -936,7 +921,7 @@ export const getUserService = async (userId: string) => {
 }
 
 
-    export const createUserService = async (data: any) => {
+export const createUserService = async (data: any) => {
     try {
         const response = await apiRequest.post('/management/users', data);
         return response.data;
@@ -949,7 +934,7 @@ export const updateUserService = async (userId: string, data: any) => {
     try {
         const response = await apiRequest.put(`/management/users/${userId}`, data);
         return response.data;
-    } catch (error) {   
+    } catch (error) {
         errorHandling(error);
     }
 }
@@ -958,7 +943,7 @@ export const deactivateUserService = async (userId: string) => {
     try {
         const response = await apiRequest.put(`/management/users/${userId}/deactivate`);
         return response.data;
-    } catch (error) {   
+    } catch (error) {
         errorHandling(error);
     }
 }
@@ -967,7 +952,7 @@ export const reactivateUserService = async (userId: string) => {
     try {
         const response = await apiRequest.put(`/management/users/${userId}/reactivate`);
         return response.data;
-    } catch (error) {   
+    } catch (error) {
         errorHandling(error);
     }
 }
@@ -989,7 +974,7 @@ export const updateUserPasswordService = async (userId: string, newPassword: str
         const response = await apiRequest.put(`/management/users/${userId}/password`, { newPassword });
         return response.data;
     } catch (error) {
-        errorHandling(error);   
+        errorHandling(error);
     }
 }
 
@@ -998,16 +983,16 @@ export const updateUserPasswordService = async (userId: string, newPassword: str
 /* ********** VIVA MANAGEMENT ********** */
 
 export interface VivaScheduleData {
-  location: string;
-  chairpersonId: string;
-  minutesSecretaryId: string;
-  panelistIds: string[];
-  reviewerIds: string[];
+    location: string;
+    chairpersonId: string;
+    minutesSecretaryId: string;
+    panelistIds: string[];
+    reviewerIds: string[];
 }
 
 export const scheduleVivaService = async (bookId: string, scheduledDate: string, data: VivaScheduleData) => {
     try {
-        const response = await apiRequest.post(`/management/books/${bookId}/viva`, { 
+        const response = await apiRequest.post(`/management/books/${bookId}/viva`, {
             scheduledDate,
             location: data.location,
             chairpersonId: data.chairpersonId,
@@ -1015,17 +1000,17 @@ export const scheduleVivaService = async (bookId: string, scheduledDate: string,
             panelistIds: data.panelistIds,
             reviewerIds: data.reviewerIds
         });
-        return response.data;   
+        return response.data;
     } catch (error) {
         errorHandling(error);
     }
-}   
+}
 
 export interface VivaVerdictData {
-  verdict: string;
-  comments: string;
-  externalMark?: number;
-  internalMark?: number;
+    verdict: string;
+    comments: string;
+    externalMark?: number;
+    internalMark?: number;
 }
 
 export const recordVivaVerdictService = async (vivaId: string, data: VivaVerdictData) => {
@@ -1060,7 +1045,7 @@ export const createReviewerService = async (data: any) => {
     try {
         const response = await apiRequest.post(`/management/reviewer`, data)
         return response.data
-        
+
     } catch (error) {
         errorHandling(error)
     }
@@ -1103,7 +1088,7 @@ export const updateComplianceReportDateService = async (bookId: string, data: { 
 
 export const updateResultsApprovalDateService = async (studentId: string, resultsApprovedDate: string) => {
     try {
-        const response = await apiRequest.put(`/management/students/${studentId}/results-approved`, { resultsApprovedDate });   
+        const response = await apiRequest.put(`/management/students/${studentId}/results-approved`, { resultsApprovedDate });
         return response.data;
     } catch (error) {
         errorHandling(error);
@@ -1114,7 +1099,7 @@ export const updateResultsSentDateService = async (studentId: string, resultsSen
     try {
         const response = await apiRequest.put(`/management/students/${studentId}/results-sent`, { resultsSentDate });
         return response.data;
-    } catch (error) {   
+    } catch (error) {
         errorHandling(error);
     }
 }
@@ -1142,8 +1127,8 @@ export const getDashboardStatsService = async () => {
 export const getStatusStatisticsService = async (category?: string) => {
     try {
         console.log("category", category);
-        const url = category 
-            ? `/management/dashboard/status-statistics?category=${category}` 
+        const url = category
+            ? `/management/dashboard/status-statistics?category=${category}`
             : '/management/dashboard/status-statistics';
         const response = await apiRequest.get(url);
         return response.data;
@@ -1249,7 +1234,7 @@ export const sendResultsEmailService = async (emailData: any) => {
     } catch (error) {
         errorHandling(error);
     }
-} 
+}
 
 /* ********** RESEARCH REQUEST MANAGEMENT ********** */
 
@@ -1293,7 +1278,7 @@ export const getDetailedEvaluationsService = async (params = {}) => {
                 queryParams.append(key, value.toString());
             }
         });
-        
+
         const url = `/management/evaluations/detailed${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
         const response = await apiRequest.get(url);
         return response.data;
@@ -1396,11 +1381,11 @@ export const getResearchClinicStatisticsService = async () => {
     } catch (error) {
         errorHandling(error);
     }
-}; 
+};
 
 export const deleteResearchClinicDayService = async (clinicDayId: string) => {
-  const response = await apiRequest.delete(`/management/research-clinic-days/${clinicDayId}`);
-  return response.data;
+    const response = await apiRequest.delete(`/management/research-clinic-days/${clinicDayId}`);
+    return response.data;
 };
 
 /* ********** COURSE MANAGEMENT ********** */
@@ -1472,3 +1457,13 @@ export const getAllActivitiesService = async () => {
 };
 
 /* ********** END OF ACTIVITY LOGS ********** */
+
+/* ********** ACMIS INTEGRATION ********** */
+export const fetchAcmisStudentService = async (registrationNumber: string) => {
+    try {
+        const response = await apiRequest.get(`/management/acmis/student?registrationNumber=${encodeURIComponent(registrationNumber)}`);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};

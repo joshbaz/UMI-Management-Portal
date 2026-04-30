@@ -1,4 +1,4 @@
-import { addSchoolMembersService } from "@/store/tanstackStore/services/api";
+// import { addSchoolMembersService } from "@/store/tanstackStore/services/api";
 import { useMutation } from "@tanstack/react-query";
 import { Form, Formik } from "formik";
 import React from "react";
@@ -10,28 +10,7 @@ const SchoolMembersForm = ({ handleNext }) => {
   const schoolId = localStorage.getItem("currentSchoolId");
 
   // Add school members mutation
-  const addSchoolMembersMutation = useMutation({
-    mutationFn: (data) => addSchoolMembersService(schoolId, data),
-    onSuccess: () => {
-      toast.success("School members added successfully", {
-        duration: 3000,
-        action: {
-          label: "Dismiss",
-          onClick: () => toast.dismiss(),
-        },
-      });
-      handleNext();
-    },
-    onError: (error) => {
-      toast.error(error.message || "Error adding school members", {
-        duration: 3000,
-        action: {
-          label: "Dismiss", 
-          onClick: () => toast.dismiss(),
-        },
-      });
-    }
-  });
+  const addSchoolMembersMutation = { mutate: () => handleNext(), isPending: false };
 
   let initialValues = {
     dean: {
