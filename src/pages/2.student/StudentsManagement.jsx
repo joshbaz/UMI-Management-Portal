@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { useNavigate } from 'react-router-dom';
 import { HiPlus } from "react-icons/hi";
-import { MdOutlineFileUpload } from "react-icons/md";
+import { MdOutlineFileUpload, MdSchool } from "react-icons/md";
 import StudentTabs from "./StudentTabs";
 import SStats from "./SStats";
 import StudentTableControlPanel from "./StudentTableControlPanel";
@@ -140,6 +140,13 @@ const StudentsManagement = () => {
                 >
                   <MdOutlineFileUpload className="w-5 h-5" />
                   Upload CSV/ Excel
+                </button>
+                <button
+                  onClick={() => navigate(ROUTES.STUDENT.IMPORT_ACMIS)}
+                  className="inline-flex items-center px-4 py-2 bg-[#F59E0B] text-white rounded-lg text-sm font-medium hover:bg-[#d98d0a] gap-2 shadow-sm transition-all"
+                >
+                  <MdSchool className="w-5 h-5" />
+                  Import Student from ACMIS
                 </button>
                 <button
                   onClick={() => navigate(ROUTES.STUDENT.ADD)}
