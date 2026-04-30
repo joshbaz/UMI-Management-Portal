@@ -69,6 +69,7 @@ import AddStudentUpload from "./pages/2.student/AddStudentUpload";
 import ImportAcmisStudent from "./pages/2.student/ImportAcmisStudent";
 import CourseManagement from "./pages/15.CourseManagement/CourseManagement";
 import AddCourse from "./pages/15.CourseManagement/AddCourse";
+import SpecializationManagement from "./pages/15.CourseManagement/SpecializationManagement";
 import ActivityLogs from "./pages/9.roles/ActivityLogs";
 // PublicRoute: Redirects authenticated users away from public pages (like login)
 // If user is authenticated, redirects to dashboard
@@ -229,6 +230,7 @@ const AppRoutes = () => {
 
         <Route path={"/courses"} element={<CourseManagement  />} />
         <Route path={"/courses/add"} element={<AddCourse  />} />
+        <Route path={"/courses/specializations/:courseId"} element={<SpecializationManagement />} />
 
         {/* Other Routes */}
         <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsManagement />} />
