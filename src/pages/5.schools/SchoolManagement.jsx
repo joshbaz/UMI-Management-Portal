@@ -1,14 +1,18 @@
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import SchoolSearch from './SchoolSearch';
 import SchoolTable from './SchoolTable';
 import SchoolTableTab from './SchoolTableTab';
-import { SchoolTableControlPanel, ModifyTableDialog } from './SchoolTableControlPanel';
+import { SchoolTableControlPanel, ModifyTableDialog, UsageReportModal } from './SchoolTableControlPanel';
 import { schoolData } from './SchoolData';
 import { useGetAllSchools } from '../../store/tanstackStore/services/queries';
+import { getAllActivitiesService } from '../../store/tanstackStore/services/api';
 const SchoolManagement = () => {
   const [globalFilter, setGlobalFilter] = useState('');
   const [isModifyTableOpen, setIsModifyTableOpen] = useState(false);
+  const [isUsageReportOpen, setIsUsageReportOpen] = useState(false);
+  const [auditData, setAuditData] = useState([]);
   const [selectedCampus, setSelectedCampus] = useState('All Campuses');
   const [columnVisibility, setColumnVisibility] = useState({
     name: true,
@@ -62,7 +66,49 @@ const SchoolManagement = () => {
       </div>
 
       {/* Table Control Panel */}
-      <SchoolTableControlPanel onModifyTable={() => setIsModifyTableOpen(true)} />
+      <SchoolTableControlPanel 
+        onModifyTable={() => setIsModifyTableOpen(true)} 
+        onGenerateReport={async () => {
+          try {
+            const activitiesData = await getAllActivitiesService();
+            if (!activitiesData || !activitiesData.activities || activitiesData.activities.length === 0) {
+              toast.error('No audit logs available to generate report');
+              return;
+            }
+
+            const schoolActivities = activitiesData.activities.filter(a => a.entityType?.toLowerCase() === 'school');
+            const dataToExport = schoolActivities.length > 0 ? schoolActivities : activitiesData.activities;
+
+            const formattedData = dataToExport.map(activity => {
+              let browserAgent = activity.browserAgent || 'Web Browser';
+              try {
+                if (activity.details && activity.details.startsWith('{')) {
+                  const parsed = JSON.parse(activity.details);
+                  if (parsed.browserAgent) browserAgent = parsed.browserAgent;
+                  if (parsed.userAgent) browserAgent = parsed.userAgent;
+                }
+              } catch (e) {}
+
+              return {
+                user: activity.user?.name || 'Unknown User',
+                role: activity.user?.role || 'N/A',
+                action: activity.action,
+                date: format(new Date(activity.timestamp), 'yyyy-MM-dd HH:mm:ss'),
+                browserAgent,
+                ipAddress: activity.ipAddress || 'Unknown',
+                deviceId: activity.deviceId || 'Unknown',
+                details: activity.details || null,
+              };
+            });
+
+            setAuditData(formattedData);
+            setIsUsageReportOpen(true);
+          } catch (error) {
+            toast.error('Failed to fetch audit logs');
+            console.error(error);
+          }
+        }}
+      />
 
       {/* Modify Table Dialog */}
       <ModifyTableDialog
@@ -70,6 +116,37 @@ const SchoolManagement = () => {
         onClose={() => setIsModifyTableOpen(false)}
         columnVisibility={columnVisibility}
         setColumnVisibility={setColumnVisibility}
+      />
+
+      {/* Usage Report Modal */}
+      <UsageReportModal
+        isOpen={isUsageReportOpen}
+        onClose={() => setIsUsageReportOpen(false)}
+        auditData={auditData}
+        onDownloadCsv={() => {
+          if (!auditData || auditData.length === 0) return;
+          
+          const headers = ['User', 'Role', 'Action', 'Date', 'Browser Agent', 'IP Address', 'Device ID'];
+          const csvContent = [
+            headers.join(','),
+            ...auditData.map(row => 
+              [row.user, row.role, row.action, row.date, row.browserAgent, row.ipAddress, row.deviceId]
+                .map(cell => `"${(cell || '').toString().replace(/"/g, '""')}"`)
+                .join(',')
+            )
+          ].join('\n');
+
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.setAttribute('href', url);
+          link.setAttribute('download', `UMI_School_Management_Audits_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          toast.success('Audit usage report downloaded successfully');
+        }}
       />
 
       {/* Table Container */}

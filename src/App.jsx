@@ -66,6 +66,7 @@ import StaffManagement from "./pages/12.staff/StaffManagement";
 import ResearchClinicManagement from "./pages/13.ResearchClinic/ResearchClinicManagement";
 import ReallocationMonitoring from "./pages/14.ReallocationMonitoring/ReallocationMonitoring";
 import AddStudentUpload from "./pages/2.student/AddStudentUpload";
+import ImportAcmisStudent from "./pages/2.student/ImportAcmisStudent";
 import CourseManagement from "./pages/15.CourseManagement/CourseManagement";
 import AddCourse from "./pages/15.CourseManagement/AddCourse";
 import ActivityLogs from "./pages/9.roles/ActivityLogs";
@@ -148,6 +149,7 @@ const AppRoutes = () => {
         {/* Student Management */}
         <Route path={ROUTES.STUDENT.LIST} element={<StudentsManagement />} />
         <Route path={ROUTES.STUDENT.ADD} element={<AddStudent />} />
+        <Route path={ROUTES.STUDENT.IMPORT_ACMIS} element={<ImportAcmisStudent />} />
         <Route  path={"/students/upload-students"} element={<AddStudentUpload />} />
         <Route path="/students/profile/:id" element={<StudentProfile />} />
         <Route path="/students/submit-book/:id" element={<StudentSubmitBook />} />

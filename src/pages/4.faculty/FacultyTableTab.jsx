@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
 
 const FacultyTableTab = ({ selectedStaff, setSelectedStaff, facultyData }) => {
-     // Get unique campuses and count schools in each campus using useMemo
+  // Get unique campuses and count schools in each campus using useMemo
   const staffStats = useMemo(() => {
-    const stats = facultyData.reduce((acc, faculty) => {
+    const stats = facultyData?.reduce((acc, faculty) => {
       const staffType = faculty.facultyType || 'Uncategorized';
       acc[staffType] = (acc[staffType] || 0) + 1;
       return acc;
@@ -11,7 +11,7 @@ const FacultyTableTab = ({ selectedStaff, setSelectedStaff, facultyData }) => {
 
     // Add "All Campuses" to the stats
     stats['All Staff'] = facultyData.length;
-    
+
     return stats;
   }, [facultyData]);
 
@@ -43,22 +43,20 @@ const FacultyTableTab = ({ selectedStaff, setSelectedStaff, facultyData }) => {
             onClick={() => setSelectedStaff(() => tab.name)}
             className={`
           whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
-          ${
-            selectedStaff === tab.name
-              ? "border-[#23388F] text-[#23388F]"
-              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-          }
+          ${selectedStaff === tab.name
+                ? "border-[#23388F] text-[#23388F]"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }
         `}
           >
             {tab.name}
             <span
               className={`
             ml-2 py-0.5 px-2.5 rounded-full text-xs font-medium
-            ${
-              selectedStaff === tab.name
-                ? "bg-[#EEF2FF] text-[#23388F]"
-                : "bg-gray-100 text-gray-900"
-            }
+            ${selectedStaff === tab.name
+                  ? "bg-[#EEF2FF] text-[#23388F]"
+                  : "bg-gray-100 text-gray-900"
+                }
           `}
             >
               {tab.count}
