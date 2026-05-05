@@ -52,52 +52,15 @@ const EditSchoolDepartmentForm = ({ handlePrevious }) => {
               </div>
 
               {/* Department Details */}
-              <div className="space-y-8">
-                <div className="grid grid-cols-2 gap-x-6 gap-y-8">
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      URL
-                    </label>
-                    <input
-                      type="text"
-                      value={department.url || ''}
-                      readOnly
-                      className="w-full h-9 rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm bg-gray-50"
-                    />
-                  </div>
-                </div>
-
-               
-                <div className="grid grid-cols-3 gap-x-6 gap-y-8">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Admin. Name
+                      Department Code
                     </label>
                     <input
                       type="text"
-                      value={department.adminName}
-                      readOnly
-                      className="w-full h-9 rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm bg-gray-50"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Admin. Contacts
-                    </label>
-                    <input
-                      type="text"
-                      value={department.adminContact}
-                      readOnly
-                      className="w-full h-9 rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm bg-gray-50"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Admin. Email
-                    </label>
-                    <input
-                      type="text"
-                      value={department.adminEmail}
+                      value={department.code || ''}
                       readOnly
                       className="w-full h-9 rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm bg-gray-50"
                     />
@@ -177,26 +140,15 @@ const CreateDeptDialog = ({ isOpen, onClose }) => {
   const formik = useFormik({
     initialValues: {
       name: '',
-      url: '',
-      adminName: '',
-      adminContact: '',
-      adminEmail: '',
+      code: '',
       schoolId: schoolId
     },
     validationSchema: yup.object({
       name: yup.string()
         .required('Department name is required')
         .min(2, 'Department name must be at least 2 characters'),
-      url: yup.string()
-        .url('Must be a valid URL')
-        .required('URL is required'),
-      adminName: yup.string()
-        .required('Admin name is required'),
-      adminContact: yup.string()
-        .required('Admin contact is required'),
-      adminEmail: yup.string()
-        .email('Invalid email address')
-        .required('Admin email is required')
+      code: yup.string()
+        .required('Department code is required')
     }),
     onSubmit: (values) => {
       createDepartmentMutation.mutate(values);
@@ -251,76 +203,19 @@ const CreateDeptDialog = ({ isOpen, onClose }) => {
                   </div>
                   <div className="flex flex-col gap-1">
                     <label className="block text-sm font-medium text-gray-700 ">
-                      URL
+                      Department Code
                     </label>
-
                     <input
                       type="text"
-                      name="url"
+                      name="code"
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      value={formik.values.url}
-                      className={`w-full h-9 rounded-md border ${formik.touched.url && formik.errors.url ? 'border-red-500' : 'border-gray-200'} shadow-sm px-3 py-2 text-sm bg-gray-50`}
-                      placeholder="Enter department URL"
+                      value={formik.values.code}
+                      className={`w-full h-9 rounded-md border ${formik.touched.code && formik.errors.code ? 'border-red-500' : 'border-gray-200'} shadow-sm px-3 py-2 text-sm bg-gray-50`}
+                      placeholder="Enter department code"
                     />
-                    {formik.touched.url && formik.errors.url && (
-                      <div className="text-red-500 text-xs">{formik.errors.url}</div>
-                    )}
-                  </div>
-
-                  <hr className="bg-black mt-2 mb-2 w-full h-[1px]" />
-                  <div className="flex flex-col gap-1">
-                    <label className="block text-sm font-medium text-gray-700 ">
-                      Admin. Name
-                    </label>
-
-                    <input
-                      type="text"
-                      name="adminName"
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      value={formik.values.adminName}
-                      className={`w-full h-9 rounded-md border ${formik.touched.adminName && formik.errors.adminName ? 'border-red-500' : 'border-gray-200'} shadow-sm px-3 py-2 text-sm bg-gray-50`}
-                      placeholder="Enter admin name"
-                    />
-                    {formik.touched.adminName && formik.errors.adminName && (
-                      <div className="text-red-500 text-xs">{formik.errors.adminName}</div>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="block text-sm font-medium text-gray-700 ">
-                      Admin. Contacts
-                    </label>
-
-                    <input
-                      type="text"
-                      name="adminContact"
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      value={formik.values.adminContact}
-                      className={`w-full h-9 rounded-md border ${formik.touched.adminContact && formik.errors.adminContact ? 'border-red-500' : 'border-gray-200'} shadow-sm px-3 py-2 text-sm bg-gray-50`}
-                      placeholder="Enter admin contact"
-                    />
-                    {formik.touched.adminContact && formik.errors.adminContact && (
-                      <div className="text-red-500 text-xs">{formik.errors.adminContact}</div>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="block text-sm font-medium text-gray-700 ">
-                      Admin. Email
-                    </label>
-
-                    <input
-                      type="email"
-                      name="adminEmail"
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      value={formik.values.adminEmail}
-                      className={`w-full h-9 rounded-md border ${formik.touched.adminEmail && formik.errors.adminEmail ? 'border-red-500' : 'border-gray-200'} shadow-sm px-3 py-2 text-sm bg-gray-50`}
-                      placeholder="Enter admin email"
-                    />
-                    {formik.touched.adminEmail && formik.errors.adminEmail && (
-                      <div className="text-red-500 text-xs">{formik.errors.adminEmail}</div>
+                    {formik.touched.code && formik.errors.code && (
+                      <div className="text-red-500 text-xs">{formik.errors.code}</div>
                     )}
                   </div>
                 </div>
@@ -374,26 +269,15 @@ const UpdateDeptDialog = ({ isOpen, onClose, department }) => {
   const formik = useFormik({
     initialValues: {
       name: department.name,
-      url: department.url,
-      adminName: department.adminName,
-      adminContact: department.adminContact,
-      adminEmail: department.adminEmail,
+      code: department.code || '',
       schoolId: schoolId
     },
     validationSchema: yup.object({
       name: yup.string()
         .required('Department name is required')
         .min(2, 'Department name must be at least 2 characters'),
-      url: yup.string()
-        .url('Must be a valid URL')
-        .required('URL is required'),
-      adminName: yup.string()
-        .required('Admin name is required'),
-      adminContact: yup.string()
-        .required('Admin contact is required'),
-      adminEmail: yup.string()
-        .email('Invalid email address')
-        .required('Admin email is required')
+      code: yup.string()
+        .required('Department code is required')
     }),
     onSubmit: (values) => {
       updateDepartmentMutation.mutate(values);
@@ -448,75 +332,20 @@ const UpdateDeptDialog = ({ isOpen, onClose, department }) => {
                   </div>
                   <div className="flex flex-col gap-1">
                     <label className="block text-sm font-medium text-gray-700 ">
-                      URL
+                      Department Code
                     </label>
 
                     <input
                       type="text"
-                      name="url"
+                      name="code"
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      value={formik.values.url}
-                      className={`w-full h-9 rounded-md border ${formik.touched.url && formik.errors.url ? 'border-red-500' : 'border-gray-200'} shadow-sm px-3 py-2 text-sm bg-gray-50`}
-                      placeholder="Enter department URL"
+                      value={formik.values.code}
+                      className={`w-full h-9 rounded-md border ${formik.touched.code && formik.errors.code ? 'border-red-500' : 'border-gray-200'} shadow-sm px-3 py-2 text-sm bg-gray-50`}
+                      placeholder="Enter department code"
                     />
-                    {formik.touched.url && formik.errors.url && (
-                      <div className="text-red-500 text-xs">{formik.errors.url}</div>
-                    )}
-                  </div>
-                  <hr className="bg-black mt-2 mb-2 w-full h-[1px]" />
-                  <div className="flex flex-col gap-1">
-                    <label className="block text-sm font-medium text-gray-700 ">
-                      Admin. Name
-                    </label>
-
-                    <input
-                      type="text"
-                      name="adminName"
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      value={formik.values.adminName}
-                      className={`w-full h-9 rounded-md border ${formik.touched.adminName && formik.errors.adminName ? 'border-red-500' : 'border-gray-200'} shadow-sm px-3 py-2 text-sm bg-gray-50`}
-                      placeholder="Enter admin name"
-                    />
-                    {formik.touched.adminName && formik.errors.adminName && (
-                      <div className="text-red-500 text-xs">{formik.errors.adminName}</div>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="block text-sm font-medium text-gray-700 ">
-                      Admin. Contacts
-                    </label>
-
-                    <input
-                      type="text"
-                      name="adminContact"
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      value={formik.values.adminContact}
-                      className={`w-full h-9 rounded-md border ${formik.touched.adminContact && formik.errors.adminContact ? 'border-red-500' : 'border-gray-200'} shadow-sm px-3 py-2 text-sm bg-gray-50`}
-                      placeholder="Enter admin contact"
-                    />
-                    {formik.touched.adminContact && formik.errors.adminContact && (
-                      <div className="text-red-500 text-xs">{formik.errors.adminContact}</div>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="block text-sm font-medium text-gray-700 ">
-                      Admin. Email
-                    </label>
-
-                    <input
-                      type="email"
-                      name="adminEmail"
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      value={formik.values.adminEmail}
-                      className={`w-full h-9 rounded-md border ${formik.touched.adminEmail && formik.errors.adminEmail ? 'border-red-500' : 'border-gray-200'} shadow-sm px-3 py-2 text-sm bg-gray-50`}
-                      placeholder="Enter admin email"
-                    />
-                    {formik.touched.adminEmail && formik.errors.adminEmail && (
-                      <div className="text-red-500 text-xs">{formik.errors.adminEmail}</div>
+                    {formik.touched.code && formik.errors.code && (
+                      <div className="text-red-500 text-xs">{formik.errors.code}</div>
                     )}
                   </div>
                 </div>
