@@ -8,7 +8,8 @@ export const ROUTES = {
     LIST: '/students',
     ADD: '/students/add',
     DETAILS: '/students/:id',
-    PROFILE: '/students/profile/:id'
+    PROFILE: '/students/profile/:id',
+    IMPORT_ACMIS: '/students/import-acmis'
   },
   GRADE: {
     ROOT: '/grades',
