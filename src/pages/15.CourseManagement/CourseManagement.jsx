@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 
 const StatCard = ({ value, label, highlight }) => {
   return (
-    <div className={`flex-1 bg-white rounded-lg border ${highlight ? 'border-[#7A5AF8]' : 'border-gray-200'} p-6`}>
+    <div className={`flex-1 bg-white rounded-lg border ${highlight ? 'border-gray-200' : 'border-gray-200'} p-6`}>
       <div className="text-3xl font-semibold text-gray-900">{value}</div>
       <div className="text-xs text-gray-500 mt-1">{label}</div>
     </div>
@@ -135,8 +135,8 @@ const Table = ({ data, isLoading, onEdit, onDelete }) => {
               </td>
               <td className="px-4 py-4">
                 <span className={`px-2 py-0.5 text-xs rounded border ${c.isActive
-                    ? 'border-green-200 bg-green-50 text-green-700'
-                    : 'border-red-200 bg-red-50 text-red-700'
+                  ? 'border-green-200 bg-green-50 text-green-700'
+                  : 'border-red-200 bg-red-50 text-red-700'
                   }`}>
                   {c.isActive ? 'Active' : 'Inactive'}
                 </span>
@@ -145,24 +145,21 @@ const Table = ({ data, isLoading, onEdit, onDelete }) => {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => navigate(`/courses/specializations/${c.id}`)}
-                    className="p-1.5 text-green-600 hover:bg-green-50 rounded-md transition-colors"
-                    title="Manage Specializations"
+                    className="px-3 py-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-md hover:bg-green-100 transition-colors"
                   >
-                    <HiPlus className="w-4 h-4" />
+                    Specializations
                   </button>
                   <button
                     onClick={() => onEdit(c)}
-                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                    title="Edit course"
+                    className="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
                   >
-                    <HiPencil className="w-4 h-4" />
+                    Edit
                   </button>
                   <button
                     onClick={() => onDelete(c)}
-                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                    title="Delete course"
+                    className="px-3 py-1 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 transition-colors"
                   >
-                    <HiTrash className="w-4 h-4" />
+                    Delete
                   </button>
                 </div>
               </td>
