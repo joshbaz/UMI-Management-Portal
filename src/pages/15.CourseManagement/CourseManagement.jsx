@@ -4,6 +4,9 @@ import { HiPlus, HiPencil, HiTrash, HiX, HiExternalLink } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { useGetAllCourses, useGetAllCampuses, useGetAllSchools, useUpdateCourse, useDeleteCourse } from '@/store/tanstackStore/services/queries';
 import { toast } from 'sonner';
+import { UsageReportModal } from '../5.schools/SchoolTableControlPanel';
+import { getAllActivitiesService } from '@/store/tanstackStore/services/api';
+import { HiOutlineDocumentReport } from 'react-icons/hi';
 
 
 const StatCard = ({ value, label, highlight }) => {
@@ -406,6 +409,8 @@ const CourseManagement = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [isUsageReportOpen, setIsUsageReportOpen] = useState(false);
+  const [auditData, setAuditData] = useState([]);
 
   // API queries
   const { data: schoolsData } = useGetAllSchools();
@@ -466,6 +471,52 @@ const CourseManagement = () => {
     setEditModalOpen(false);
     setDeleteModalOpen(false);
     setSelectedCourse(null);
+  };
+
+  const handleGenerateReport = async () => {
+    try {
+      const activitiesData = await getAllActivitiesService();
+      if (!activitiesData || !activitiesData.activities || activitiesData.activities.length === 0) {
+        toast.error('No audit logs available to generate report');
+        return;
+      }
+
+      // Filter for course activities
+      const courseActivities = activitiesData.activities.filter(a => a.entityType?.toLowerCase() === 'course');
+      
+      if (courseActivities.length === 0) {
+        toast.error('No course-specific audit logs found');
+        return;
+      }
+
+      const formattedData = courseActivities.map(activity => {
+        let browserAgent = activity.browserAgent || 'Web Browser';
+        try {
+          if (activity.details && activity.details.startsWith('{')) {
+            const parsed = JSON.parse(activity.details);
+            if (parsed.browserAgent) browserAgent = parsed.browserAgent;
+            if (parsed.userAgent) browserAgent = parsed.userAgent;
+          }
+        } catch (e) {}
+
+        return {
+          user: activity.user?.name || 'Unknown User',
+          role: activity.user?.role || 'N/A',
+          action: activity.action,
+          date: format(new Date(activity.timestamp), 'yyyy-MM-dd HH:mm:ss'),
+          browserAgent,
+          ipAddress: activity.ipAddress || 'Unknown',
+          deviceId: activity.deviceId || 'Unknown',
+          details: activity.details || null,
+        };
+      });
+
+      setAuditData(formattedData);
+      setIsUsageReportOpen(true);
+    } catch (error) {
+      toast.error('Failed to fetch audit logs');
+      console.error(error);
+    }
   };
 
   // Set default campus when campuses data loads
@@ -548,6 +599,13 @@ const CourseManagement = () => {
           <div className="flex items-center gap-3">
             <PageSize pageSize={pageSize} setPageSize={setPageSize} />
             <button
+              onClick={handleGenerateReport}
+              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 gap-2"
+            >
+              <HiOutlineDocumentReport className="w-5 h-5" />
+              Generate Usage Report
+            </button>
+            <button
               onClick={() => navigate("/courses/add")}
               className="inline-flex items-center px-4 py-2 bg-[#23388F] text-white rounded-lg text-sm font-medium hover:bg-[#2d48b8] gap-2"
             >
@@ -591,6 +649,36 @@ const CourseManagement = () => {
         course={selectedCourse}
         onConfirm={handleDeleteConfirm}
         isLoading={deleteCourseMutation.isPending}
+      />
+
+      <UsageReportModal
+        isOpen={isUsageReportOpen}
+        onClose={() => setIsUsageReportOpen(false)}
+        auditData={auditData}
+        onDownloadCsv={() => {
+          if (!auditData || auditData.length === 0) return;
+          
+          const headers = ['User', 'Role', 'Action', 'Date', 'Browser Agent', 'IP Address', 'Device ID'];
+          const csvContent = [
+            headers.join(','),
+            ...auditData.map(row => 
+              [row.user, row.role, row.action, row.date, row.browserAgent, row.ipAddress, row.deviceId]
+                .map(cell => `"${(cell || '').toString().replace(/"/g, '""')}"`)
+                .join(',')
+            )
+          ].join('\n');
+
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.setAttribute('href', url);
+          link.setAttribute('download', `UMI_Course_Management_Audits_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          toast.success('Audit usage report downloaded successfully');
+        }}
       />
     </div>
   );
