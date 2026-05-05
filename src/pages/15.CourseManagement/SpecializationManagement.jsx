@@ -12,6 +12,7 @@ const SpecializationModal = ({ isOpen, onClose, specialization, courseId, school
   const [form, setForm] = useState({
     name: '',
     code: '',
+    duration: '',
     schoolId: '',
     departmentId: '',
   });
@@ -28,6 +29,7 @@ const SpecializationModal = ({ isOpen, onClose, specialization, courseId, school
       setForm({
         name: specialization.name || '',
         code: specialization.code || '',
+        duration: specialization.duration || '',
         schoolId: specialization.schoolId || '',
         departmentId: specialization.departmentId || '',
       });
@@ -35,6 +37,7 @@ const SpecializationModal = ({ isOpen, onClose, specialization, courseId, school
       setForm({
         name: '',
         code: '',
+        duration: '',
         schoolId: '',
         departmentId: '',
       });
@@ -55,6 +58,7 @@ const SpecializationModal = ({ isOpen, onClose, specialization, courseId, school
 
     const data = {
       ...form,
+      duration: form.duration ? Number(form.duration) : null,
       courseId,
     };
 
@@ -127,6 +131,19 @@ const SpecializationModal = ({ isOpen, onClose, specialization, courseId, school
               value={form.code}
               onChange={onChange}
               placeholder="e.g. FIN"
+              className="w-full h-10 px-3 rounded-md border border-gray-300 text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Duration (Years)</label>
+            <input
+              type="number"
+              name="duration"
+              value={form.duration}
+              onChange={onChange}
+              placeholder="e.g. 1, 2"
+              min="1"
               className="w-full h-10 px-3 rounded-md border border-gray-300 text-sm"
             />
           </div>
@@ -300,6 +317,7 @@ const SpecializationManagement = () => {
               <tr className="text-left text-gray-600 text-xs border-b bg-gray-50">
                 <th className="px-4 py-3">Code</th>
                 <th className="px-4 py-3">Specialization Name</th>
+                <th className="px-4 py-3">Duration</th>
                 <th className="px-4 py-3">School</th>
                 <th className="px-4 py-3">Department</th>
                 <th className="px-4 py-3">Action</th>
@@ -312,6 +330,9 @@ const SpecializationManagement = () => {
                 <tr key={s.id} className="text-sm text-gray-900 border-b last:border-b-0">
                   <td className="px-4 py-4">{s.code || 'N/A'}</td>
                   <td className="px-4 py-4 font-medium">{s.name}</td>
+                  <td className="px-4 py-4 text-gray-600">
+                    {s.duration ? `${s.duration} ${s.duration === 1 ? 'Year' : 'Years'}` : 'Not specified'}
+                  </td>
                   <td className="px-4 py-4">{s.school?.name}</td>
                   <td className="px-4 py-4">{s.department?.name}</td>
                   <td className="px-4 py-4">
