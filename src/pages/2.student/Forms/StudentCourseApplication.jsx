@@ -2,15 +2,11 @@ import React from 'react';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import { addYears, format } from 'date-fns';
-import { useGetAllCampuses, useGetAllSchools, useGetAllDepartments } from "@/store/tanstackStore/services/queries";
+import { useGetAllCampuses, useGetAllSchools, useGetAllDepartments, useGetAllCourses, useGetAllSpecializations } from "@/store/tanstackStore/services/queries";
 import FormErrorHandler from "@/components/FormErrorHandler/FormErrorHandler";
 import { useState, useEffect } from 'react';
 
 const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }) => {
-  const [storedSchoolId, setStoredSchoolId] = useState('')
-  const { data: campuses } = useGetAllCampuses();
-  const { data: schools } = useGetAllSchools();
-  const { data: departments } = useGetAllDepartments(storedSchoolId || '');
   // Encryption/decryption functions
   const encryptData = (data) => {
     return btoa(JSON.stringify(data)); // Simple base64 encoding for demo
@@ -28,6 +24,21 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
   const encryptedData = localStorage.getItem('studentCourseApplication');
   const storedData = encryptedData ? decryptData(encryptedData) : {};
 
+  const [selectedCampusId, setSelectedCampusId] = useState(storedData?.campusId || '')
+  const [selectedSchoolId, setSelectedSchoolId] = useState(storedData?.schoolId || '')
+  const [selectedCourseId, setSelectedCourseId] = useState(storedData?.course || '')
+
+  const { data: campuses } = useGetAllCampuses();
+  const { data: schools } = useGetAllSchools();
+  const { data: departments } = useGetAllDepartments(selectedSchoolId || '');
+
+  const { data: courses } = useGetAllCourses({
+    campusId: selectedCampusId
+  });
+  const { data: specializations } = useGetAllSpecializations({
+    courseId: selectedCourseId
+  });
+  console.log(courses)
   const initialValues = {
     course: storedData.course || '',
     academicYear: storedData.academicYear || '',
@@ -53,13 +64,8 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
     campusId: Yup.string().required("Campus is required"),
     departmentId: Yup.string().nullable(),
   });
-  useEffect(() => {
-    if (storedData?.schoolId) {
-      setStoredSchoolId(storedData.schoolId)
-    }
-  }, [storedData?.schoolId])
 
-    const generatePassword = () => {
+  const generatePassword = () => {
     const password = Math.random().toString(36).slice(-8);
     return password;
   };
@@ -99,14 +105,15 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
                 name="campusId"
                 onChange={(e) => {
                   handleChange(e);
-                  setFieldValue('schoolId', '') // Reset school when campus changes
-                  setFieldValue('departmentId', '') // Reset department when campus changes
+                  setSelectedCampusId(e.target.value);
+                  setFieldValue('schoolId', '')
+                  setSelectedSchoolId('');
+                  setFieldValue('departmentId', '')
                 }}
                 onBlur={handleBlur}
                 value={values.campusId}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.campusId ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`} 
+                className={`w-full h-9 rounded-md border ${errors?.campusId ? "border-red-500" : "border-gray-200"
+                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
 
                 style={{
                   backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
@@ -128,95 +135,6 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
               />
             </div>
 
-            {/** school */}
-            <div>
-              <label
-                htmlFor="schoolId"
-                className="block text-sm font-medium text-gray-700"
-              >
-                School
-              </label>
-              <select
-                id="schoolId"
-                name="schoolId"
-                onChange={(e) => {
-                  handleChange(e);
-                  setStoredSchoolId(e.target.value)
-              
-                  setFieldValue('departmentId', '') // Reset department when campus changes
-                }}
-                onBlur={handleBlur}
-                value={values.schoolId}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.schoolId ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`} 
-
-                style={{
-                  backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.5rem center',
-                  backgroundSize: '1rem',
-                }}
-                disabled={!values.campusId}
-              >
-                <option value="">Select School</option>
-                {schools?.schools
-                  ?.filter(school => school.campusId === values.campusId)
-                  .map((school) => (
-                    <option key={school.id} value={school.id}>
-                      {school.name}
-                    </option>
-                  ))}
-              </select>
-              <FormErrorHandler
-                errors={errors?.schoolId}
-                message={errors?.schoolId}
-              />
-            </div>
-
-            {/** department */}
-            <div className="col-span-2">
-              <label
-                htmlFor="departmentId"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Department (if applicable)
-              </label>
-              <select
-                id="departmentId"
-                name="departmentId"
-                onChange={handleChange}
-                onBlur={handleBlur}
-                value={values.departmentId || ""}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.departmentId ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`} 
-
-                style={{
-                  backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.5rem center',
-                  backgroundSize: '1rem',
-                }}
-                disabled={!values.schoolId}
-              >
-                <option value="">Select Department</option>
-                {departments?.departments
-                  ?.filter(department => department.schoolId === values.schoolId)
-                  .map((department) => (
-                    <option key={department.id} value={department.id}>
-                      {department.name}
-                    </option>
-                  ))}
-              </select>
-              <FormErrorHandler
-                errors={errors?.departmentId}
-                message={errors?.departmentId}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
             {/** program level */}
             <div>
               <label htmlFor="programLevel" className="block text-sm font-medium text-gray-700">
@@ -228,9 +146,8 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
                 onChange={handleChange}
                 onBlur={handleBlur}
                 value={values.programLevel}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.programLevel ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                className={`w-full h-9 rounded-md border ${errors?.programLevel ? "border-red-500" : "border-gray-200"
+                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
 
                 style={{
                   backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
@@ -251,51 +168,174 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
                 <div className="text-red-500 text-sm mt-1">{errors.programLevel}</div>
               )}
             </div>
+          </div>
 
+          <div className="grid grid-cols-2 gap-6">
             {/** course */}
             <div>
               <label htmlFor="course" className="block text-sm font-medium text-gray-700">
                 Course
               </label>
-              <input
-                type="text"
+              <select
                 id="course"
                 name="course"
-                onChange={handleChange}
+                onChange={(e) => {
+                  handleChange(e);
+                  setSelectedCourseId(e.target.value);
+                  setFieldValue('specialization', ''); // Reset specialization when course changes
+                }}
                 onBlur={handleBlur}
                 value={values.course}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.course ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
-
-                placeholder="Enter course name"
-              />
+                className={`w-full h-9 rounded-md border ${errors?.course ? "border-red-500" : "border-gray-200"
+                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                style={{
+                  backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.5rem center',
+                  backgroundSize: '1rem',
+                }}
+                disabled={!values.campusId}
+              >
+                <option value="">Select Course</option>
+                {courses?.courses?.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.code} - {course.title}
+                  </option>
+                ))}
+              </select>
               {errors.course && touched.course && (
                 <div className="text-red-500 text-sm mt-1">{errors.course}</div>
               )}
             </div>
+
 
             {/** specialization */}
             <div>
               <label htmlFor="specialization" className="block text-sm font-medium text-gray-700">
                 Specialization (if applicable)
               </label>
-              <input
-                type="text"
+              <select
                 id="specialization"
                 name="specialization"
-                onChange={handleChange}
+                onChange={(e) => {
+                  handleChange(e);
+                  const specId = e.target.value;
+                  const selectedSpec = specializations?.specializations?.find(s => s.id === specId);
+
+                  if (selectedSpec?.duration) {
+                    const years = selectedSpec.duration;
+                    setFieldValue('completionTime', years.toString());
+                    const completionDate = addYears(new Date(), years);
+                    setFieldValue('expectedCompletionDate', format(completionDate, 'yyyy-MM-dd'));
+                  }
+                }}
                 onBlur={handleBlur}
                 value={values.specialization}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.specialization ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                className={`w-full h-9 rounded-md border ${errors?.specialization ? "border-red-500" : "border-gray-200"
+                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                style={{
+                  backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.5rem center',
+                  backgroundSize: '1rem',
+                }}
+                disabled={!values.course}
+              >
+                <option value="">Select Specialization</option>
+                {specializations?.specializations?.map((spec) => (
+                  <option key={spec.id} value={spec.id}>
+                    {spec.code ? `${spec.code} - ` : ''}{spec.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-                placeholder="Enter specialization"
+            {/** school */}
+            <div>
+              <label
+                htmlFor="schoolId"
+                className="block text-sm font-medium text-gray-700"
+              >
+                School
+              </label>
+              <select
+                id="schoolId"
+                name="schoolId"
+                onChange={(e) => {
+                  handleChange(e);
+                  setSelectedSchoolId(e.target.value)
+
+                  setFieldValue('departmentId', '') // Reset department when campus changes
+                }}
+                onBlur={handleBlur}
+                value={values.schoolId}
+                className={`w-full h-9 rounded-md border ${errors?.schoolId ? "border-red-500" : "border-gray-200"
+                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+
+                style={{
+                  backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.5rem center',
+                  backgroundSize: '1rem',
+                }}
+                disabled={!values.campusId}
+              >
+                <option value="">Select School</option>
+                {schools?.schools
+                  ?.filter(school => school.campusId === values.campusId)
+                  .map((school) => (
+                    <option key={school.id} value={school.id}>
+                      {school.code} - {school.name}
+                    </option>
+                  ))}
+              </select>
+              <FormErrorHandler
+                errors={errors?.schoolId}
+                message={errors?.schoolId}
               />
             </div>
 
-          
+            {/** department */}
+            <div>
+              <label
+                htmlFor="departmentId"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Department (if applicable)
+              </label>
+              <select
+                id="departmentId"
+                name="departmentId"
+                onChange={handleChange}
+                onBlur={handleBlur}
+                value={values.departmentId || ""}
+                className={`w-full h-9 rounded-md border ${errors?.departmentId ? "border-red-500" : "border-gray-200"
+                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+
+                style={{
+                  backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.5rem center',
+                  backgroundSize: '1rem',
+                }}
+                disabled={!values.schoolId}
+              >
+                <option value="">Select Department</option>
+                {departments?.departments
+                  ?.filter(department => department.schoolId === values.schoolId)
+                  .map((department) => (
+                    <option key={department.id} value={department.id}>
+                      {department.code} - {department.name}
+                    </option>
+                  ))}
+              </select>
+              <FormErrorHandler
+                errors={errors?.departmentId}
+                message={errors?.departmentId}
+              />
+            </div>
+
+
 
             {/** study mode */}
             <div>
@@ -308,9 +348,8 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
                 onChange={handleChange}
                 onBlur={handleBlur}
                 value={values.studyMode}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.studyMode ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                className={`w-full h-9 rounded-md border ${errors?.studyMode ? "border-red-500" : "border-gray-200"
+                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
 
                 style={{
                   backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
@@ -329,8 +368,8 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
               )}
             </div>
 
-              {/** academic year */}
-              <div>
+            {/** academic year */}
+            <div>
               <label htmlFor="academicYear" className="block text-sm font-medium text-gray-700">
                 Academic Year
               </label>
@@ -341,9 +380,8 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
                 onChange={handleChange}
                 onBlur={handleBlur}
                 value={values.academicYear}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.academicYear ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                className={`w-full h-9 rounded-md border ${errors?.academicYear ? "border-red-500" : "border-gray-200"
+                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
 
                 placeholder="e.g. 2023/2024"
               />
@@ -363,9 +401,8 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
                 onChange={handleChange}
                 onBlur={handleBlur}
                 value={values.intakePeriod}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.intakePeriod ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                className={`w-full h-9 rounded-md border ${errors?.intakePeriod ? "border-red-500" : "border-gray-200"
+                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
 
                 style={{
                   backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
@@ -400,9 +437,8 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
                 }}
                 onBlur={handleBlur}
                 value={values.completionTime}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.completionTime ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                className={`w-full h-9 rounded-md border ${errors?.completionTime ? "border-red-500" : "border-gray-200"
+                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
                 style={{
                   backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
                   backgroundRepeat: 'no-repeat',
@@ -411,13 +447,13 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
                 }}
               >
                 <option value="">Select Completion Time</option>
-              
+
                 <option value="2">2 Years</option>
-              
+
                 <option value="4">4 Years</option>
-               
+
                 <option value="6">6 Years</option>
-             
+
               </select>
               {errors.completionTime && touched.completionTime && (
                 <div className="text-red-500 text-sm mt-1">{errors.completionTime}</div>
