@@ -3,6 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { HiPlus, HiPencil, HiTrash, HiArrowLeft, HiX } from "react-icons/hi";
 import { useGetAllSpecializations, useCreateSpecialization, useUpdateSpecialization, useDeleteSpecialization, useGetAllCourses, useGetAllSchools, useGetAllCampuses } from '@/store/tanstackStore/services/queries';
 import { toast } from 'sonner';
+import { UsageReportModal } from '../5.schools/SchoolTableControlPanel';
+import { getAllActivitiesService } from '@/store/tanstackStore/services/api';
+import { HiOutlineDocumentReport } from 'react-icons/hi';
+import { format } from 'date-fns';
 
 const SpecializationModal = ({ isOpen, onClose, specialization, courseId, schoolsData, onSave, isLoading }) => {
   const [form, setForm] = useState({
@@ -153,6 +157,8 @@ const SpecializationManagement = () => {
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedSpec, setSelectedSpec] = useState(null);
+  const [isUsageReportOpen, setIsUsageReportOpen] = useState(false);
+  const [auditData, setAuditData] = useState([]);
 
   const { data: coursesData } = useGetAllCourses();
   const course = useMemo(() => coursesData?.courses?.find(c => c.id === courseId), [coursesData, courseId]);
@@ -204,6 +210,52 @@ const SpecializationManagement = () => {
     }
   };
 
+  const handleGenerateReport = async () => {
+    try {
+      const activitiesData = await getAllActivitiesService();
+      if (!activitiesData || !activitiesData.activities || activitiesData.activities.length === 0) {
+        toast.error('No audit logs available to generate report');
+        return;
+      }
+
+      // Filter for specialization activities
+      const specActivities = activitiesData.activities.filter(a => a.entityType?.toLowerCase() === 'specialization');
+      
+      if (specActivities.length === 0) {
+        toast.error('No specialization-specific audit logs found');
+        return;
+      }
+
+      const formattedData = specActivities.map(activity => {
+        let browserAgent = activity.browserAgent || 'Web Browser';
+        try {
+          if (activity.details && activity.details.startsWith('{')) {
+            const parsed = JSON.parse(activity.details);
+            if (parsed.browserAgent) browserAgent = parsed.browserAgent;
+            if (parsed.userAgent) browserAgent = parsed.userAgent;
+          }
+        } catch (e) {}
+
+        return {
+          user: activity.user?.name || 'Unknown User',
+          role: activity.user?.role || 'N/A',
+          action: activity.action,
+          date: format(new Date(activity.timestamp), 'yyyy-MM-dd HH:mm:ss'),
+          browserAgent,
+          ipAddress: activity.ipAddress || 'Unknown',
+          deviceId: activity.deviceId || 'Unknown',
+          details: activity.details || null,
+        };
+      });
+
+      setAuditData(formattedData);
+      setIsUsageReportOpen(true);
+    } catch (error) {
+      toast.error('Failed to fetch audit logs');
+      console.error(error);
+    }
+  };
+
   return (
     <div className="mx-auto space-y-6">
       <div className="flex items-center justify-between py-6 px-6 pb-0 w-full h-[88px] border-b border-gray-200">
@@ -224,13 +276,22 @@ const SpecializationManagement = () => {
       <div className="bg-white p-6 rounded-lg shadow-md mx-6 mb-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-medium text-gray-700">Available Specializations</h2>
-          <button
-            onClick={handleAdd}
-            className="inline-flex items-center px-4 py-2 bg-[#23388F] text-white rounded-lg text-sm font-medium hover:bg-[#2d48b8] gap-2"
-          >
-            <HiPlus className="w-5 h-5" />
-            Add Specialization
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleGenerateReport}
+              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 gap-2"
+            >
+              <HiOutlineDocumentReport className="w-5 h-5" />
+              Generate Usage Report
+            </button>
+            <button
+              onClick={handleAdd}
+              className="inline-flex items-center px-4 py-2 bg-[#23388F] text-white rounded-lg text-sm font-medium hover:bg-[#2d48b8] gap-2"
+            >
+              <HiPlus className="w-5 h-5" />
+              Add Specialization
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto border border-gray-200 rounded-lg">
@@ -255,11 +316,17 @@ const SpecializationManagement = () => {
                   <td className="px-4 py-4">{s.department?.name}</td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => handleEdit(s)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md">
-                        <HiPencil className="w-4 h-4" />
+                      <button
+                        onClick={() => handleEdit(s)}
+                        className="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+                      >
+                        Edit
                       </button>
-                      <button onClick={() => handleDelete(s.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-md">
-                        <HiTrash className="w-4 h-4" />
+                      <button
+                        onClick={() => handleDelete(s.id)}
+                        className="px-3 py-1 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 transition-colors"
+                      >
+                        Delete
                       </button>
                     </div>
                   </td>
@@ -281,6 +348,36 @@ const SpecializationManagement = () => {
         schoolsData={schoolsData}
         onSave={handleSave}
         isLoading={createSpecMutation.isPending || updateSpecMutation.isPending}
+      />
+
+      <UsageReportModal
+        isOpen={isUsageReportOpen}
+        onClose={() => setIsUsageReportOpen(false)}
+        auditData={auditData}
+        onDownloadCsv={() => {
+          if (!auditData || auditData.length === 0) return;
+          
+          const headers = ['User', 'Role', 'Action', 'Date', 'Browser Agent', 'IP Address', 'Device ID'];
+          const csvContent = [
+            headers.join(','),
+            ...auditData.map(row => 
+              [row.user, row.role, row.action, row.date, row.browserAgent, row.ipAddress, row.deviceId]
+                .map(cell => `"${(cell || '').toString().replace(/"/g, '""')}"`)
+                .join(',')
+            )
+          ].join('\n');
+
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.setAttribute('href', url);
+          link.setAttribute('download', `UMI_Specialization_Audits_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          toast.success('Audit usage report downloaded successfully');
+        }}
       />
     </div>
   );
