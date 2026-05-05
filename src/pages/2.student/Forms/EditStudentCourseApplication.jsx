@@ -1,289 +1,289 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import { addYears, format, parseISO } from 'date-fns';
 import { HiOutlineDocumentDuplicate } from 'react-icons/hi';
+import { 
+  useGetAllCampuses, 
+  useGetAllSchools, 
+  useGetAllDepartments, 
+  useGetAllCourses, 
+  useGetAllSpecializations 
+} from "@/store/tanstackStore/services/queries";
+import FormErrorHandler from "@/components/FormErrorHandler/FormErrorHandler";
 
+const EditStudentCourseApplication = ({ studentData, formRef, updateStudentMutation }) => {
+    const [selectedCampusId, setSelectedCampusId] = useState(studentData?.student?.campusId || '');
+    const [selectedSchoolId, setSelectedSchoolId] = useState(studentData?.student?.schoolId || '');
+    const [selectedCourseId, setSelectedCourseId] = useState(studentData?.student?.courseId || studentData?.student?.course || '');
 
-const EditStudentCourseApplication = ({ studentData, formRef, handleNext, updateStudentMutation }) => {
-
-    console.log("studentData", studentData?.student?.course)
+    const { data: campuses } = useGetAllCampuses();
+    const { data: schools } = useGetAllSchools();
+    const { data: departments } = useGetAllDepartments(selectedSchoolId || '');
+    const { data: courses } = useGetAllCourses({ campusId: selectedCampusId });
+    const { data: specializations } = useGetAllSpecializations({ courseId: selectedCourseId });
 
     const initialValues = {
         ...studentData?.student,
-        course: studentData?.student?.course || '',
+        campusId: studentData?.student?.campusId || '',
+        schoolId: studentData?.student?.schoolId || '',
+        departmentId: studentData?.student?.departmentId || '',
+        course: studentData?.student?.courseId || studentData?.student?.course || '',
         academicYear: studentData?.student?.academicYear || '',
         studyMode: studentData?.student?.studyMode || '',
         intakePeriod: studentData?.student?.intakePeriod || '',
         programLevel: studentData?.student?.programLevel || '',
-        specialization: studentData?.student?.specialization || '',
+        specialization: studentData?.student?.specializationId || studentData?.student?.specialization || '',
         completionTime: studentData?.student?.completionTime || '',
         expectedCompletionDate: studentData?.student?.expectedCompletionDate ? format(parseISO(studentData.student.expectedCompletionDate), 'yyyy-MM-dd') : ''
-      };
+    };
     
-      const validationSchema = Yup.object().shape({
+    const validationSchema = Yup.object().shape({
+        campusId: Yup.string().required('Campus is required'),
+        schoolId: Yup.string().required('School is required'),
         course: Yup.string().required('Course is required'),
         academicYear: Yup.string().required('Academic year is required'),
         studyMode: Yup.string().required('Study mode is required'),
         intakePeriod: Yup.string().required('Intake period is required'),
         programLevel: Yup.string().required('Program level is required'),
+        specialization: Yup.string().required('Specialization is required'),
         completionTime: Yup.number().required('Completion time is required')
-      });
-  return (
-    <Formik
-      innerRef={formRef}
-      initialValues={initialValues}
-      validationSchema={validationSchema}
-      onSubmit={(values) => {
-        // Encrypt data before storing
-        let newValues = {
-            ...values,
-            completionTime: parseInt(values.completionTime)
-        }
-        updateStudentMutation.mutate(newValues);
-      }}
-    >
-      {({ errors, touched, handleChange, handleBlur, values, setFieldValue }) => (
-        <Form className="space-y-6">
-                {/** Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Course Application
-            </h2>
-                <button 
-              disabled={updateStudentMutation.isPending}
-              className={`inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 ${
-                updateStudentMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              <HiOutlineDocumentDuplicate className="w-4 h-4 mr-2" />
-              {updateStudentMutation.isPending ? "Saving..." : "Save Details"}
-            </button>
-          </div>
+    });
 
-          {/** Form */}
-          <div className="grid grid-cols-2 gap-6">
-            {/** program level */}
-            <div>
-              <label htmlFor="programLevel" className="block text-sm font-medium text-gray-700">
-                Program Level
-              </label>
-              <select
-                id="programLevel"
-                name="programLevel"
-                onChange={handleChange}
-                onBlur={handleBlur}
-                value={values.programLevel}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.programLevel ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+    return (
+        <Formik
+            innerRef={formRef}
+            initialValues={initialValues}
+            validationSchema={validationSchema}
+            onSubmit={(values) => {
+                updateStudentMutation.mutate({
+                    ...values,
+                    completionTime: parseInt(values.completionTime)
+                });
+            }}
+        >
+            {({ errors, touched, handleChange, handleBlur, values, setFieldValue }) => (
+                <Form className="space-y-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-lg font-semibold text-gray-900">Course Application</h2>
+                        <button 
+                            type="submit"
+                            disabled={updateStudentMutation.isPending}
+                            className={`inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 ${
+                                updateStudentMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
+                            }`}
+                        >
+                            <HiOutlineDocumentDuplicate className="w-4 h-4 mr-2" />
+                            {updateStudentMutation.isPending ? "Saving..." : "Save Details"}
+                        </button>
+                    </div>
 
-                style={{
-                  backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.5rem center',
-                  backgroundSize: '1rem',
-                }}
-              >
-                <option value="">Select Program Level</option>
-                {/* <option value="certificate">Certificate</option> */}
-                {/* <option value="diploma">Diploma</option> */}
-                {/* <option value="bachelors">Bachelor's Degree</option> */}
-                <option value="postgraduate">Post Graduate</option>
-                <option value="masters">Master's Degree</option>
-                <option value="phd">PhD</option>
-              </select>
-              {errors.programLevel && touched.programLevel && (
-                <div className="text-red-500 text-sm mt-1">{errors.programLevel}</div>
-              )}
-            </div>
+                    <div className="grid grid-cols-2 gap-6">
+                        {/* Campus */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Campus</label>
+                            <select
+                                name="campusId"
+                                value={values.campusId}
+                                onChange={(e) => {
+                                    handleChange(e);
+                                    setSelectedCampusId(e.target.value);
+                                    setFieldValue('course', '');
+                                    setFieldValue('specialization', '');
+                                }}
+                                className={`w-full h-9 rounded-md border ${errors.campusId && touched.campusId ? "border-red-500" : "border-gray-200"} px-3 py-2 text-sm bg-gray-50`}
+                            >
+                                <option value="">Select Campus</option>
+                                {campuses?.campuses?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            </select>
+                            <FormErrorHandler errors={errors.campusId} touched={touched.campusId} />
+                        </div>
 
-            {/** course */}
-            <div>
-              <label htmlFor="course" className="block text-sm font-medium text-gray-700">
-                Course
-              </label>
-              <input
-                type="text"
-                id="course"
-                name="course"
-                onChange={handleChange}
-                onBlur={handleBlur}
-                value={values.course}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.course ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                        {/* Course */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Course</label>
+                            <select
+                                name="course"
+                                value={values.course}
+                                onChange={(e) => {
+                                    handleChange(e);
+                                    setSelectedCourseId(e.target.value);
+                                    setFieldValue('specialization', '');
+                                }}
+                                disabled={!values.campusId}
+                                className={`w-full h-9 rounded-md border ${errors.course && touched.course ? "border-red-500" : "border-gray-200"} px-3 py-2 text-sm bg-gray-50`}
+                            >
+                                <option value="">Select Course</option>
+                                {courses?.courses?.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                            </select>
+                            <FormErrorHandler errors={errors.course} touched={touched.course} />
+                        </div>
 
-                placeholder="Enter course name"
-              />
-              {errors.course && touched.course && (
-                <div className="text-red-500 text-sm mt-1">{errors.course}</div>
-              )}
-            </div>
+                        {/* Specialization */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Specialization</label>
+                            <select
+                                name="specialization"
+                                value={values.specialization}
+                                onChange={(e) => {
+                                    handleChange(e);
+                                    const specId = e.target.value;
+                                    const spec = specializations?.specializations?.find(s => s.id === specId);
+                                    if (spec) {
+                                        setFieldValue('schoolId', spec.schoolId || '');
+                                        setSelectedSchoolId(spec.schoolId || '');
+                                        setFieldValue('departmentId', spec.departmentId || '');
+                                        if (spec.duration) {
+                                            setFieldValue('completionTime', spec.duration);
+                                            const date = addYears(new Date(), spec.duration);
+                                            setFieldValue('expectedCompletionDate', format(date, 'yyyy-MM-dd'));
+                                        }
+                                    } else {
+                                        // Cleanup if deselected
+                                        setFieldValue('schoolId', '');
+                                        setSelectedSchoolId('');
+                                        setFieldValue('departmentId', '');
+                                        setFieldValue('completionTime', '');
+                                        setFieldValue('expectedCompletionDate', '');
+                                    }
+                                }}
+                                disabled={!values.course}
+                                className={`w-full h-9 rounded-md border ${errors.specialization && touched.specialization ? "border-red-500" : "border-gray-200"} px-3 py-2 text-sm bg-gray-50`}
+                            >
+                                <option value="">Select Specialization</option>
+                                {specializations?.specializations?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            </select>
+                            <FormErrorHandler errors={errors.specialization} touched={touched.specialization} />
+                        </div>
 
-            {/** specialization */}
-            <div>
-              <label htmlFor="specialization" className="block text-sm font-medium text-gray-700">
-                Specialization (if applicable)
-              </label>
-              <input
-                type="text"
-                id="specialization"
-                name="specialization"
-                onChange={handleChange}
-                onBlur={handleBlur}
-                value={values.specialization}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.specialization ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                        {/* School */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">School</label>
+                            <select
+                                name="schoolId"
+                                value={values.schoolId}
+                                onChange={(e) => {
+                                    handleChange(e);
+                                    setSelectedSchoolId(e.target.value);
+                                    setFieldValue('departmentId', '');
+                                }}
+                                className={`w-full h-9 rounded-md border ${errors.schoolId && touched.schoolId ? "border-red-500" : "border-gray-200"} px-3 py-2 text-sm bg-gray-50`}
+                            >
+                                <option value="">Select School</option>
+                                {schools?.schools?.filter(s => s.campusId === values.campusId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            </select>
+                            <FormErrorHandler errors={errors.schoolId} touched={touched.schoolId} />
+                        </div>
 
-                placeholder="Enter specialization"
-              />
-            </div>
+                        {/* Department */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Department</label>
+                            <select
+                                name="departmentId"
+                                value={values.departmentId}
+                                onChange={handleChange}
+                                disabled={!values.schoolId}
+                                className="w-full h-9 rounded-md border border-gray-200 px-3 py-2 text-sm bg-gray-50"
+                            >
+                                <option value="">Select Department</option>
+                                {departments?.departments?.filter(d => d.schoolId === values.schoolId).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                            </select>
+                        </div>
 
-          
+                        {/* Program Level */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Program Level</label>
+                            <select
+                                name="programLevel"
+                                value={values.programLevel}
+                                onChange={handleChange}
+                                className={`w-full h-9 rounded-md border ${errors.programLevel && touched.programLevel ? "border-red-500" : "border-gray-200"} px-3 py-2 text-sm bg-gray-50`}
+                            >
+                                <option value="">Select Level</option>
+                                <option value="postgraduate">Post Graduate</option>
+                                <option value="masters">Master's Degree</option>
+                                <option value="phd">PhD</option>
+                            </select>
+                        </div>
 
-            {/** study mode */}
-            <div>
-              <label htmlFor="studyMode" className="block text-sm font-medium text-gray-700">
-                Study Mode
-              </label>
-              <select
-                id="studyMode"
-                name="studyMode"
-                onChange={handleChange}
-                onBlur={handleBlur}
-                value={values.studyMode}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.studyMode ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                        {/* Study Mode */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Study Mode</label>
+                            <select
+                                name="studyMode"
+                                value={values.studyMode}
+                                onChange={handleChange}
+                                className={`w-full h-9 rounded-md border ${errors.studyMode && touched.studyMode ? "border-red-500" : "border-gray-200"} px-3 py-2 text-sm bg-gray-50`}
+                            >
+                                <option value="">Select Mode</option>
+                                <option value="fullTime">Full Time</option>
+                                <option value="partTime">Part Time</option>
+                                <option value="distance">Distance Learning</option>
+                            </select>
+                        </div>
 
-                style={{
-                  backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.5rem center',
-                  backgroundSize: '1rem',
-                }}
-              >
-                <option value="">Select Study Mode</option>
-                <option value="fullTime">Full Time</option>
-                <option value="partTime">Part Time</option>
-                <option value="distance">Distance Learning</option>
-              </select>
-              {errors.studyMode && touched.studyMode && (
-                <div className="text-red-500 text-sm mt-1">{errors.studyMode}</div>
-              )}
-            </div>
+                        {/* Intake Period */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Intake Period</label>
+                            <select
+                                name="intakePeriod"
+                                value={values.intakePeriod}
+                                onChange={handleChange}
+                                className={`w-full h-9 rounded-md border ${errors.intakePeriod && touched.intakePeriod ? "border-red-500" : "border-gray-200"} px-3 py-2 text-sm bg-gray-50`}
+                            >
+                                <option value="">Select Month</option>
+                                {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => <option key={m} value={m}>{m}</option>)}
+                            </select>
+                        </div>
 
-              {/** academic year */}
-              <div>
-              <label htmlFor="academicYear" className="block text-sm font-medium text-gray-700">
-                Academic Year
-              </label>
-              <input
-                type="text"
-                id="academicYear"
-                name="academicYear"
-                onChange={handleChange}
-                onBlur={handleBlur}
-                value={values.academicYear}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.academicYear ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                        {/* Academic Year */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Academic Year</label>
+                            <input
+                                type="text"
+                                name="academicYear"
+                                value={values.academicYear}
+                                onChange={handleChange}
+                                placeholder="e.g. 2024/2025"
+                                className={`w-full h-9 rounded-md border ${errors.academicYear && touched.academicYear ? "border-red-500" : "border-gray-200"} px-3 py-2 text-sm bg-gray-50`}
+                            />
+                        </div>
 
-                placeholder="e.g. 2023/2024"
-              />
-              {errors.academicYear && touched.academicYear && (
-                <div className="text-red-500 text-sm mt-1">{errors.academicYear}</div>
-              )}
-            </div>
+                        {/* Completion Time */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Completion Time (Years)</label>
+                            <input
+                                type="number"
+                                name="completionTime"
+                                value={values.completionTime}
+                                onChange={(e) => {
+                                    handleChange(e);
+                                    const years = parseInt(e.target.value);
+                                    if (years > 0) {
+                                        const date = addYears(new Date(), years);
+                                        setFieldValue('expectedCompletionDate', format(date, 'yyyy-MM-dd'));
+                                    }
+                                }}
+                                className={`w-full h-9 rounded-md border ${errors.completionTime && touched.completionTime ? "border-red-500" : "border-gray-200"} px-3 py-2 text-sm bg-gray-50`}
+                            />
+                        </div>
 
-            {/** intake period */}
-            <div>
-              <label htmlFor="intakePeriod" className="block text-sm font-medium text-gray-700">
-                Intake Period
-              </label>
-              <select
-                id="intakePeriod"
-                name="intakePeriod"
-                onChange={handleChange}
-                onBlur={handleBlur}
-                value={values.intakePeriod}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.intakePeriod ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                        {/* Expected Completion Date */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Expected Completion Date</label>
+                            <input
+                                type="date"
+                                name="expectedCompletionDate"
+                                value={values.expectedCompletionDate}
+                                disabled
+                                className="w-full h-9 rounded-md border border-gray-200 px-3 py-2 text-sm bg-gray-200"
+                            />
+                        </div>
+                    </div>
+                </Form>
+            )}
+        </Formik>
+    );
+};
 
-                style={{
-                  backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.5rem center',
-                  backgroundSize: '1rem',
-                }}
-              >
-                <option value="">Select Intake Period</option>
-                <option value="january">January</option>
-                <option value="may">May</option>
-                <option value="september">September</option>
-              </select>
-              {errors.intakePeriod && touched.intakePeriod && (
-                <div className="text-red-500 text-sm mt-1">{errors.intakePeriod}</div>
-              )}
-            </div>
-
-            {/** completion time */}
-            <div>
-              <label htmlFor="completionTime" className="block text-sm font-medium text-gray-700">
-                Completion Time
-              </label>
-              <select
-                id="completionTime"
-                name="completionTime"
-                onChange={(e) => {
-                  handleChange(e);
-                  const years = parseInt(e.target.value);
-                  const completionDate = addYears(new Date(), years);
-                  setFieldValue('expectedCompletionDate', format(completionDate, 'yyyy-MM-dd'));
-                }}
-                onBlur={handleBlur}
-                value={values.completionTime}
-                className={`w-full h-9 rounded-md border ${
-                  errors?.completionTime ? "border-red-500" : "border-gray-200"
-                } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
-                style={{
-                  backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.5rem center',
-                  backgroundSize: '1rem',
-                }}
-              >
-                <option value="">Select Completion Time</option>
-                <option value={1}>1 Year</option>
-                <option value={2}>2 Years</option>
-              </select>
-              {errors.completionTime && touched.completionTime && (
-                <div className="text-red-500 text-sm mt-1">{errors.completionTime}</div>
-              )}
-            </div>
-
-            {/** expected completion date */}
-            <div>
-              <label htmlFor="expectedCompletionDate" className="block text-sm font-medium text-gray-700">
-                Expected Completion Date
-              </label>
-              <input
-                type="date"
-                id="expectedCompletionDate"
-                name="expectedCompletionDate"
-                value={values.expectedCompletionDate}
-                disabled
-                className="w-full h-9 rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm bg-gray-50"
-              />
-            </div>
-          </div>
-        </Form>
-      )}
-    </Formik>
-  )
-}
-
-export default EditStudentCourseApplication
+export default EditStudentCourseApplication;

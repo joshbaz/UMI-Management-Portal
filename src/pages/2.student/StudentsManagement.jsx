@@ -60,8 +60,7 @@ const StudentsManagement = () => {
           const matchesCategory = selectedCategory === "All Students" || 
                                 student?.programLevel === selectedCategory;
           
-          const matchesSearch = student?.firstName?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
-                               student?.lastName?.toLowerCase()?.includes(searchTerm?.toLowerCase());
+          const matchesSearch = student?.fullName?.toLowerCase()?.includes(searchTerm?.toLowerCase());
           
           return matchesCategory && matchesSearch;
         }

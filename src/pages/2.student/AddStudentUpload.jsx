@@ -365,15 +365,6 @@ const AddStudentUpload = () => {
     setRows((prev) => prev.filter((r) => r._row !== rowId));
   }, []);
 
-  const splitFullname = useCallback((name) => {
-    const n = String(name || "").trim();
-    if (!n) return { firstName: "", lastName: "" };
-    const parts = n.split(/\s+/);
-    if (parts.length === 1) return { firstName: parts[0], lastName: "" };
-    const lastName = parts.pop();
-    const firstName = parts.join(" ");
-    return { firstName, lastName };
-  }, []);
 
   const validateRowForUpload = useCallback((r) => {
     if (!r) return { ok: false, reason: "Empty row" };
@@ -386,10 +377,8 @@ const AddStudentUpload = () => {
   }, [isValidYear]);
 
   const buildStudentPayload = useCallback((r) => {
-    const { firstName, lastName } = splitFullname(r.fullname);
     return {
-      firstName,
-      lastName,
+      fullName: r.fullname,
       email: r.email || undefined,
       phoneNumber: r.phoneNumber || undefined,
       age: r.age || undefined,
@@ -400,10 +389,10 @@ const AddStudentUpload = () => {
       campusId: r.campusId,
       courseId: r.courseId,
       // Optional fields if backend supports
-      schoolName: r.school || undefined,
-      departmentName: r.department || undefined,
+      schoolId: r.schoolId || undefined,
+      departmentId: r.departmentId || undefined,
     };
-  }, [splitFullname]);
+  }, []);
 
   const uploadAllStudents = useCallback(async () => {
     if (isUploading || uploadStudentsMutation.isPending) return;

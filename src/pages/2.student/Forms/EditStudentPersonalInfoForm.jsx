@@ -1,55 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
-import {
-  useGetAllCampuses,
-  useGetAllSchools,
-  useGetAllDepartments,
-} from "@/store/tanstackStore/services/queries";
 import FormErrorHandler from "@/components/FormErrorHandler/FormErrorHandler";
-import { format, parseISO } from "date-fns";
 import { HiOutlineDocumentDuplicate } from "react-icons/hi";
 
-const EditStudentPersonalInfoForm = ({ studentData, formRef, handleNext, updateStudentMutation }) => {
-  const [storedSchoolId, setStoredSchoolId] = useState("");
-  const { data: campuses } = useGetAllCampuses();
-  const { data: schools } = useGetAllSchools();
-  const { data: departments } = useGetAllDepartments(storedSchoolId || "");
-
+const EditStudentPersonalInfoForm = ({ studentData, formRef, updateStudentMutation }) => {
   console.log("studentData", studentData);
 
   const initialValues = {
     ...studentData?.student,
     title: studentData?.student?.title || "",
-    firstName: studentData?.student?.firstName || "",
-    lastName: studentData?.student?.lastName || "",
+    fullName: studentData?.student?.fullName || "",
     registrationNumber: studentData?.student?.registrationNumber || "",
     email: studentData?.student?.email || "",
     phoneNumber: studentData?.student?.phoneNumber || "",
     gender: studentData?.student?.gender || "",
-  
-    schoolId: studentData?.student?.schoolId || "",
-    campusId: studentData?.student?.campusId || "",
-    departmentId: studentData?.student?.departmentId || null,
   };
 
   const validationSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
-    firstName: Yup.string().required("First name is required"),
-    lastName: Yup.string().required("Last name is required"),
+    fullName: Yup.string().required("Full name is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
     phoneNumber: Yup.string().required("Phone number is required"),
     gender: Yup.string().required("Gender is required"),
-    schoolId: Yup.string().required("School is required"),
-    campusId: Yup.string().required("Campus is required"),
-    departmentId: Yup.string().nullable(),
   });
-
-  React.useEffect(() => {
-    if (studentData?.student?.schoolId) {
-      setStoredSchoolId(studentData.student.schoolId);
-    }
-  }, [studentData?.student?.schoolId]);
 
   return (
     <Formik
@@ -57,9 +31,7 @@ const EditStudentPersonalInfoForm = ({ studentData, formRef, handleNext, updateS
       initialValues={initialValues}
       validationSchema={validationSchema}
       onSubmit={(values) => {
-        // Encrypt data before storing
         updateStudentMutation.mutate(values);
-        
       }}
     >
       {({
@@ -68,15 +40,14 @@ const EditStudentPersonalInfoForm = ({ studentData, formRef, handleNext, updateS
         handleChange,
         handleBlur,
         values,
-        setFieldValue,
       }) => (
         <Form className="space-y-6">
-            {/** Header */}
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-semibold text-gray-900">
               Personal Information
             </h2>
             <button 
+              type="submit"
               disabled={updateStudentMutation.isPending}
               className={`inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 ${
                 updateStudentMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
@@ -87,14 +58,8 @@ const EditStudentPersonalInfoForm = ({ studentData, formRef, handleNext, updateS
             </button>
           </div>
 
-          {/** Form */}
           <div className="flex flex-col gap-6">
-            {/** registrationNumber */}
             <div className="grid grid-cols-3 gap-6">
-             
-             
-
-              {/** registrationNumber */}
               <div>
                 <label
                   htmlFor="registrationNumber"
@@ -118,12 +83,9 @@ const EditStudentPersonalInfoForm = ({ studentData, formRef, handleNext, updateS
                   message={errors?.registrationNumber}
                 />
               </div>
-
-           
             </div>
-            {/** Name */}
+
             <div className="grid grid-cols-3 gap-6">
-              {/** title */}
               <div>
                 <label
                   htmlFor="title"
@@ -160,53 +122,27 @@ const EditStudentPersonalInfoForm = ({ studentData, formRef, handleNext, updateS
                 />
               </div>
 
-              {/** first name */}
-              <div>
+              <div className="col-span-2">
                 <label
-                  htmlFor="firstName"
+                  htmlFor="fullName"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  First Name
+                  Full Name
                 </label>
                 <input
                   type="text"
-                  id="firstName"
-                  name="firstName"
+                  id="fullName"
+                  name="fullName"
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  value={values.firstName}
+                  value={values.fullName}
                   className={`w-full h-9 rounded-md border ${
-                    errors?.firstName ? "border-red-500" : "border-gray-200"
+                    errors?.fullName ? "border-red-500" : "border-gray-200"
                   } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
                 />
                 <FormErrorHandler
-                  errors={errors?.firstName}
-                  message={errors?.firstName}
-                />
-              </div>
-
-              {/** last name */}
-              <div>
-                <label
-                  htmlFor="lastName"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.lastName}
-                  className={`w-full h-9 rounded-md border ${
-                    errors?.lastName ? "border-red-500" : "border-gray-200"
-                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
-                />
-                <FormErrorHandler
-                  errors={errors?.lastName}
-                  message={errors?.lastName}
+                  errors={errors?.fullName}
+                  message={errors?.fullName}
                 />
               </div>
             </div>
@@ -262,8 +198,6 @@ const EditStudentPersonalInfoForm = ({ studentData, formRef, handleNext, updateS
             </div>
 
             <div className="grid grid-cols-2 gap-6">
-
-              {/** gender */}
               <div>
                 <label
                   htmlFor="gender"
@@ -294,136 +228,6 @@ const EditStudentPersonalInfoForm = ({ studentData, formRef, handleNext, updateS
                 <FormErrorHandler
                   errors={errors?.gender}
                   message={errors?.gender}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-6">
-              {/** campus */}
-              <div>
-                <label
-                  htmlFor="campusId"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Campus
-                </label>
-                <select
-                  id="campusId"
-                  name="campusId"
-                  onChange={(e) => {
-                    handleChange(e);
-                    setFieldValue("schoolId", ""); // Reset school when campus changes
-                    setFieldValue("departmentId", ""); // Reset department when campus changes
-                  }}
-                  onBlur={handleBlur}
-                  value={values.campusId}
-                  className={`w-full h-9 rounded-md border ${
-                    errors?.campusId ? "border-red-500" : "border-gray-200"
-                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
-                  style={{
-                    backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 0.5rem center",
-                    backgroundSize: "1rem",
-                  }}
-                >
-                  <option value="">Select Campus</option>
-                  {campuses?.campuses?.map((campus) => (
-                    <option key={campus.id} value={campus.id}>
-                      {campus.name}
-                    </option>
-                  ))}
-                </select>
-                <FormErrorHandler
-                  errors={errors?.campusId}
-                  message={errors?.campusId}
-                />
-              </div>
-
-              {/** school */}
-              <div>
-                <label
-                  htmlFor="schoolId"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  School
-                </label>
-                <select
-                  id="schoolId"
-                  name="schoolId"
-                  onChange={(e) => {
-                    handleChange(e);
-                    setStoredSchoolId(e.target.value);
-
-                    setFieldValue("departmentId", ""); // Reset department when campus changes
-                  }}
-                  onBlur={handleBlur}
-                  value={values.schoolId}
-                  className={`w-full h-9 rounded-md border ${
-                    errors?.schoolId ? "border-red-500" : "border-gray-200"
-                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
-                  style={{
-                    backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 0.5rem center",
-                    backgroundSize: "1rem",
-                  }}
-                  disabled={!values.campusId}
-                >
-                  <option value="">Select School</option>
-                  {schools?.schools
-                    ?.filter((school) => school.campusId === values.campusId)
-                    .map((school) => (
-                      <option key={school.id} value={school.id}>
-                        {school.name}
-                      </option>
-                    ))}
-                </select>
-                <FormErrorHandler
-                  errors={errors?.schoolId}
-                  message={errors?.schoolId}
-                />
-              </div>
-
-              {/** department */}
-              <div className="col-span-2">
-                <label
-                  htmlFor="departmentId"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Department (if applicable)
-                </label>
-                <select
-                  id="departmentId"
-                  name="departmentId"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.departmentId || ""}
-                  className={`w-full h-9 rounded-md border ${
-                    errors?.departmentId ? "border-red-500" : "border-gray-200"
-                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
-                  style={{
-                    backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 0.5rem center",
-                    backgroundSize: "1rem",
-                  }}
-                  disabled={!values.schoolId}
-                >
-                  <option value="">Select Department</option>
-                  {departments?.departments
-                    ?.filter(
-                      (department) => department.schoolId === values.schoolId
-                    )
-                    .map((department) => (
-                      <option key={department.id} value={department.id}>
-                        {department.name}
-                      </option>
-                    ))}
-                </select>
-                <FormErrorHandler
-                  errors={errors?.departmentId}
-                  message={errors?.departmentId}
                 />
               </div>
             </div>

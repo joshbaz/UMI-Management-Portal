@@ -106,7 +106,7 @@ const StudentProfile = () => {
                Back
              </button>
              <span className="text-lg font-[Inter-SemiBold] capitalize text-gray-900">
-               {studentData?.student?.firstName} {studentData?.student?.lastName} <br/>
+               {studentData?.student?.fullName} <br/>
                {studentData?.student?.registrationNumber}
              </span>
            </div>

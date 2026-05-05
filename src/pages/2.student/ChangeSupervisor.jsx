@@ -119,7 +119,7 @@ const ChangeSupervisor = () => {
               Student Information
             </h2>
             <p className="text-sm font-[Inter-Regular] text-gray-700">
-              <span className="font-[Inter-Medium]">Name:</span> {student.firstName} {student.lastName}
+              <span className="font-[Inter-Medium]">Name:</span> {student.fullName}
             </p>
             <p className="text-sm font-[Inter-Regular] text-gray-700">
               <span className="font-[Inter-Medium]">ID:</span> {student.studentId}

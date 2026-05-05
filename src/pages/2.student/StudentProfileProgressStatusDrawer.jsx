@@ -27,7 +27,7 @@ const StudentStatusDrawer = ({ isOpen, onClose, studentId, studentData, selected
 
   // Format student data
   const data = {
-    name: student?.firstName + " " + student?.lastName,
+    name: student?.fullName,
     studentId: student?.id,
     type: student?.programLevel,
     email: student?.email,

@@ -26,8 +26,7 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
 
   const initialValues = {
     title: storedData.title || "",
-    firstName: storedData.firstName || "",
-    lastName: storedData.lastName || "",
+    fullName: storedData.fullName || "",
     registrationNumber: storedData?.registrationNumber || "",
     email: storedData.email || "",
     phoneNumber: storedData.phoneNumber || "",
@@ -40,8 +39,7 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
 
   const validationSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
-    firstName: Yup.string().required("First name is required"),
-    lastName: Yup.string().required("Last name is required"),
+    fullName: Yup.string().required("Full name is required"),
     // registrationNumber: Yup.string().required("Registration Number is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
     phoneNumber: Yup.string().required("Phone number is required"),
@@ -133,51 +131,27 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
                 />
               </div>
 
-              {/** first name */}
-              <div>
+              {/** full name */}
+              <div className="col-span-2">
                 <label
-                  htmlFor="firstName"
+                  htmlFor="fullName"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  First Name
+                  Full Name
                 </label>
                 <input
                   type="text"
-                  id="firstName"
-                  name="firstName"
+                  id="fullName"
+                  name="fullName"
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  value={values.firstName}
-                  className={`w-full h-9 rounded-md border ${errors?.firstName ? "border-red-500" : "border-gray-200"
+                  value={values.fullName}
+                  className={`w-full h-9 rounded-md border ${errors?.fullName ? "border-red-500" : "border-gray-200"
                     } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
                 />
                 <FormErrorHandler
-                  errors={errors?.firstName}
-                  message={errors?.firstName}
-                />
-              </div>
-
-              {/** last name */}
-              <div>
-                <label
-                  htmlFor="lastName"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.lastName}
-                  className={`w-full h-9 rounded-md border ${errors?.lastName ? "border-red-500" : "border-gray-200"
-                    } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
-                />
-                <FormErrorHandler
-                  errors={errors?.lastName}
-                  message={errors?.lastName}
+                  errors={errors?.fullName}
+                  message={errors?.fullName}
                 />
               </div>
             </div>

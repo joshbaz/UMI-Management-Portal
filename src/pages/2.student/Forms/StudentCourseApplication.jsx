@@ -23,6 +23,8 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
   // Get and decrypt stored data
   const encryptedData = localStorage.getItem('studentCourseApplication');
   const storedData = encryptedData ? decryptData(encryptedData) : {};
+  const personalInfoEncrypted = localStorage.getItem('studentPersonalInfo');
+  const personalInfo = personalInfoEncrypted ? decryptData(personalInfoEncrypted) : {};
 
   const [selectedCampusId, setSelectedCampusId] = useState(storedData?.campusId || '')
   const [selectedSchoolId, setSelectedSchoolId] = useState(storedData?.schoolId || '')
@@ -59,6 +61,7 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
     studyMode: Yup.string().required('Study mode is required'),
     intakePeriod: Yup.string().required('Intake period is required'),
     programLevel: Yup.string().required('Program level is required'),
+    specialization: Yup.string().required('Specialization is required'),
     completionTime: Yup.string().required('Completion time is required'),
     schoolId: Yup.string().required("School is required"),
     campusId: Yup.string().required("Campus is required"),
@@ -89,8 +92,54 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
         // handleNext();
       }}
     >
-      {({ errors, touched, handleChange, handleBlur, values, setFieldValue }) => (
-        <Form className="space-y-6">
+      {({ errors, touched, handleChange, handleBlur, values, setFieldValue }) => {
+        // Auto-parse registration number logic
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        useEffect(() => {
+          const regNo = personalInfo?.registrationNumber || '';
+          if (regNo) {
+            const parts = regNo.split('/');
+            if (parts.length >= 4) {
+              const yearShort = parts[0];
+              const monthShort = parts[3]?.toUpperCase();
+              
+              const monthMap = {
+                'JAN': 'January', 'FEB': 'February', 'MAR': 'March', 'APR': 'April',
+                'MAY': 'May', 'JUN': 'June', 'JUL': 'July', 'AUG': 'August',
+                'SEP': 'September', 'OCT': 'October', 'NOV': 'November', 'DEC': 'December'
+              };
+              
+              const monthName = monthMap[monthShort];
+              const year = 2000 + parseInt(yearShort);
+              
+              if (monthName && values.intakePeriod !== monthName) {
+                setFieldValue('intakePeriod', monthName);
+              }
+
+              // Auto-fill Academic Year (e.g., 2025/2026)
+              const acadYear = `${year}/${year + 1}`;
+              if (values.academicYear !== acadYear) {
+                setFieldValue('academicYear', acadYear);
+              }
+              
+              // If completionTime is set, calculate expectedCompletionDate from regNo year/month
+              if (values.completionTime) {
+                const monthIndex = Object.keys(monthMap).indexOf(monthShort);
+                if (monthIndex !== -1) {
+                  const startDate = new Date(year, monthIndex, 1);
+                  const completionDate = addYears(startDate, parseInt(values.completionTime));
+                  const formattedDate = format(completionDate, 'yyyy-MM-dd');
+                  if (values.expectedCompletionDate !== formattedDate) {
+                    setFieldValue('expectedCompletionDate', formattedDate);
+                  }
+                }
+              }
+            }
+          }
+        }, [personalInfo?.registrationNumber, values.completionTime, setFieldValue]);
+
+        return (
+          <Form className="space-y-6">
           <div className="grid grid-cols-2 gap-6">
             {/** campus */}
             <div>
@@ -105,10 +154,18 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
                 name="campusId"
                 onChange={(e) => {
                   handleChange(e);
-                  setSelectedCampusId(e.target.value);
-                  setFieldValue('schoolId', '')
+                  const campusId = e.target.value;
+                  setSelectedCampusId(campusId);
+                  
+                  // Reset all downstream fields
+                  setFieldValue('course', '');
+                  setSelectedCourseId('');
+                  setFieldValue('specialization', '');
+                  setFieldValue('schoolId', '');
                   setSelectedSchoolId('');
-                  setFieldValue('departmentId', '')
+                  setFieldValue('departmentId', '');
+                  setFieldValue('completionTime', '');
+                  setFieldValue('expectedCompletionDate', '');
                 }}
                 onBlur={handleBlur}
                 value={values.campusId}
@@ -181,8 +238,16 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
                 name="course"
                 onChange={(e) => {
                   handleChange(e);
-                  setSelectedCourseId(e.target.value);
-                  setFieldValue('specialization', ''); // Reset specialization when course changes
+                  const courseId = e.target.value;
+                  setSelectedCourseId(courseId);
+                  
+                  // Reset specialization and its associated fields
+                  setFieldValue('specialization', '');
+                  setFieldValue('schoolId', '');
+                  setSelectedSchoolId('');
+                  setFieldValue('departmentId', '');
+                  setFieldValue('completionTime', '');
+                  setFieldValue('expectedCompletionDate', '');
                 }}
                 onBlur={handleBlur}
                 value={values.course}
@@ -220,13 +285,45 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
                 onChange={(e) => {
                   handleChange(e);
                   const specId = e.target.value;
+
+                  if (!specId) {
+                    // Reset all associated fields if specialization is cleared
+                    setFieldValue('schoolId', '');
+                    setSelectedSchoolId('');
+                    setFieldValue('departmentId', '');
+                    setFieldValue('completionTime', '');
+                    setFieldValue('expectedCompletionDate', '');
+                    return;
+                  }
+
                   const selectedSpec = specializations?.specializations?.find(s => s.id === specId);
 
-                  if (selectedSpec?.duration) {
-                    const years = selectedSpec.duration;
-                    setFieldValue('completionTime', years.toString());
-                    const completionDate = addYears(new Date(), years);
-                    setFieldValue('expectedCompletionDate', format(completionDate, 'yyyy-MM-dd'));
+                  if (selectedSpec) {
+                    // Auto-fill School and Department
+                    if (selectedSpec.schoolId) {
+                      setFieldValue('schoolId', selectedSpec.schoolId);
+                      setSelectedSchoolId(selectedSpec.schoolId);
+                    } else {
+                      setFieldValue('schoolId', '');
+                      setSelectedSchoolId('');
+                    }
+
+                    if (selectedSpec.departmentId) {
+                      setFieldValue('departmentId', selectedSpec.departmentId);
+                    } else {
+                      setFieldValue('departmentId', '');
+                    }
+
+                    // Auto-fill Duration/Completion Time
+                    if (selectedSpec.duration) {
+                      const years = selectedSpec.duration;
+                      setFieldValue('completionTime', years.toString());
+                      const completionDate = addYears(new Date(), years);
+                      setFieldValue('expectedCompletionDate', format(completionDate, 'yyyy-MM-dd'));
+                    } else {
+                      setFieldValue('completionTime', '');
+                      setFieldValue('expectedCompletionDate', '');
+                    }
                   }
                 }}
                 onBlur={handleBlur}
@@ -412,9 +509,18 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
                 }}
               >
                 <option value="">Select Intake Period</option>
-                <option value="january">January</option>
-                <option value="may">May</option>
-                <option value="september">September</option>
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
               </select>
               {errors.intakePeriod && touched.intakePeriod && (
                 <div className="text-red-500 text-sm mt-1">{errors.intakePeriod}</div>
@@ -424,37 +530,26 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
             {/** completion time */}
             <div>
               <label htmlFor="completionTime" className="block text-sm font-medium text-gray-700">
-                Completion Time
+                Completion Time (Years)
               </label>
-              <select
+              <input
+                type="number"
                 id="completionTime"
                 name="completionTime"
                 onChange={(e) => {
                   handleChange(e);
                   const years = parseInt(e.target.value);
-                  const completionDate = addYears(new Date(), years);
-                  setFieldValue('expectedCompletionDate', format(completionDate, 'yyyy-MM-dd'));
+                  if (!isNaN(years)) {
+                    const completionDate = addYears(new Date(), years);
+                    setFieldValue('expectedCompletionDate', format(completionDate, 'yyyy-MM-dd'));
+                  }
                 }}
                 onBlur={handleBlur}
                 value={values.completionTime}
                 className={`w-full h-9 rounded-md border ${errors?.completionTime ? "border-red-500" : "border-gray-200"
-                  } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
-                style={{
-                  backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeWidth="2" d="M7 10l5 5 5-5"/></svg>')`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.5rem center',
-                  backgroundSize: '1rem',
-                }}
-              >
-                <option value="">Select Completion Time</option>
-
-                <option value="2">2 Years</option>
-
-                <option value="4">4 Years</option>
-
-                <option value="6">6 Years</option>
-
-              </select>
+                  } shadow-sm px-3 py-2 text-sm bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                placeholder="Enter years"
+              />
               {errors.completionTime && touched.completionTime && (
                 <div className="text-red-500 text-sm mt-1">{errors.completionTime}</div>
               )}
@@ -476,8 +571,9 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
             </div>
           </div>
         </Form>
-      )}
-    </Formik>
+      );
+    }}
+  </Formik>
   );
 };
 
