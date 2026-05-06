@@ -3,11 +3,15 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useGetLoggedInUserDetails } from '../../store/tanstackStore/services/queries';
+import { useSocketUpdates } from '../../hooks/useSocketUpdates';
 
 // Component: Main layout wrapper
 const MainLayout = () => {
   const { data } = useGetLoggedInUserDetails();
   const isAuditor = data?.user?.role === 'AUDITOR';
+  
+  // Initialize socket connection and listeners
+  useSocketUpdates();
 
   return (
     <div className="flex h-screen bg-table-header">
