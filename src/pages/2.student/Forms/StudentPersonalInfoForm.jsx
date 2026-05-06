@@ -26,8 +26,9 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
 
   const initialValues = {
     title: storedData.title || "",
-    fullName: storedData.fullName || "",
+    fullName: storedData?.fullName || "",
     registrationNumber: storedData?.registrationNumber || "",
+    studentNumber: storedData?.studentNumber || "",
     email: storedData.email || "",
     phoneNumber: storedData.phoneNumber || "",
     gender: storedData.gender || "",
@@ -40,7 +41,8 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
   const validationSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
     fullName: Yup.string().required("Full name is required"),
-    // registrationNumber: Yup.string().required("Registration Number is required"),
+    studentNumber: Yup.string().optional(),
+    registrationNumber: Yup.string().required("Registration Number is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
     phoneNumber: Yup.string().required("Phone number is required"),
     gender: Yup.string().required("Gender is required"),
@@ -87,6 +89,29 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
                 <FormErrorHandler
                   errors={errors?.registrationNumber}
                   message={errors?.registrationNumber}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="studentNumber"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Student Number (Optional)
+                </label>
+                <input
+                  type="text"
+                  id="studentNumber"
+                  name="studentNumber"
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.studentNumber}
+                  className={`w-full h-9 rounded-md border ${errors?.studentNumber ? "border-red-500" : "border-gray-200"
+                    } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                />
+                <FormErrorHandler
+                  errors={errors?.studentNumber}
+                  message={errors?.studentNumber}
                 />
               </div>
 

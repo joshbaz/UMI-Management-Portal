@@ -82,14 +82,7 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
         // Encrypt data before storing
         const encryptedValues = encryptData(values);
         localStorage.setItem('studentCourseApplication', encryptedValues);
-        const personalInfo = decryptData(localStorage.getItem('studentPersonalInfo') || '')
-        const finalFormData = {
-          ...personalInfo,
-          ...values,
-          password: generatePassword()
-        }
-        createStudentMutation.mutate(finalFormData);
-        // handleNext();
+        handleNext();
       }}
     >
       {({ errors, touched, handleChange, handleBlur, values, setFieldValue }) => {
