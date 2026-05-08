@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { Search, Plus, X, ArrowLeft, Building, Globe } from "lucide-react";
 import { toast } from "sonner";
-import { useGetStaffMembers } from '@/store/tanstackStore/services/queries'
+import { useGetStaffMembers, useGetStudent } from '@/store/tanstackStore/services/queries'
 import { queryClient } from "@/utils/tanstack";
 import { assignSupervisorsToStudentService } from "@/store/tanstackStore/services/api";
 import {
@@ -117,16 +117,18 @@ const AddSupervisors = () => {
     return { primary, secondary, icon };
   };
 
-  // Mock data for student and supervisors
-  const studentData = { student: { name: "John Doe" } };
-  const currentSupervisors = { supervisors: [] };
+  // Fetch real data for student
+  const { data: studentData, isLoading: isStudentLoading } = useGetStudent(studentId);
 
   // Mutation for assigning supervisors
   const addSupervisorsMutation = useMutation({
     mutationKey: ["AssignSupervisors"],
     mutationFn: () => {
-      const personnelIds = selectedPersonnel.map(person => person.id);
-      return assignSupervisorsToStudentService(studentId, personnelIds);
+      const supervisorAssignments = selectedPersonnel.map(person => ({
+        id: person.id,
+        role: person.role || 'CO_SUPERVISOR'
+      }));
+      return assignSupervisorsToStudentService(studentId, supervisorAssignments);
     },
     onSuccess: (data) => {
       toast.success(data?.message || "Personnel assigned successfully", {
@@ -234,9 +236,19 @@ const AddSupervisors = () => {
       if (isSelected) {
         return prev.filter(r => r.id !== person.id);
       } else {
-        return [...prev, person];
+        // Default the first assigned person to 'MAIN', and subsequent to 'CO_SUPERVISOR'
+        const role = prev.length === 0 ? 'MAIN' : 'CO_SUPERVISOR';
+        return [...prev, { ...person, role }];
       }
     });
+  };
+
+  const handleRoleChange = (personId, newRole) => {
+    setSelectedPersonnel(prev => 
+      prev.map(person => 
+        person.id === personId ? { ...person, role: newRole } : person
+      )
+    );
   };
 
   const handleSave = () => {
@@ -259,9 +271,19 @@ const AddSupervisors = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-full bg-gray-50 pb-10">
       {/* Search Bar */}
-      <div className="p-6 border-b min-h-[90px] border-gray-300 w-full"></div>
+      <div className="flex px-6 justify-between items-center border-b border-gray-300 h-[89px]">
+        <p className="text-sm font-[Inter-SemiBold] text-gray-900">Research Centre Portal</p>
+        <p className="text-sm font-[Inter-Medium] text-gray-600">Digital Research Information Management System</p>
+      </div>
+
+      {/* Header */}
+      <div className="flex justify-between items-center px-6 py-6">
+        <h1 className="text-2xl font-[Inter-Medium]">
+          Add Supervisors
+        </h1>
+      </div>
 
       {/* Control Panel */}
       <div className="px-6 py-4 mb-4">
@@ -270,15 +292,14 @@ const AddSupervisors = () => {
             <div className="flex items-center gap-4">
               <Button
                 onClick={() => navigate(-1)}
-                variant="outline"
-                className="inline-flex items-center gap-2"
+                className="inline-flex items-center px-4 py-2 bg-[#23388F] text-white rounded-[6px] gap-2 hover:bg-[#2d48b8]"
               >
                 <ArrowLeft className="w-5 h-5" />
                 Back
               </Button>
               <div className="flex flex-col">
                 <span className="text-lg font-medium text-gray-900">
-                  Student: {studentData?.student?.name || "Loading..."}
+                  Student: {studentData?.student?.fullName || "Loading..."}
                 </span>
                 <span className="text-sm font-[Inter-Medium] capitalize text-gray-600">
                   Assign staff members to this student
@@ -305,7 +326,10 @@ const AddSupervisors = () => {
                   )}
                 </CardDescription>
               </div>
-              <Button onClick={() => setShowAddDialog(true)}>
+              <Button 
+                onClick={() => setShowAddDialog(true)}
+                className="bg-[#23388F] text-white hover:bg-[#2d48b8]"
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Add New Staff Member
               </Button>
@@ -396,7 +420,10 @@ const AddSupervisors = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-2">
-                              <Badge variant={person.isActive ? "default" : "secondary"}>
+                              <Badge 
+                                variant={person.isActive ? "default" : "secondary"}
+                                className={person.isActive ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+                              >
                                 {person.isActive ? "Active" : "Inactive"}
                               </Badge>
                               {person.isExternal && (
@@ -410,6 +437,7 @@ const AddSupervisors = () => {
                             <Button
                               onClick={() => handleAssignToggle(person)}
                               variant={isSelected ? "destructive" : "default"}
+                              className={!isSelected ? "bg-[#23388F] hover:bg-[#2d48b8] text-white" : ""}
                               size="sm"
                             >
                               {isSelected ? 'Unassign' : 'Assign'}
@@ -462,7 +490,7 @@ const AddSupervisors = () => {
                         onClick={() => handlePageChange(page + 1)}
                         variant={currentPage === page + 1 ? "default" : "outline"}
                         size="sm"
-                        className="w-8 h-8 p-0"
+                        className={`w-8 h-8 p-0 ${currentPage === page + 1 ? 'bg-green-600 text-white hover:bg-green-700' : ''}`}
                       >
                         {page + 1}
                       </Button>
@@ -496,7 +524,7 @@ const AddSupervisors = () => {
             onClick={handleSave}
             disabled={selectedPersonnel.length === 0 || addSupervisorsMutation.isPending}
             size="lg"
-            className="min-w-[200px]"
+            className="min-w-[200px] bg-[#23388F] text-white hover:bg-[#2d48b8]"
           >
             {addSupervisorsMutation.isPending ? 'Saving...' : 'Save Assignments'}
           </Button>
@@ -535,16 +563,25 @@ const AddSupervisors = () => {
               </p>
               <div className="max-h-[200px] overflow-y-auto border rounded-md p-2">
                 {selectedPersonnel.map((person) => (
-                  <div key={person.id} className="py-2 px-3 mb-1 bg-blue-50 rounded flex justify-between items-center">
+                  <div key={person.id} className="py-2 px-3 mb-2 bg-blue-50 rounded flex justify-between items-center">
                     <div>
                       <div className="font-medium">{person.displayName || person.name}</div>
-                      <div className="text-sm text-gray-500">{person.displayEmail || person.email}</div>
+                      <div className="text-sm text-gray-500 mb-1">{person.displayEmail || person.email}</div>
+                      <select 
+                        value={person.role || 'CO_SUPERVISOR'} 
+                        onChange={(e) => handleRoleChange(person.id, e.target.value)}
+                        className="text-sm border rounded p-1 bg-white"
+                      >
+                        <option value="MAIN">Main Supervisor</option>
+                        <option value="CO_SUPERVISOR">Co-Supervisor</option>
+                      </select>
                     </div>
                     <button 
                       onClick={() => handleAssignToggle(person)}
                       className="text-red-500 hover:text-red-700"
+                      title="Remove from selection"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-5 h-5" />
                     </button>
                   </div>
                 ))}
@@ -560,6 +597,7 @@ const AddSupervisors = () => {
               <Button
                 onClick={confirmAssignment}
                 disabled={addSupervisorsMutation.isPending}
+                className="bg-[#23388F] text-white hover:bg-[#2d48b8]"
               >
                 {addSupervisorsMutation.isPending ? 'Processing...' : 'Confirm'}
               </Button>

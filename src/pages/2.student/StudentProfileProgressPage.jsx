@@ -316,6 +316,20 @@ const StudentProfileProgressPage = ({ studentData }) => {
         </span>
       ),
     }),
+    columnHelper.accessor("id", {
+      header: "Role",
+      cell: (info) => {
+        const supervisorId = info.getValue();
+        const role = studentData?.student?.supervisorRoles?.[supervisorId];
+        const displayRole = role === "MAIN" ? "Main Supervisor" : (role === "CO_SUPERVISOR" ? "Co-Supervisor" : "Supervisor");
+        
+        return (
+          <span className="text-sm font-[Inter-Medium] text-blue-700 bg-blue-50 px-2 py-1 rounded">
+            {displayRole}
+          </span>
+        );
+      },
+    }),
     columnHelper.accessor("workEmail", {
       header: "Email",
       cell: (info) => (
@@ -389,8 +403,11 @@ const StudentProfileProgressPage = ({ studentData }) => {
             <div className="flex flex-col">
               {currentSupervisor && currentSupervisor.length > 0 
                 ? currentSupervisor.map((supervisor) => (
-                    <span key={supervisor.id} className="text-sm font-[Inter-Regular] text-gray-900">
+                    <span key={supervisor.id} className="text-sm font-[Inter-Regular] text-gray-900 flex items-center gap-1">
                       {supervisor.title} {supervisor.name}
+                      <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                        {studentData?.student?.supervisorRoles?.[supervisor.id] === 'MAIN' ? 'Main' : 'Co-Supervisor'}
+                      </span>
                     </span>
                   ))
                 : <span className="text-sm font-[Inter-Regular] text-gray-900">No supervisor assigned</span>}
