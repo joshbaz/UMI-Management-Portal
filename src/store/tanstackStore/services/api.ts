@@ -355,9 +355,9 @@ export const assignStudentsToSupervisorService = async (supervisorId: string, st
     }
 };
 
-export const assignSupervisorsToStudentService = async (studentId: string, supervisorIds: string[]) => {
+export const assignSupervisorsToStudentService = async (studentId: string, supervisorAssignments: any[]) => {
     try {
-        const response = await apiRequest.post(`/management/students/${studentId}/assign-supervisors`, { supervisorIds });
+        const response = await apiRequest.post(`/management/students/${studentId}/assign-supervisors`, { supervisorAssignments });
         return response.data;
     } catch (error) {
         errorHandling(error);
