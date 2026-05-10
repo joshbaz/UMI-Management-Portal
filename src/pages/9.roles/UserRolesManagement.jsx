@@ -8,6 +8,7 @@ import {
   createColumnHelper,
 } from "@tanstack/react-table";
 import { Search, Eye, EyeOff } from "lucide-react";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { useGetAllCampuses, useGetAllUsers } from "../../store/tanstackStore/services/queries";
 import { createUserService, deactivateUserService, reactivateUserService } from "../../store/tanstackStore/services/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -511,12 +512,11 @@ const UserRolesManagement = () => {
                       <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="phone">
                         Phone
                       </label>
-                      <Field
-                        id="phone"
+                      <PhoneInput
                         name="phone"
-                        type="text"
-                        placeholder="Enter phone number"
-                        className="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        value={values.phone}
+                        onChange={handleChange}
+                        placeholder="770000000"
                       />
                     </div>
                   </div>

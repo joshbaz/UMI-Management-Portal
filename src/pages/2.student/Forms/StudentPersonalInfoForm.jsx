@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import FormErrorHandler from "@/components/FormErrorHandler/FormErrorHandler";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 
 
@@ -213,15 +214,11 @@ const StudentPersonalInfoForm = ({ formRef, handleNext }) => {
                 >
                   Phone Number
                 </label>
-                <input
-                  type="text"
-                  id="phoneNumber"
+                <PhoneInput
                   name="phoneNumber"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
                   value={values.phoneNumber}
-                  className={`w-full h-9 rounded-md border ${errors?.phoneNumber ? "border-red-500" : "border-gray-200"
-                    } shadow-sm px-3 py-2  text-sm bg-gray-50 appearance-none`}
+                  onChange={handleChange}
+                  placeholder="770000000"
                 />
                 <FormErrorHandler
                   errors={errors?.phoneNumber}

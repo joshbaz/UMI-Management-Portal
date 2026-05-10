@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import FormErrorHandler from "@/components/FormErrorHandler/FormErrorHandler";
 import { Eye } from "lucide-react";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 const RegisterSuperAdmin = () => {
   const navigate = useNavigate();
@@ -175,15 +176,11 @@ const RegisterSuperAdmin = () => {
                 <label className="block text-sm mb-1" htmlFor="email">
                   Phone Number
                 </label>
-                <input
-                  id="phone"
+                <PhoneInput
                   name="phone"
-                  type="text"
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="+2348060000000"
-                  className={`w-full p-2 border ${formik.touched.phone && formik.errors.phone ? 'border-red-500' : 'border-gray-200'} rounded text-sm`}
                   value={formik.values.phone}
+                  onChange={formik.handleChange}
+                  placeholder="770000000"
                 />
                 <FormErrorHandler
                   errors={formik.touched.phone && formik.errors.phone}

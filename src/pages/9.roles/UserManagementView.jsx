@@ -15,6 +15,7 @@ import {
   getFilteredRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 const UserManagementView = () => {
   const { userId } = useParams();
@@ -436,10 +437,11 @@ const UserManagementView = () => {
                     </div>
                     <div>
                       <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number</label>
-                      <Field
-                        type="text"
-                            name="phone"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      <PhoneInput
+                        name="phone"
+                        value={values.phone}
+                        onChange={handleChange}
+                        placeholder="770000000"
                       />
                       <ErrorMessage name="phone" component="div" className="text-red-500 text-sm mt-1" />
                     </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PageHeader from '../../components/common/PageHeader';
 import { RiNotificationLine, RiLockLine, RiUserLine, RiGlobalLine, RiCloseLine } from 'react-icons/ri';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { useAuth } from '../../store/context/AuthContext';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -297,12 +298,11 @@ const Settings = () => {
           
           <div>
             <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-            <input
-              type="tel"
+            <PhoneInput
               id="phone"
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:outline-none"
               value={editedUserDetails.phone}
               onChange={(e) => setEditedUserDetails({...editedUserDetails, phone: e.target.value})}
+              placeholder="770000000"
             />
           </div>
           

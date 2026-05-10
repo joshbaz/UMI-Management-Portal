@@ -5,6 +5,7 @@ import React from "react";
 import { HiPencilAlt, HiPlus } from "react-icons/hi";
 import { toast } from "sonner";
 import * as yup from "yup";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 const SchoolMembersForm = ({ handleNext }) => {
   const schoolId = localStorage.getItem("currentSchoolId");
@@ -83,21 +84,12 @@ const SchoolMembersForm = ({ handleNext }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Deans Contact (Phone Number)
                     </label>
-                    <div className="flex">
-                      <select
-                        name="countryCode"
-                        className=" rounded-l-md border border-r-0 border-gray-300 bg-gray-50 h-9"
-                      >
-                        <option value="+256">+256</option>
-                      </select>
-                      <input
-                        type="tel"
-                        name="dean.contact"
-                        value={values.dean.contact}
-                        onChange={handleChange}
-                        className={`block w-full rounded-r-md border ${touched.dean?.contact && errors.dean?.contact ? "border-red-500" : "border-gray-300"} h-9`}
-                      />
-                    </div>
+                    <PhoneInput
+                      name="dean.contact"
+                      value={values.dean.contact}
+                      onChange={handleChange}
+                      placeholder="770000000"
+                    />
                     {touched.dean?.contact && errors.dean?.contact && (
                       <p className="text-red-500 text-sm mt-1">
                         {errors.dean.contact}
@@ -150,21 +142,12 @@ const SchoolMembersForm = ({ handleNext }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Personal Assist. Contact (Optional)
                     </label>
-                    <div className="flex">
-                      <select
-                        name="countryCode"
-                        className=" rounded-l-md border border-r-0 border-gray-300 bg-gray-50 h-9"
-                      >
-                        <option value="+256">+256</option>
-                      </select>
-                      <input
-                        type="tel"
-                        name="pa.contact"
-                        value={values.pa.contact}
-                        onChange={handleChange}
-                        className={`block w-full rounded-r-md border ${touched.pa?.contact && errors.pa?.contact ? "border-red-500" : "border-gray-300"} h-9`}
-                      />
-                    </div>
+                    <PhoneInput
+                      name="pa.contact"
+                      value={values.pa.contact}
+                      onChange={handleChange}
+                      placeholder="770000000"
+                    />
                     {touched.pa?.contact && errors.pa?.contact && (
                       <p className="text-red-500 text-sm mt-1">
                         {errors.pa.contact}

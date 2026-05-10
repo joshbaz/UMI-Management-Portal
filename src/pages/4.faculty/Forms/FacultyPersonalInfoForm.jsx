@@ -2,6 +2,7 @@ import React from 'react'
 import { Formik, Form } from 'formik'
 import * as yup from 'yup'
 import FormErrorHandler from '../../../components/FormErrorHandler/FormErrorHandler'
+import { PhoneInput } from '@/components/ui/phone-input'
 
 const FacultyPersonalInfoForm = ({ handleNext, formRef }) => {
   // Encryption/decryption functions
@@ -142,14 +143,11 @@ const FacultyPersonalInfoForm = ({ handleNext, formRef }) => {
                 <label className="block text-sm font-medium text-gray-700">
                   Primary Phone Number
                 </label>
-                <input
-                  type="text"
+                <PhoneInput
                   name="primaryPhone"
                   value={values.primaryPhone}
                   onChange={handleChange}
-                  className={`mt-1 block w-full rounded-md border ${
-                    errors.primaryPhone && touched.primaryPhone ? "border-red-500" : "border-gray-300"
-                  } p-2`}
+                  placeholder="770000000"
                 />  
                 <FormErrorHandler
                   errors={errors?.primaryPhone}
@@ -161,14 +159,11 @@ const FacultyPersonalInfoForm = ({ handleNext, formRef }) => {
                 <label className="block text-sm font-medium text-gray-700">
                   Secondary Phone Number (Optional)
                 </label>
-                <input
-                  type="text"
+                <PhoneInput
                   name="secondaryPhone"
                   value={values.secondaryPhone}
                   onChange={handleChange}
-                  className={`mt-1 block w-full rounded-md border ${
-                    errors.secondaryPhone && touched.secondaryPhone ? "border-red-500" : "border-gray-300"
-                  } p-2`}
+                  placeholder="770000000"
                 />
                 <FormErrorHandler
                   errors={errors?.secondaryPhone}
