@@ -34,6 +34,8 @@ import {
   updateResultsApprovalDateService,
   updateResultsSentDateService,
   updateSenateApprovalDateService,
+  deregisterStudentService,
+  reinstateStudentService,
 } from "@/store/tanstackStore/services/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -129,6 +131,36 @@ const StudentProfileProgressPage = ({ studentData }) => {
     onError: (error) => {
       toast.error(error?.message);
     },
+  });
+
+  // Deregistration / Reinstatement State
+  const [isDeregisterDialogOpen, setIsDeregisterDialogOpen] = useState(false);
+  const [isReinstateDialogOpen, setIsReinstateDialogOpen] = useState(false);
+  const [deregisterReason, setDeregisterReason] = useState("");
+  const [reinstateReason, setReinstateReason] = useState("");
+  const [newExpectedDate, setNewExpectedDate] = useState("");
+
+  const deregisterStudentMutation = useMutation({
+    mutationFn: (data) => deregisterStudentService(data.studentId, data.reason),
+    onSuccess: () => {
+      toast.success("Student deregistered successfully");
+      queryClient.invalidateQueries({ queryKey: ["studentStatuses"] });
+      // Invalidate the main student query if possible, or just refresh page
+      window.location.reload(); 
+      setIsDeregisterDialogOpen(false);
+    },
+    onError: (error) => toast.error(error?.message),
+  });
+
+  const reinstateStudentMutation = useMutation({
+    mutationFn: (data) => reinstateStudentService(data.studentId, data),
+    onSuccess: () => {
+      toast.success("Student reinstated successfully");
+      queryClient.invalidateQueries({ queryKey: ["studentStatuses"] });
+      window.location.reload();
+      setIsReinstateDialogOpen(false);
+    },
+    onError: (error) => toast.error(error?.message),
   });
 
   const currentStatus = useMemo(
@@ -440,6 +472,26 @@ const StudentProfileProgressPage = ({ studentData }) => {
           >
             {currentStatus?.definition?.name || "Unknown"}
           </span>
+          
+          <div className="mt-2 flex gap-2">
+            {studentData?.student?.isActive !== false ? (
+              <button
+                className="px-2 py-1 text-xs font-[Inter-Medium] text-white bg-red-600 rounded hover:bg-red-700 flex items-center gap-1"
+                onClick={() => setIsDeregisterDialogOpen(true)}
+              >
+                <Icon icon="tabler:user-x" width="14" height="14" />
+                Deregister
+              </button>
+            ) : (
+              <button
+                className="px-2 py-1 text-xs font-[Inter-Medium] text-white bg-green-600 rounded hover:bg-green-700 flex items-center gap-1"
+                onClick={() => setIsReinstateDialogOpen(true)}
+              >
+                <Icon icon="tabler:user-check" width="14" height="14" />
+                Reinstate Student
+              </button>
+            )}
+          </div>
         </div>
 
         <div>
@@ -821,6 +873,82 @@ const StudentProfileProgressPage = ({ studentData }) => {
               {updateSenateApprovalDateMutation.isPending
                 ? "Saving..."
                 : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Deregister Dialog */}
+      <Dialog open={isDeregisterDialogOpen} onOpenChange={setIsDeregisterDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-red-600 font-[Inter-Bold]">Deregister Student</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="deregisterReason">Reason for Deregistration</Label>
+              <Input
+                id="deregisterReason"
+                placeholder="e.g. Exceeded research timeline"
+                value={deregisterReason}
+                onChange={(e) => setDeregisterReason(e.target.value)}
+              />
+            </div>
+            <p className="text-xs text-gray-500 italic">
+              Warning: This will set the student as inactive and record them as deregistered.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeregisterDialogOpen(false)}>Cancel</Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => deregisterStudentMutation.mutate({ studentId: id, reason: deregisterReason })}
+              disabled={deregisterStudentMutation.isPending || !deregisterReason}
+            >
+              {deregisterStudentMutation.isPending ? "Processing..." : "Confirm Deregistration"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reinstate Dialog */}
+      <Dialog open={isReinstateDialogOpen} onOpenChange={setIsReinstateDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-green-600 font-[Inter-Bold]">Reinstate Student</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="reinstateReason">Reason for Reinstatement</Label>
+              <Input
+                id="reinstateReason"
+                placeholder="e.g. Board approved extension"
+                value={reinstateReason}
+                onChange={(e) => setReinstateReason(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newExpectedDate">New Expected Completion Date (Extension)</Label>
+              <Input
+                id="newExpectedDate"
+                type="date"
+                value={newExpectedDate}
+                onChange={(e) => setNewExpectedDate(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsReinstateDialogOpen(false)}>Cancel</Button>
+            <Button 
+              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => reinstateStudentMutation.mutate({ 
+                studentId: id, 
+                reason: reinstateReason, 
+                newExpectedCompletionDate: newExpectedDate 
+              })}
+              disabled={reinstateStudentMutation.isPending || !reinstateReason || !newExpectedDate}
+            >
+              {reinstateStudentMutation.isPending ? "Processing..." : "Reinstate Student"}
             </Button>
           </DialogFooter>
         </DialogContent>

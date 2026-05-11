@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
-import { addYears, format, parseISO } from 'date-fns';
+import { addYears, format, parseISO, isPast } from 'date-fns';
 import { HiOutlineDocumentDuplicate } from 'react-icons/hi';
 import { 
   useGetAllCampuses, 
@@ -13,6 +13,26 @@ import {
 import FormErrorHandler from "@/components/FormErrorHandler/FormErrorHandler";
 
 const EditStudentCourseApplication = ({ studentData, formRef, updateStudentMutation }) => {
+    const extractDateFromRegNo = (regNo) => {
+        if (!regNo) return null;
+        const parts = regNo.split('/');
+        if (parts.length >= 4) {
+            const yearShort = parts[0];
+            const monthShort = parts[3]?.toUpperCase();
+            const monthMap = {
+                'JAN': 0, 'FEB': 1, 'MAR': 2, 'APR': 3,
+                'MAY': 4, 'JUN': 5, 'JUL': 6, 'AUG': 7,
+                'SEP': 8, 'OCT': 9, 'NOV': 10, 'DEC': 11
+            };
+            const monthIndex = monthMap[monthShort];
+            const year = 2000 + parseInt(yearShort);
+            if (monthIndex !== undefined && !isNaN(year)) {
+                return format(new Date(year, monthIndex, 1), 'yyyy-MM-dd');
+            }
+        }
+        return null;
+    };
+
     const [selectedCampusId, setSelectedCampusId] = useState(studentData?.student?.campusId || '');
     const [selectedSchoolId, setSelectedSchoolId] = useState(studentData?.student?.schoolId || '');
     const [selectedCourseId, setSelectedCourseId] = useState(studentData?.student?.courseId || studentData?.student?.course || '');
@@ -22,6 +42,10 @@ const EditStudentCourseApplication = ({ studentData, formRef, updateStudentMutat
     const { data: departments } = useGetAllDepartments(selectedSchoolId || '');
     const { data: courses } = useGetAllCourses({ campusId: selectedCampusId });
     const { data: specializations } = useGetAllSpecializations({ courseId: selectedCourseId });
+
+    const initialAdmissionDate = studentData?.student?.admissionDate 
+        ? format(parseISO(studentData.student.admissionDate), 'yyyy-MM-dd') 
+        : extractDateFromRegNo(studentData?.student?.registrationNumber) || format(new Date(), 'yyyy-MM-dd');
 
     const initialValues = {
         ...studentData?.student,
@@ -35,7 +59,13 @@ const EditStudentCourseApplication = ({ studentData, formRef, updateStudentMutat
         programLevel: studentData?.student?.programLevel || '',
         specialization: studentData?.student?.specializationId || studentData?.student?.specialization || '',
         completionTime: studentData?.student?.completionTime || '',
-        expectedCompletionDate: studentData?.student?.expectedCompletionDate ? format(parseISO(studentData.student.expectedCompletionDate), 'yyyy-MM-dd') : ''
+        extensionYears: studentData?.student?.extensionYears || 0,
+        admissionDate: initialAdmissionDate,
+        expectedCompletionDate: studentData?.student?.expectedCompletionDate 
+            ? format(parseISO(studentData.student.expectedCompletionDate), 'yyyy-MM-dd') 
+            : (initialAdmissionDate && studentData?.student?.completionTime 
+                ? format(addYears(new Date(initialAdmissionDate), parseInt(studentData.student.completionTime)), 'yyyy-MM-dd') 
+                : '')
     };
     
     const validationSchema = Yup.object().shape({
@@ -58,25 +88,40 @@ const EditStudentCourseApplication = ({ studentData, formRef, updateStudentMutat
             onSubmit={(values) => {
                 updateStudentMutation.mutate({
                     ...values,
-                    completionTime: parseInt(values.completionTime)
+                    completionTime: parseInt(values.completionTime),
+                    extensionYears: parseInt(values.extensionYears) || 0
                 });
             }}
         >
-            {({ errors, touched, handleChange, handleBlur, values, setFieldValue }) => (
-                <Form className="space-y-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-lg font-semibold text-gray-900">Course Application</h2>
-                        <button 
-                            type="submit"
-                            disabled={updateStudentMutation.isPending}
-                            className={`inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 ${
-                                updateStudentMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
-                            }`}
-                        >
-                            <HiOutlineDocumentDuplicate className="w-4 h-4 mr-2" />
-                            {updateStudentMutation.isPending ? "Saving..." : "Save Details"}
-                        </button>
-                    </div>
+            {({ errors, touched, handleChange, handleBlur, values, setFieldValue }) => {
+                // eslint-disable-next-line react-hooks/rules-of-hooks
+                useEffect(() => {
+                  if (values.completionTime && values.admissionDate) {
+                    const startDate = new Date(values.admissionDate);
+                    const totalYears = parseInt(values.completionTime) + (parseInt(values.extensionYears) || 0);
+                    const completionDate = addYears(startDate, totalYears);
+                    const formattedDate = format(completionDate, 'yyyy-MM-dd');
+                    if (values.expectedCompletionDate !== formattedDate) {
+                      setFieldValue('expectedCompletionDate', formattedDate);
+                    }
+                  }
+                }, [values.admissionDate, values.completionTime, values.extensionYears, setFieldValue]);
+
+                return (
+                    <Form className="space-y-6">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-lg font-semibold text-gray-900">Course Application</h2>
+                            <button 
+                                type="submit"
+                                disabled={updateStudentMutation.isPending}
+                                className={`inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 ${
+                                    updateStudentMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
+                                }`}
+                            >
+                                <HiOutlineDocumentDuplicate className="w-4 h-4 mr-2" />
+                                {updateStudentMutation.isPending ? "Saving..." : "Save Details"}
+                            </button>
+                        </div>
 
                     <div className="grid grid-cols-2 gap-6">
                         {/* Campus */}
@@ -135,7 +180,8 @@ const EditStudentCourseApplication = ({ studentData, formRef, updateStudentMutat
                                         setFieldValue('departmentId', spec.departmentId || '');
                                         if (spec.duration) {
                                             setFieldValue('completionTime', spec.duration);
-                                            const date = addYears(new Date(), spec.duration);
+                                            const baseDate = values.admissionDate ? new Date(values.admissionDate) : new Date();
+                                            const date = addYears(baseDate, spec.duration);
                                             setFieldValue('expectedCompletionDate', format(date, 'yyyy-MM-dd'));
                                         }
                                     } else {
@@ -259,12 +305,44 @@ const EditStudentCourseApplication = ({ studentData, formRef, updateStudentMutat
                                 onChange={(e) => {
                                     handleChange(e);
                                     const years = parseInt(e.target.value);
-                                    if (years > 0) {
-                                        const date = addYears(new Date(), years);
+                                    if (years > 0 && values.admissionDate) {
+                                        const date = addYears(new Date(values.admissionDate), years);
                                         setFieldValue('expectedCompletionDate', format(date, 'yyyy-MM-dd'));
                                     }
                                 }}
                                 className={`w-full h-9 rounded-md border ${errors.completionTime && touched.completionTime ? "border-red-500" : "border-gray-200"} px-3 py-2 text-sm bg-gray-50`}
+                            />
+                        </div>
+
+                        {/* Admission Date */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Admission Date</label>
+                            <input
+                                type="date"
+                                name="admissionDate"
+                                value={values.admissionDate}
+                                onChange={(e) => {
+                                    handleChange(e);
+                                    const date = e.target.value;
+                                    if (date && values.completionTime) {
+                                        const compDate = addYears(new Date(date), parseInt(values.completionTime));
+                                        setFieldValue('expectedCompletionDate', format(compDate, 'yyyy-MM-dd'));
+                                    }
+                                }}
+                                className="w-full h-9 rounded-md border border-gray-200 px-3 py-2 text-sm bg-gray-50"
+                            />
+                        </div>
+
+                        {/* Extension Period */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Extension Period (Years)</label>
+                            <input
+                                type="number"
+                                name="extensionYears"
+                                value={values.extensionYears}
+                                onChange={handleChange}
+                                placeholder="Additional years"
+                                className="w-full h-9 rounded-md border border-gray-200 px-3 py-2 text-sm bg-gray-50"
                             />
                         </div>
 
@@ -275,13 +353,20 @@ const EditStudentCourseApplication = ({ studentData, formRef, updateStudentMutat
                                 type="date"
                                 name="expectedCompletionDate"
                                 value={values.expectedCompletionDate}
-                                disabled
-                                className="w-full h-9 rounded-md border border-gray-200 px-3 py-2 text-sm bg-gray-200"
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                className="w-full h-9 rounded-md border border-gray-200 px-3 py-2 text-sm bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-500"
                             />
+                            {values.expectedCompletionDate && isPast(new Date(values.expectedCompletionDate)) && (
+                                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                                    Warning: This student has exceeded the normal completion time.
+                                </div>
+                            )}
                         </div>
                     </div>
                 </Form>
-            )}
+            );
+        }}
         </Formik>
     );
 };

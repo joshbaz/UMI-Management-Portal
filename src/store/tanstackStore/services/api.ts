@@ -468,6 +468,24 @@ export const getStudentStatusesService = async (studentId: string) => {
     }
 };
 
+export const deregisterStudentService = async (studentId: string, reason: string) => {
+    try {
+        const response = await apiRequest.post(`/management/students/${studentId}/deregister`, { reason });
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
+export const reinstateStudentService = async (studentId: string, data: { newExpectedCompletionDate: string, reason: string }) => {
+    try {
+        const response = await apiRequest.post(`/management/students/${studentId}/reinstate`, data);
+        return response.data;
+    } catch (error) {
+        errorHandling(error);
+    }
+};
+
 
 
 /* ********** STATUS ********** */
