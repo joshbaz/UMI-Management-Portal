@@ -58,25 +58,25 @@ const validationSchema = Yup.object().shape({
     .min(1, 'Duration must be at least 1 day')
     .max(1000, 'Duration must be less than 1000 days'),
   warningDays: Yup.number()
-    .nullable() 
+    .nullable()
     .transform((value) => (isNaN(value) ? null : value))
-    .test('warning-days', 'Warning days must be less than expected duration', function(value) {
-      const { expectedDuration } = this.parent;
-      if (!value || !expectedDuration) return true;
-      return value < expectedDuration;
+    .test('warning-days', 'Warning days must be less than critical days', function (value) {
+      const { criticalDays } = this.parent;
+      if (!value || !criticalDays) return true;
+      return value < criticalDays;
     }),
   criticalDays: Yup.number()
     .nullable()
     .transform((value) => (isNaN(value) ? null : value))
-    .test('critical-days', 'Critical days must be less than warning days', function(value) {
-      const { warningDays } = this.parent;
-      if (!value || !warningDays) return true;
-      return value < warningDays;
+    .test('critical-days', 'Critical days must be less than expected duration', function (value) {
+      const { expectedDuration } = this.parent;
+      if (!value || !expectedDuration) return true;
+      return value < expectedDuration;
     }),
   delayDays: Yup.number()
     .nullable()
     .transform((value) => (isNaN(value) ? null : value))
-    .test('delay-days', 'Delay days must be more than expected duration', function(value) {
+    .test('delay-days', 'Delay days must be more than expected duration', function (value) {
       const { expectedDuration } = this.parent;
       if (!value || !expectedDuration) return true;
       return value > expectedDuration;
@@ -138,12 +138,12 @@ const CreateStatusModal = ({ isOpen, onClose }) => {
         >
           {({ values, errors, touched, handleChange, setFieldValue }) => (
             <Form >
-              <StatusFormBody 
-                values={values} 
-                errors={errors} 
-                touched={touched} 
-                handleChange={handleChange} 
-                setFieldValue={setFieldValue} 
+              <StatusFormBody
+                values={values}
+                errors={errors}
+                touched={touched}
+                handleChange={handleChange}
+                setFieldValue={setFieldValue}
                 isPending={createStatusMutation.isPending}
                 onClose={onClose}
                 submitLabel="Create Status"
@@ -198,12 +198,12 @@ const EditStatusModal = ({ isOpen, onClose, status }) => {
         >
           {({ values, errors, touched, handleChange, setFieldValue }) => (
             <Form >
-              <StatusFormBody 
-                values={values} 
-                errors={errors} 
-                touched={touched} 
-                handleChange={handleChange} 
-                setFieldValue={setFieldValue} 
+              <StatusFormBody
+                values={values}
+                errors={errors}
+                touched={touched}
+                handleChange={handleChange}
+                setFieldValue={setFieldValue}
                 isPending={updateStatusMutation.isPending}
                 onClose={onClose}
                 submitLabel="Update Status"
@@ -234,7 +234,7 @@ const StatusFormBody = ({ values, errors, touched, handleChange, setFieldValue, 
             <p className="mt-1 text-xs text-red-500">{errors.name}</p>
           )}
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-700">Description</label>
           <textarea
@@ -263,7 +263,7 @@ const StatusFormBody = ({ values, errors, touched, handleChange, setFieldValue, 
               <p className="mt-1 text-xs text-red-500">{errors.expectedDuration}</p>
             )}
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700">Warning Days</label>
             <input
@@ -313,24 +313,23 @@ const StatusFormBody = ({ values, errors, touched, handleChange, setFieldValue, 
           <label className="block text-sm font-medium text-gray-700">Notify Roles (optional)</label>
           <div className="flex flex-wrap gap-2 mt-1">
             {[
-              {value: 'SUPER_ADMIN', label: 'Super Admin'},
-              {value: 'MANAGER', label: 'Manager'},
-              {value: 'RESEARCH_ADMIN', label: 'Research Center Admin'}, 
-              {value: 'SCHOOL_ADMIN', label: 'School Admin'},
-              {value: 'FACULTY', label: 'Faculty'},
-              {value: 'STUDENT', label: 'Student'},
-              {value: 'SUPERVISOR', label: 'Supervisor'},
-              {value: 'EXAMINER', label: 'Examiner'},
-              {value: 'DEAN', label: 'Dean'}
+              { value: 'SUPER_ADMIN', label: 'Super Admin' },
+              { value: 'MANAGER', label: 'Manager' },
+              { value: 'RESEARCH_ADMIN', label: 'Research Center Admin' },
+              { value: 'SCHOOL_ADMIN', label: 'School Admin' },
+              { value: 'FACULTY', label: 'Faculty' },
+              { value: 'STUDENT', label: 'Student' },
+              { value: 'SUPERVISOR', label: 'Supervisor' },
+              { value: 'EXAMINER', label: 'Examiner' },
+              { value: 'DEAN', label: 'Dean' }
             ].map(role => (
               <button
                 key={role.value}
                 type="button"
-                className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                  values.notifyRoles?.includes(role.value)
-                    ? 'bg-primary-100 text-primary-700 border-2 border-primary-500'
-                    : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
-                }`}
+                className={`px-3 py-1 rounded-full text-sm transition-colors ${values.notifyRoles?.includes(role.value)
+                  ? 'bg-primary-100 text-primary-700 border-2 border-primary-500'
+                  : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+                  }`}
                 onClick={() => {
                   const newRoles = values.notifyRoles?.includes(role.value)
                     ? values.notifyRoles.filter(r => r !== role.value)
@@ -350,12 +349,12 @@ const StatusFormBody = ({ values, errors, touched, handleChange, setFieldValue, 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Status Color</label>
           <div className="flex gap-4 items-start">
-            <HexColorPicker 
-              color={values.color} 
-              onChange={(color) => setFieldValue('color', color)} 
+            <HexColorPicker
+              color={values.color}
+              onChange={(color) => setFieldValue('color', color)}
             />
             <div className="flex-1 space-y-2">
-              <div 
+              <div
                 className="w-full h-10 rounded-md border border-gray-300"
                 style={{ backgroundColor: values.color }}
               ></div>
@@ -478,12 +477,12 @@ const StatusManagement = () => {
         accessorKey: "description",
         header: "Description",
         cell: (info) => (
-            <span
-                onClick={() => handleEditClick(info.row.original)}
-                className="text-left hover:text-primary-600 cursor-pointer whitespace-normal break-words line-clamp-2"
-            >
-                {info.getValue()}
-            </span>
+          <span
+            onClick={() => handleEditClick(info.row.original)}
+            className="text-left hover:text-primary-600 cursor-pointer whitespace-normal break-words line-clamp-2"
+          >
+            {info.getValue()}
+          </span>
         ),
       },
       {
@@ -505,7 +504,7 @@ const StatusManagement = () => {
         ),
       },
       {
-        accessorKey: "criticalDays", 
+        accessorKey: "criticalDays",
         header: "Critical Days",
         cell: (info) => (
           <span className="text-red-600 font-medium">
@@ -554,10 +553,10 @@ const StatusManagement = () => {
           </span>
         ),
       },
-    
+
       {
         accessorKey: "updatedAt",
-        header: "Updated At", 
+        header: "Updated At",
         cell: (info) => new Date(info.getValue()).toLocaleDateString(),
       },
       {
@@ -585,14 +584,14 @@ const StatusManagement = () => {
   // Filter status data based on search query
   const filteredStatusData = useMemo(() => {
     let filtered = statusDefinitions?.statusDefinitions || [];
-    
+
     if (searchQuery) {
       filtered = filtered.filter((item) =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.description.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    
+
     // Sort by stepOrder (ascending)
     return [...filtered].sort((a, b) => {
       const orderA = a.stepOrder ?? Infinity;
@@ -610,7 +609,7 @@ const StatusManagement = () => {
   });
 
   const table = useReactTable({
-    data:  filteredStatusData,
+    data: filteredStatusData,
     columns: columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -635,7 +634,7 @@ const StatusManagement = () => {
     <div className="min-h-full bg-gray-50">
       <CreateStatusModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
       <EditStatusModal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setSelectedStatus(null); }} status={selectedStatus} />
-      
+
       {/* Global Search */}
       <div className="flex items-center justify-between py-6 px-6 pb-0 w-full h-[89px] border-b border-gray-200 bg-white">
         {/* <h2 className="text-lg font-[Inter-SemiBold] text-gray-800">DRIMS</h2> */}
@@ -652,7 +651,7 @@ const StatusManagement = () => {
           <p className="text-sm text-gray-500 mt-1">Configure and manage research workflow status definitions</p>
         </div>
         <div className="flex items-center gap-4">
-         
+
           <div className="text-xs text-gray-400 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-100">
             TIMESTAMP: {format(new Date(), "yyyy-MM-dd HH:mm:ss")}
           </div>
@@ -667,15 +666,14 @@ const StatusManagement = () => {
             <div className="flex gap-8 px-6">
               <button
                 onClick={() => setActiveTab("notifications")}
-                className={`py-4 px-1 border-b-2 transition-colors ${
-                  activeTab === "notifications"
-                    ? "border-primary-500 text-primary-500"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                } font-semibold text-sm focus:outline-none`}
+                className={`py-4 px-1 border-b-2 transition-colors ${activeTab === "notifications"
+                  ? "border-primary-500 text-primary-500"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  } font-semibold text-sm focus:outline-none`}
               >
-               Status Definitions
+                Status Definitions
               </button>
-           
+
             </div>
           </div>
 
@@ -689,7 +687,7 @@ const StatusManagement = () => {
               />
             </div>
 
-          
+
             <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-gray-500 font-medium">Rows:</span>
@@ -710,7 +708,7 @@ const StatusManagement = () => {
                   ))}
                 </select>
               </div>
-              <button 
+              <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all shadow-sm font-medium text-sm flex items-center gap-2"
               >
@@ -733,9 +731,9 @@ const StatusManagement = () => {
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                       </th>
                     ))}
                   </tr>
@@ -802,11 +800,10 @@ const StatusManagement = () => {
               ).map((pageNumber) => (
                 <button
                   key={pageNumber}
-                  className={`w-8 h-8 rounded-md text-xs font-bold transition-all ${
-                    pageNumber === table.getState().pagination.pageIndex + 1
-                      ? "bg-primary-500 text-white shadow-sm"
-                      : "text-gray-500 hover:bg-gray-100"
-                  }`}
+                  className={`w-8 h-8 rounded-md text-xs font-bold transition-all ${pageNumber === table.getState().pagination.pageIndex + 1
+                    ? "bg-primary-500 text-white shadow-sm"
+                    : "text-gray-500 hover:bg-gray-100"
+                    }`}
                   onClick={() => table.setPageIndex(pageNumber - 1)}
                 >
                   {pageNumber}
@@ -823,7 +820,7 @@ const StatusManagement = () => {
           </div>
         </div>
       </div>
-     
+
     </div>
   );
 };
