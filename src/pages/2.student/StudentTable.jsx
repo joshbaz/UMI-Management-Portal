@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { useReactTable, getCoreRowModel, flexRender,  getPaginationRowModel,
-  getFilteredRowModel, createColumnHelper } from "@tanstack/react-table";
+import {
+  useReactTable, getCoreRowModel, flexRender, getPaginationRowModel,
+  getFilteredRowModel, createColumnHelper
+} from "@tanstack/react-table";
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -40,7 +42,7 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
 
   const columnHelper = createColumnHelper();
   const columns = [
-    columnVisibility?.fullname && { 
+    columnVisibility?.fullname && {
       accessorKey: "fullName",
       header: "Fullname",
       cell: ({ row }) => (
@@ -49,42 +51,42 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
         </span>
       )
     },
-    columnVisibility?.email && { 
-      accessorKey: "email", 
-      header: "Email Address" 
+    columnVisibility?.email && {
+      accessorKey: "email",
+      header: "Email Address"
     },
-    columnVisibility?.campus && { 
-      accessorKey: "campus", 
-      header: "Campus" ,
+    columnVisibility?.campus && {
+      accessorKey: "campus",
+      header: "Campus",
       cell: (info) => {
         return (
           <span>{info.row.original.campus?.name}</span>
         );
       }
     },
-    columnVisibility?.schoolCode && { 
+    columnVisibility?.schoolCode && {
       accessorKey: "schoolCode",
       header: "School Code",
       cell: (info) => {
-       
-        
+
+
         return (
-          <div className="text-sm flex flex-row text-center items-center gap-1 justify-start"> <span>{info.row.original.school?.code}</span>  
-           <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <Icon
-                icon="tdesign:info-circle-filled"
-                className="w-4 h-4 mt-1 text-gray-400"
-              />
-            </TooltipTrigger>
-            <TooltipContent>{info.row.original.school?.name}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider></div>
+          <div className="text-sm flex flex-row text-center items-center gap-1 justify-start"> <span>{info.row.original.school?.code}</span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Icon
+                    icon="tdesign:info-circle-filled"
+                    className="w-4 h-4 mt-1 text-gray-400"
+                  />
+                </TooltipTrigger>
+                <TooltipContent>{info.row.original.school?.name}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider></div>
         );
       }
     },
-    columnVisibility?.program && { 
+    columnVisibility?.program && {
       accessorKey: "programLevel",
       header: "Program",
       cell: ({ row }) => (
@@ -93,7 +95,7 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
         </span>
       )
     },
-    columnVisibility?.status && { 
+    columnVisibility?.status && {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => (
@@ -112,7 +114,7 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
         </span>
       )
     },
-     {
+    {
       accessorKey: "timeInStatus",
       header: "Time in Status",
       cell: ({ row }) => {
@@ -120,11 +122,11 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
         if (!currentStatus || !currentStatus.startDate) {
           return <span className="text-gray-400">N/A</span>;
         }
-        
+
         const startDate = new Date(currentStatus.startDate);
         const now = new Date();
         const diffInDays = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
-        
+
         let timeDisplay;
         if (diffInDays < 1) {
           timeDisplay = "Today";
@@ -140,7 +142,7 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
           const remainingMonths = Math.floor((diffInDays % 365) / 30);
           timeDisplay = `${years} ${years === 1 ? 'year' : 'years'}${remainingMonths > 0 ? `, ${remainingMonths} ${remainingMonths === 1 ? 'month' : 'months'}` : ''}`;
         }
-        
+
         return (
           <span className="text-sm">
             {timeDisplay}
@@ -152,7 +154,7 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
       accessorKey: "actions",
       header: "",
       cell: ({ row }) => (
-        <button 
+        <button
           className="w-max px-2 h-6 rounded border border-[#E5E7EB] text-sm font-inter font-normal text-[#111827] shadow-[0px_1px_2px_0px_#0000000D] hover:bg-gray-50"
           onClick={() => handleOpenProfile(row.original.id)}
         >
@@ -163,7 +165,7 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
   ].filter(Boolean);
 
 
-  const effectiveColumnVisibility = columnVisibility ;
+  const effectiveColumnVisibility = columnVisibility;
 
   const table = useReactTable({
     data: students,
@@ -171,7 +173,7 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
     state: {
       globalFilter,
       columnVisibility: effectiveColumnVisibility,
-     
+
     },
     getFilteredRowModel: getFilteredRowModel(),
     getCoreRowModel: getCoreRowModel(),
@@ -185,8 +187,8 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <th 
-                  key={header.id} 
+                <th
+                  key={header.id}
                   className="px-4 py-3 text-left text-[#111827] font-inter font-semibold text-[14px] leading-[20px]"
                 >
                   {flexRender(header.column.columnDef.header, header.getContext())}
@@ -199,8 +201,8 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
           {table.getRowModel().rows.map((row) => (
             <tr key={row.id}>
               {row.getVisibleCells().map((cell) => (
-                <td 
-                  key={cell.id} 
+                <td
+                  key={cell.id}
                   className="px-4 py-2 whitespace-nowrap text-[#111827] font-inter font-normal text-[14px] leading-[20px]"
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}

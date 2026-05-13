@@ -65,8 +65,8 @@ const GradeManagementBookTable = ({
         header: "Student",
         cell: (info) => (
           <div className="capitalize">
-            {`${info.getValue().firstName} ${info.getValue().lastName}`}
-            <div className="text-xs text-gray-500 lowercase">{info.getValue().email}</div>
+            {info.getValue()?.fullName || "Unknown"}
+            <div className="text-xs text-gray-500 lowercase">{info.getValue()?.email}</div>
           </div>
         ),
       }),

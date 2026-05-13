@@ -29,6 +29,24 @@ const getStudentMarks = (row) => {
   return { textMarks, vivaMarks };
 };
 
+const getSupervisorByRole = (student, targetRole) => {
+  if (!student || !student.supervisors || !student.supervisorRoles) return "N/A";
+  const roles = student.supervisorRoles || {};
+  
+  const supervisor = student.supervisors.find(s => {
+    const role = (roles[s.id] || "").toUpperCase().replace(/[^A-Z]/g, '');
+    if (targetRole === "MAIN") {
+      return role === "MAIN" || role.includes("MAINSUPERVISOR");
+    }
+    if (targetRole === "CO") {
+      return role === "CO" || role === "COSUPERVISOR" || role.includes("COSUPERVISOR");
+    }
+    return false;
+  });
+  
+  return supervisor ? supervisor.name : "N/A";
+};
+
 function groupBy(arr, keyFn) {
   return arr.reduce((acc, item) => {
     const key = keyFn(item) || 'Unknown';
@@ -100,7 +118,7 @@ const GradeManagementVivaReportsTable = ({ data, proposalsData, pageSize, setPag
       cell: info => info.getValue() || "N/A",
       size: 120,
     }),
-    columnHelper.accessor(row => `${row.student?.firstName || ""} ${row.student?.lastName || ""}`, {
+    columnHelper.accessor(row => row.student?.fullName || "N/A", {
       header: "NAME",
       id: "studentName",
       size: 160,
@@ -116,12 +134,12 @@ const GradeManagementVivaReportsTable = ({ data, proposalsData, pageSize, setPag
       cell: info => info.getValue() ? format(new Date(info.getValue()), "dd-MMM-yyyy") : "-",
       size: 120,
     }),
-    columnHelper.accessor(row => row.mainSupervisor?.name || row.mainSupervisor || "N/A", {
+    columnHelper.accessor(row => getSupervisorByRole(row.student, "MAIN"), {
       header: "MAIN SUPERVISOR",
       id: "mainSupervisor",
       size: 140,
     }),
-    columnHelper.accessor(row => row.coSupervisor?.name || row.coSupervisor || "N/A", {
+    columnHelper.accessor(row => getSupervisorByRole(row.student, "CO"), {
       header: "CO-SUPERVISOR",
       id: "coSupervisor",
       size: 140,
@@ -145,7 +163,7 @@ const GradeManagementVivaReportsTable = ({ data, proposalsData, pageSize, setPag
       id: "no",
       size: 40,
     }),
-    columnHelper.accessor(row => `${row.student?.firstName || ""} ${row.student?.lastName || ""}`, {
+    columnHelper.accessor(row => row.student?.fullName || "N/A", {
       header: "NAME",
       id: "studentName",
       size: 160,
@@ -241,11 +259,11 @@ const GradeManagementVivaReportsTable = ({ data, proposalsData, pageSize, setPag
     }
     return [
       item.student?.registrationNumber || "N/A",
-      `${item.student?.firstName || ""} ${item.student?.lastName || ""}`,
+      item.student?.fullName || "N/A",
       item.researchTopic || item.title || "N/A",
       currentDefense?.scheduledDate ? format(new Date(currentDefense.scheduledDate), "dd-MMM-yyyy") : "-",
-      item.mainSupervisor?.name || item.mainSupervisor || "N/A",
-      item.coSupervisor?.name || item.coSupervisor || "N/A",
+      getSupervisorByRole(item.student, "MAIN"),
+      getSupervisorByRole(item.student, "CO"),
       status
     ];
   };
@@ -255,7 +273,7 @@ const GradeManagementVivaReportsTable = ({ data, proposalsData, pageSize, setPag
     const vivaTotal = (vivaMarks.internal * 0.2) + (vivaMarks.external * 0.2);
     return [
       index + 1,
-      `${item.student?.firstName || ""} ${item.student?.lastName || ""}`,
+      item.student?.fullName || "N/A",
       item.student?.registrationNumber || "N/A",
       item.student?.gender === "male" ? "M" : "F" || "N/A",
       item.student?.course || "N/A",

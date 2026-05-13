@@ -195,7 +195,7 @@ const GradeProposal = () => {
                 Back
               </button>
               <span className="text-lg font-[Inter-SemiBold] capitalize text-gray-900">
-                {`${proposal?.proposal?.student?.firstName} ${proposal?.proposal?.student?.lastName}` || "Loading..."}
+                {proposal?.proposal?.student?.fullName || "Loading..."}
               </span>
             </div>
             {!isProposalActive && (
@@ -247,6 +247,16 @@ const GradeProposal = () => {
             {totalDays} {expectedDays ? `of ${expectedDays} days` : 'day(s)'}
           </span>
         </div>
+      </div>
+
+      {/* Proposal Title */}
+      <div className="px-6 mt-6">
+        <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
+          Proposal Title
+        </h3>
+        <p className="text-sm font-[Inter-Medium] text-gray-900 bg-gray-50 p-3 rounded-lg border border-gray-100 italic">
+          "{proposal?.proposal?.title}"
+        </p>
       </div>
 
 {/* Compliance Report and Letter to Field */}

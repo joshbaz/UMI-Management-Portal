@@ -35,12 +35,9 @@ const GradeManagement = () => {
     return (proposalsData?.proposals || []).filter(
       (proposal) =>
         activeTab === "Proposal Grading" &&
-        (proposal?.student?.firstName
+        (proposal?.student?.fullName
           ?.toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-          proposal?.student?.lastName
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
           proposal?.student?.email
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()))
@@ -52,12 +49,9 @@ const GradeManagement = () => {
     return (booksData?.books || []).filter(
       (book) =>
         activeTab === "Dissertation Examination" &&
-        (book?.student?.firstName
+        (book?.student?.fullName
           ?.toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-          book?.student?.lastName
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
           book?.student?.email
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()))

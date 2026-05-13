@@ -56,9 +56,13 @@ const GradeManagementProposalTable = ({
       columnHelper.accessor("student", {
         header: "Student",
         cell: (info) => (
-          <div className="capitalize">
-            {`${info.getValue().firstName} ${info.getValue().lastName}`}
-            {/* <div className="text-xs text-gray-500">{info.getValue().email}</div> */}
+          <div className="flex flex-col">
+            <span className="capitalize font-[Inter-Medium] text-gray-900">
+              {info.getValue()?.fullName || "Unknown Student"}
+            </span>
+            <span className="text-[10px] text-gray-500 italic line-clamp-1 max-w-[250px]">
+              {info.row.original.title}
+            </span>
           </div>
         ),
       }),
