@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { format } from "date-fns";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { Search, Plus, X, ArrowLeft, Building, Globe } from "lucide-react";
@@ -269,28 +270,34 @@ const GradeBookAddExternalExaminer = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* Search Bar */}
-      <div className="p-6 border-b min-h-[90px] border-gray-300 w-full"></div>
+      {/* Top Search Bar */}
+      <div className="flex px-6 justify-between items-center border-b border-gray-300 h-[89px]"></div>
 
-      {/* Control Panel */}
+      {/* Header */}
+      <div className="flex justify-between items-center px-6 py-1">
+        <h1 className="text-2xl font-[Inter-Medium]">Assign External Examiner</h1>
+        <span className="text-sm font-[Inter-Regular] text-gray-500">
+          Last login: {format(new Date(), "MM-dd-yyyy hh:mm:ssaa")}
+        </span>
+      </div>
+
       <div className="px-6 py-4 mb-4">
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+        <div className="bg-white p-4 rounded-[10px] shadow-md">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <Button
+              <button
                 onClick={() => navigate(-1)}
-                variant="outline"
-                className="inline-flex items-center gap-2"
+                className="inline-flex items-center px-4 py-2 bg-[#23388F] text-white rounded-[6px] gap-2 hover:bg-blue-600"
               >
                 <ArrowLeft className="w-5 h-5" />
                 Back
-              </Button>
+              </button>
               <div className="flex flex-col">
-                <span className="text-lg font-medium text-gray-900">
+                <span className="text-lg font-[Inter-SemiBold] capitalize text-gray-900">
                   Book: {bookData?.book?.title || "Loading..."}
                 </span>
                 <span className="text-sm font-[Inter-Medium] capitalize text-gray-600">
-                  Student: {`${bookData?.book?.student?.firstName} ${bookData?.book?.student?.lastName}` || "Not Available"}
+                  Student: {bookData?.book?.student?.fullName || "Not Available"}
                 </span>
               </div>
             </div>
