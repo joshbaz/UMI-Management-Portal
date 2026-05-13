@@ -244,37 +244,39 @@ const GradeBook = () => {
       </div>
 
       {/** Minutes sent and compliance received buttons */}
-      <div className="grid grid-cols-3 px-6 pb-4">
+      <div className="grid grid-cols-3 px-6 pb-4 gap-6">
         <div>
           <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
             Minutes Sent
           </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-[Inter-Regular] text-gray-900">
+          <div className="flex items-center gap-3">
+            <div className="bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-[6px] text-sm font-[Inter-Regular] text-gray-900 min-w-[120px]">
               {book?.book?.minutesSentDate ? format(new Date(book.book.minutesSentDate), "dd-MMM-yyyy") : "Not Sent"}
-            </span>
+            </div>
             <button
               onClick={() => setIsMinutesDateDialogOpen(true)}
-              className="p-1 rounded-full hover:bg-gray-100"
+              className="inline-flex items-center gap-2 px-4 py-1.5 text-sm font-[Inter-Medium] text-white bg-[#23388F] rounded-[6px] hover:bg-blue-600 transition-colors shadow-sm"
             >
-              <Calendar className="h-4 w-4 text-gray-500" />
+              <Calendar className="h-4 w-4" />
+              Update
             </button>
           </div>
         </div>
 
-        <div>
+        <div className="col-span-2">
           <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
             Final Submission Topic & Compliance Report Date
           </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-[Inter-Regular] text-gray-900">
+          <div className="flex items-center gap-3">
+            <div className="bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-[6px] text-sm font-[Inter-Regular] text-gray-900 min-w-[120px]">
               {book?.book?.complianceReportDate ? format(new Date(book.book.complianceReportDate), "dd-MMM-yyyy") : "Not Received"}
-            </span>
+            </div>
             <button
               onClick={() => setIsComplianceReportDialogOpen(true)}
-              className="p-1 rounded-full hover:bg-gray-100"
+              className="inline-flex items-center gap-2 px-4 py-1.5 text-sm font-[Inter-Medium] text-white bg-[#23388F] rounded-[6px] hover:bg-blue-600 transition-colors shadow-sm"
             >
-              <Calendar className="h-4 w-4 text-gray-500" />
+              <Calendar className="h-4 w-4" />
+              Update
             </button>
           </div>
         </div>
@@ -287,8 +289,8 @@ const GradeBook = () => {
             <button
               onClick={() => setActiveTab("examiners")}
               className={`py-2 px-6 text-sm font-[Inter-Medium] rounded-lg ${activeTab === "examiners"
-                  ? "border-2 border-primary-600 text-primary-600"
-                  : "border-2 border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ? "border-2 border-primary-600 text-primary-600"
+                : "border-2 border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
             >
               Dissertation Examiners
@@ -296,8 +298,8 @@ const GradeBook = () => {
             <button
               onClick={() => setActiveTab("vivas")}
               className={`py-2 px-6 text-sm font-[Inter-Medium] rounded-lg ${activeTab === "vivas"
-                  ? "border-2 border-primary-600 text-primary-600"
-                  : "border-2 border-gray-200text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ? "border-2 border-primary-600 text-primary-600"
+                : "border-2 border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
             >
               Vivas

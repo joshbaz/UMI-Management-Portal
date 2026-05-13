@@ -87,7 +87,7 @@ const SchoolTable = ({ schoolName, schoolData, onExport, onSendToSchool, onSenat
           {schoolName} ({schoolData.length} students)
         </h3>
         <div className="flex gap-2">
-          <Button 
+          <Button
             onClick={() => onExport(schoolName, schoolData)}
             variant="outline"
             size="sm"
@@ -97,7 +97,7 @@ const SchoolTable = ({ schoolName, schoolData, onExport, onSendToSchool, onSenat
             Export {schoolName}
           </Button>
           {tab === "results-approved-at-centre" && (
-            <Button 
+            <Button
               onClick={() => onSendToSchool(schoolName, schoolData)}
               size="sm"
               className="bg-blue-600 hover:bg-blue-700"
@@ -107,7 +107,7 @@ const SchoolTable = ({ schoolName, schoolData, onExport, onSendToSchool, onSenat
             </Button>
           )}
           {tab === "results-sent" && (
-            <Button 
+            <Button
               onClick={handleSenateApproveSelected}
               size="sm"
               className="bg-green-600 hover:bg-green-700"
@@ -118,25 +118,25 @@ const SchoolTable = ({ schoolName, schoolData, onExport, onSendToSchool, onSenat
           )}
         </div>
       </div>
-      
+
       <div className="overflow-x-auto rounded-md border">
         <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
           <thead className="bg-gray-50">
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map(header => (
-                  <th 
-                    key={header.id} 
-                    colSpan={header.colSpan} 
+                  <th
+                    key={header.id}
+                    colSpan={header.colSpan}
                     className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-gray-600 border border-gray-200"
                     style={{ width: header.getSize() }}
                   >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </th>
                 ))}
               </tr>
@@ -147,8 +147,8 @@ const SchoolTable = ({ schoolName, schoolData, onExport, onSendToSchool, onSenat
               table.getRowModel().rows.map(row => (
                 <tr key={row.id} className="hover:bg-gray-50">
                   {row.getVisibleCells().map(cell => (
-                    <td 
-                      key={cell.id} 
+                    <td
+                      key={cell.id}
                       className="px-2 py-2 text-xs border border-gray-200 text-center"
                       style={{ width: cell.column.getSize() }}
                     >
@@ -207,7 +207,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     return data.filter(book => {
       const isCurrentBook = book.isCurrent === true;
       const hasFinalStatus = book.student?.statuses?.some(status =>
-         status.definition?.name === 'final dissertation & compliance report received'
+        status.definition?.name === 'final dissertation & compliance report received'
       );
       const isNotGraduated = !book.student?.statuses?.some(status =>
         status.isCurrent &&
@@ -222,7 +222,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     return filteredData.filter(book => {
       const hasResultsApprovedDate = book.student?.resultsApprovedDate;
       const hasResultsApprovedStatus = book.student?.statuses?.some(status =>
-         status.definition?.name === 'results approved'
+        status.definition?.name === 'results approved'
       );
       return !hasResultsApprovedDate && !hasResultsApprovedStatus;
     });
@@ -235,7 +235,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
         status.isCurrent && status.definition?.name === 'results approved'
       );
       const hasResultsSentDate = book.student?.resultsSentDate;
-      
+
       return (hasResultsApprovedDate || hasResultsApprovedStatus) && !hasResultsSentDate;
     });
   }, [filteredData]);
@@ -247,7 +247,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
         status.isCurrent && status.definition?.name === 'results sent to schools'
       );
       const hasSenateApprovalDate = book.student?.senateApprovalDate;
-      
+
       return (hasResultsSentDate || hasResultsSentToSchoolsStatus) && !hasSenateApprovalDate;
     });
   }, [filteredData]);
@@ -258,7 +258,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
       const hasResultsApprovedBySenateStatus = book.student?.statuses?.some(status =>
         status.isCurrent && status.definition?.name === 'results approved by senate'
       );
-      
+
       return hasSenateApprovalDate || hasResultsApprovedBySenateStatus;
     });
   }, [filteredData]);
@@ -266,7 +266,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
   // Group data for reports tab
   const groupedReportsData = useMemo(() => {
     // Use student.course and student.school if available, fallback to registrationNumber and campus.location
-    return groupBy(filteredData, row => row.student?.course || row.student?.registrationNumber?.split('/')[2] || 'Unknown');
+    return groupBy(filteredData, row => row.student?.course?.code || row.student?.course?.title || row.student?.registrationNumber?.split('/')[2] || 'Unknown');
   }, [filteredData]);
 
   // For each course, group by school (or campus/location)
@@ -292,14 +292,14 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     return mostCommon;
   }, [filteredData]);
 
-   // Reports table columns based on the image
-   const reportsColumns = useMemo(() => [
+  // Reports table columns based on the image
+  const reportsColumns = useMemo(() => [
     columnHelper.accessor((row, index) => index + 1, {
       header: "No",
       id: "no",
       size: 40,
     }),
-    columnHelper.accessor(row => `${row.student?.firstName || ""} ${row.student?.lastName || ""}`, {
+    columnHelper.accessor(row => row.student?.fullName || "N/A", {
       header: "NAME",
       id: "studentName",
       size: 160,
@@ -315,7 +315,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
       id: "gender",
       size: 60,
     }),
-    columnHelper.accessor(row => row.student?.course || "N/A", {
+    columnHelper.accessor(row => row.student?.course?.code || row.student?.course?.title || "N/A", {
       header: "COURSE",
       id: "course",
       size: 80,
@@ -325,9 +325,9 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
       id: "yearOfEnrollment",
       size: 120,
     }),
-    columnHelper.accessor(row => row.student?.registrationNumber?.split('/')[3] || "N/A", {
+    columnHelper.accessor(row => row.student?.campus?.location || "N/A", {
       header: "BRANCH",
-      id: "branch",
+      id: "campus",
       size: 80,
     }),
     columnHelper.group({
@@ -462,7 +462,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
   const approveMultipleMutation = useMutation({
     mutationFn: ({ booksToApprove, approvalDate }) => {
       const promises = booksToApprove.map(book =>
-        updateResultsApprovalDateService(book.student.id, approvalDate )
+        updateResultsApprovalDateService(book.student.id, approvalDate)
       );
       return Promise.all(promises);
     },
@@ -470,7 +470,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
       toast.success("Selected results approved successfully.");
       setRowSelection({});
       setIsApproveDialogOpen(false);
-      
+
       queryClient.invalidateQueries({ queryKey: ['books'] });
     },
     onError: (error) => toast.error(`Error during approval: ${error.message}`)
@@ -495,7 +495,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
   const senateApproveMultipleMutation = useMutation({
     mutationFn: (booksToApprove) => {
       const promises = booksToApprove.map(book =>
-        updateSenateApprovalDateService(book.student.id,  senateApprovalDate )
+        updateSenateApprovalDateService(book.student.id, senateApprovalDate)
       );
       return Promise.all(promises);
     },
@@ -549,7 +549,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
 
   const confirmBulkApprove = () => {
     const selectedBooks = Object.keys(rowSelection).map(index => pendingApprovalData[parseInt(index, 10)]);
-   
+
     approveMultipleMutation.mutate({ booksToApprove: selectedBooks, approvalDate });
   };
 
@@ -679,7 +679,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
   const handleExportAll = () => {
     // Excel export logic
     const headers = [
-      "No", "NAME", "REG. NO", "GENDER", "COURSE", "YEAR OF ENROLLMENT", "BRANCH",
+      "No", "NAME", "REG. NO", "GENDER", "COURSE", "YEAR OF ENROLLMENT", "CAMPUS",
       "L.E. text (100%)", "L.E. text (20%)", "E.E. text (100%)", "E.E. text (40%)", "Total text mark (out of 60)",
       "L.E. viva (100%)", "L.E. viva (20%)", "E.E. viva (100%)", "E.E. viva (20%)", "Total viva mark (out of 40)",
       "Final Dissertation mark (out of 100)", "Status"
@@ -715,11 +715,11 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
           const finalMark = textTotal + vivaTotal;
           ws_data.push([
             index + 1,
-            `${book.student?.firstName || ""} ${book.student?.lastName || ""}`,
+            book.student?.fullName || "N/A",
             regNo, book.student?.gender === "male" ? "M" : "F" || "N/A",
-            book.student?.course || regNo.split('/')[2] || "N/A",
+            book.student?.course?.code || book.student?.course?.title || regNo.split('/')[2] || "N/A",
             book.student?.academicYear || `20${regNo.split('/')[0]}` || "N/A",
-            regNo.split('/')[3] || "N/A",
+            book.student?.campus?.location || regNo.split('/')[3] || "N/A",
             textMarks.internal.toFixed(0),
             (textMarks.internal * 0.2).toFixed(0),
             textMarks.external.toFixed(0),
@@ -757,7 +757,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
       { wch: 8 },   // Gender
       { wch: 18 },  // Course
       { wch: 18 },  // Year
-      { wch: 12 },  // Branch
+      { wch: 12 },  // Campus
       { wch: 12 },  // L.E. text (100%)
       { wch: 12 },  // L.E. text (20%)
       { wch: 12 },  // E.E. text (100%)
@@ -857,52 +857,52 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
 
   const TableComponent = ({ table }) => (
     <div className="overflow-x-auto rounded-md border">
-        <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
-            <thead className="bg-gray-50">
-                {table.getHeaderGroups().map(headerGroup => (
-                    <tr key={headerGroup.id}>
-                        {headerGroup.headers.map(header => (
-                            <th 
-                              key={header.id} 
-                              colSpan={header.colSpan} 
-                              className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-gray-600 border border-gray-200"
-                              style={{ width: header.getSize() }}
-                            >
-                                {header.isPlaceholder
-                                ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext()
-                                )}
-                            </th>
-                        ))}
-                    </tr>
+      <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+        <thead className="bg-gray-50">
+          {table.getHeaderGroups().map(headerGroup => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map(header => (
+                <th
+                  key={header.id}
+                  colSpan={header.colSpan}
+                  className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-gray-600 border border-gray-200"
+                  style={{ width: header.getSize() }}
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {table.getRowModel().rows.length > 0 ? (
+            table.getRowModel().rows.map(row => (
+              <tr key={row.id} className="hover:bg-gray-50">
+                {row.getVisibleCells().map(cell => (
+                  <td
+                    key={cell.id}
+                    className="px-2 py-2 text-xs border border-gray-200 text-center"
+                    style={{ width: cell.column.getSize() }}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
                 ))}
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-                {table.getRowModel().rows.length > 0 ? (
-                  table.getRowModel().rows.map(row => (
-                    <tr key={row.id} className="hover:bg-gray-50">
-                        {row.getVisibleCells().map(cell => (
-                            <td 
-                              key={cell.id} 
-                              className="px-2 py-2 text-xs border border-gray-200 text-center"
-                              style={{ width: cell.column.getSize() }}
-                            >
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </td>
-                        ))}
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={table.getAllColumns().length} className="text-center py-8 text-gray-500">
-                      No data available for this tab.
-                    </td>
-                  </tr>
-                )}
-            </tbody>
-        </table>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={table.getAllColumns().length} className="text-center py-8 text-gray-500">
+                No data available for this tab.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 
@@ -969,7 +969,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
       { wch: 8 },   // Gender
       { wch: 18 },  // Course
       { wch: 18 },  // Year
-      { wch: 12 },  // Branch
+      { wch: 12 },  // Campus
       { wch: 12 },  // L.E. text (100%)
       { wch: 12 },  // L.E. text (20%)
       { wch: 12 },  // E.E. text (100%)
@@ -1031,13 +1031,13 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     // Generate Excel file for the school
     const schoolName = selectedSchoolData.schoolName;
     const schoolData = selectedSchoolData.data;
-    
+
     // Create Excel workbook
     const wb = XLSX.utils.book_new();
-    
+
     // Prepare data for Excel
     const headers = [
-      "No", "NAME", "REG. NO", "GENDER", "COURSE", "YEAR OF ENROLLMENT", "BRANCH",
+      "No", "NAME", "REG. NO", "GENDER", "COURSE", "YEAR OF ENROLLMENT", "CAMPUS",
       "L.E. text (100%)", "L.E. text (20%)", "E.E. text (100%)", "E.E. text (40%)", "Total text mark (out of 60)",
       "L.E. viva (100%)", "L.E. viva (20%)", "E.E. viva (100%)", "E.E. viva (20%)", "Total viva mark (out of 40)",
       "Final Dissertation mark (out of 100)", "Status"
@@ -1056,15 +1056,15 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
       const textTotal = (textMarks.internal * 0.2) + (textMarks.external * 0.4);
       const vivaTotal = (vivaMarks.internal * 0.2) + (vivaMarks.external * 0.2);
       const finalMark = textTotal + vivaTotal;
-      
+
       ws_data.push([
         index + 1,
-        `${book.student?.firstName || ""} ${book.student?.lastName || ""}`,
+        book.student?.fullName || "N/A",
         regNo,
         book.student?.gender === "male" ? "M" : "F" || "N/A",
-        book.student?.course || regNo.split('/')[2] || "N/A",
+        book.student?.course?.code || book.student?.course?.title || regNo.split('/')[2] || "N/A",
         book.student?.academicYear || `20${regNo.split('/')[0]}` || "N/A",
-        regNo.split('/')[3] || "N/A",
+        book.student?.campus?.location || regNo.split('/')[3] || "N/A",
         textMarks.internal.toFixed(0),
         (textMarks.internal * 0.2).toFixed(0),
         textMarks.external.toFixed(0),
@@ -1081,7 +1081,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     });
 
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    
+
     // Apply formatting
     ws['!cols'] = [
       { wch: 5 }, { wch: 22 }, { wch: 14 }, { wch: 8 }, { wch: 18 }, { wch: 18 }, { wch: 12 },
@@ -1100,14 +1100,14 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
           } else if (r === 1) {
             ws[cellRef].s = { font: { bold: true, sz: 13 }, alignment: { horizontal: 'center' } };
           } else if (r === 3) {
-            ws[cellRef].s = { 
-              font: { bold: true }, 
+            ws[cellRef].s = {
+              font: { bold: true },
               fill: { fgColor: { rgb: 'D9E1F2' } },
               border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } },
               alignment: { horizontal: 'center' }
             };
           } else if (r > 3) {
-            ws[cellRef].s = { 
+            ws[cellRef].s = {
               border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } },
               alignment: { horizontal: 'center' }
             };
@@ -1117,14 +1117,14 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     }
 
     XLSX.utils.book_append_sheet(wb, ws, schoolName);
-    
+
     // Generate Excel file as base64 string
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
     const fileName = `${schoolName}_Results_${currentAcademicYear}.xlsx`;
-    
+
     // Get student IDs for updating results sent date
     const studentIds = schoolData.map(book => book.student.id);
-    
+
     // Send email using the mutation
     sendResultsEmailMutation.mutate({
       to: emailRecipients,
@@ -1142,10 +1142,10 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
   const handleExportSchoolData = (schoolName, schoolData) => {
     // Create Excel workbook
     const wb = XLSX.utils.book_new();
-    
+
     // Prepare data for Excel
     const headers = [
-      "No", "NAME", "REG. NO", "GENDER", "COURSE", "YEAR OF ENROLLMENT", "BRANCH",
+      "No", "NAME", "REG. NO", "GENDER", "COURSE", "YEAR OF ENROLLMENT", "CAMPUS",
       "L.E. text (100%)", "L.E. text (20%)", "E.E. text (100%)", "E.E. text (40%)", "Total text mark (out of 60)",
       "L.E. viva (100%)", "L.E. viva (20%)", "E.E. viva (100%)", "E.E. viva (20%)", "Total viva mark (out of 40)",
       "Final Dissertation mark (out of 100)", "Status"
@@ -1164,15 +1164,15 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
       const textTotal = (textMarks.internal * 0.2) + (textMarks.external * 0.4);
       const vivaTotal = (vivaMarks.internal * 0.2) + (vivaMarks.external * 0.2);
       const finalMark = textTotal + vivaTotal;
-      
+
       ws_data.push([
         index + 1,
-        `${book.student?.firstName || ""} ${book.student?.lastName || ""}`,
+        book.student?.fullName || "N/A",
         regNo,
         book.student?.gender === "male" ? "M" : "F" || "N/A",
-        book.student?.course || regNo.split('/')[2] || "N/A",
+        book.student?.course?.code || book.student?.course?.title || regNo.split('/')[2] || "N/A",
         book.student?.academicYear || `20${regNo.split('/')[0]}` || "N/A",
-        regNo.split('/')[3] || "N/A",
+        book.student?.campus?.location || regNo.split('/')[3] || "N/A",
         textMarks.internal.toFixed(0),
         (textMarks.internal * 0.2).toFixed(0),
         textMarks.external.toFixed(0),
@@ -1189,7 +1189,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
     });
 
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    
+
     // Apply formatting
     ws['!cols'] = [
       { wch: 5 }, { wch: 22 }, { wch: 14 }, { wch: 8 }, { wch: 18 }, { wch: 18 }, { wch: 12 },
@@ -1208,14 +1208,14 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
           } else if (r === 1) {
             ws[cellRef].s = { font: { bold: true, sz: 13 }, alignment: { horizontal: 'center' } };
           } else if (r === 3) {
-            ws[cellRef].s = { 
-              font: { bold: true }, 
+            ws[cellRef].s = {
+              font: { bold: true },
               fill: { fgColor: { rgb: 'D9E1F2' } },
               border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } },
               alignment: { horizontal: 'center' }
             };
           } else if (r > 3) {
-            ws[cellRef].s = { 
+            ws[cellRef].s = {
               border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } },
               alignment: { horizontal: 'center' }
             };
@@ -1308,8 +1308,8 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
             <TableComponent table={currentTable} />
             <div className="flex justify-end mt-4 space-x-2">
               {['results-pending-approval', 'results-approved-at-centre', 'results-sent'].includes(activeTab) && (
-                <Button 
-                  onClick={handleExportSelected} 
+                <Button
+                  onClick={handleExportSelected}
                   disabled={Object.keys(rowSelection).length === 0}
                   variant="outline"
                   className="flex items-center gap-2"
@@ -1345,7 +1345,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
                   />
                 );
               })}
-              
+
               {Object.keys(groupedBySchool).length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   No data available for Results Approved at Centre.
@@ -1373,7 +1373,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
                   />
                 );
               })}
-              
+
               {Object.keys(groupedBySchoolForSentData).length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   No data available for Results Sent to School.
@@ -1422,15 +1422,15 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
               </Button>
               <Button
                 type="submit"
-                disabled={!selectedDate || 
-                  updateResultsApprovalMutation.isPending || 
-                  updateResultsSentMutation.isPending || 
+                disabled={!selectedDate ||
+                  updateResultsApprovalMutation.isPending ||
+                  updateResultsSentMutation.isPending ||
                   updateSenateApprovalMutation.isPending}
               >
-                {updateResultsApprovalMutation.isPending || 
-                 updateResultsSentMutation.isPending || 
-                 updateSenateApprovalMutation.isPending 
-                  ? "Updating..." 
+                {updateResultsApprovalMutation.isPending ||
+                  updateResultsSentMutation.isPending ||
+                  updateSenateApprovalMutation.isPending
+                  ? "Updating..."
                   : "Update"}
               </Button>
             </DialogFooter>
@@ -1493,7 +1493,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
             <div className="text-sm text-gray-600">
               Sending results for <strong>{selectedSchoolData?.schoolName}</strong> ({selectedSchoolData?.data?.length} students)
             </div>
-            
+
             <div className="grid gap-2">
               <label className="text-sm font-medium leading-none">
                 Email Recipients
@@ -1508,7 +1508,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
                 required
               />
             </div>
-            
+
             <div className="grid gap-2">
               <label className="text-sm font-medium leading-none">
                 Subject
@@ -1521,7 +1521,7 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
                 required
               />
             </div>
-            
+
             <div className="grid gap-2">
               <label className="text-sm font-medium leading-none">
                 Message
@@ -1534,11 +1534,11 @@ const GradeManagementFinalSubmissionTable = ({ data, pageSize, setPageSize, curr
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
-            
+
             <div className="text-sm text-gray-500">
               <strong>Attachment:</strong> {selectedSchoolData?.schoolName}_Results_{currentAcademicYear}.xlsx
             </div>
-            
+
             <DialogFooter>
               <Button
                 type="button"

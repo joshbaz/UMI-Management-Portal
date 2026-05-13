@@ -17,7 +17,7 @@ import {
   flexRender,
 } from '@tanstack/react-table';
 import { Loader2 } from 'lucide-react';
-import {  useGetGraduationStatistics, useGetAllStudents } from '../../store/tanstackStore/services/queries';
+import { useGetGraduationStatistics, useGetAllStudents } from '../../store/tanstackStore/services/queries';
 import { addStudentToGraduationService } from '../../store/tanstackStore/services/api';
 
 const GraduationManagement = () => {
@@ -38,34 +38,34 @@ const GraduationManagement = () => {
 
   const senateApprovedResponse = useMemo(() => {
     if (!studentsResponse?.students) return { data: [] };
-    
+
     const filteredStudents = studentsResponse.students.filter(student => {
       // Find the current status by checking which status has isCurrent set to true
-      const currentStatus = student.statuses?.find(status => status.isCurrent)?.definition?.name || 
-                           student.statuses?.[0]?.definition?.name;
+      const currentStatus = student.statuses?.find(status => status.isCurrent)?.definition?.name ||
+        student.statuses?.[0]?.definition?.name;
       return currentStatus === 'results approved by senate';
     });
 
-    console.log('studentsResponse', gradStats); 
+    console.log('studentsResponse', gradStats);
 
     console.log('filteredStudents', filteredStudents);
-    
+
     return { data: filteredStudents };
   }, [studentsResponse]);
-  
+
   const graduatesResponse = useMemo(() => {
     if (!studentsResponse?.students) return { data: [] };
-    
+
     const filteredStudents = studentsResponse.students.filter(student => {
       // Find the current status by checking which status has isCurrent set to true
-      const currentStatus = student.statuses?.find(status => status.isCurrent)?.definition?.name || 
-                           student.statuses?.[0]?.definition?.name;
+      const currentStatus = student.statuses?.find(status => status.isCurrent)?.definition?.name ||
+        student.statuses?.[0]?.definition?.name;
       return currentStatus === 'graduated';
     });
-    
+
     return { data: filteredStudents };
   }, [studentsResponse]);
-  
+
   const senateApprovedStudents = senateApprovedResponse?.data || [];
   const graduatedStudents = graduatesResponse?.data || [];
 
@@ -75,7 +75,7 @@ const GraduationManagement = () => {
       return addStudentToGraduationService(studentId, selectedAcademicYear);
     },
     onSuccess: () => {
-     
+
       queryClient.resetQueries(['graduationStatistics']);
       queryClient.resetQueries(['allStudents']);
       queryClient.invalidateQueries(['graduationStatistics']);
@@ -85,26 +85,26 @@ const GraduationManagement = () => {
 
   // Table columns
   const columns = useMemo(() => [
-  
-      {
-        accessorKey: 'name',
-        header: 'Name',
-        cell: ({ row }) => (
-          <div className="flex items-center capitalize">
-            {`${row.original.firstName} ${row.original.lastName}`}
-          </div>
-        )
-      },
-      {
-        accessorKey: 'email',
-        header: 'Email',
-        cell: ({ row }) => (
-          <div className="flex flex-col">
-            <div>{row.original.email}</div>
-            <div className="text-xs text-gray-600">{row.original.phoneNumber || 'No phone number'}</div>
-          </div>
-        )
-      },
+
+    {
+      accessorKey: 'name',
+      header: 'Name',
+      cell: ({ row }) => (
+        <div className="flex items-center capitalize">
+          {`${row.original.fullName}`}
+        </div>
+      )
+    },
+    {
+      accessorKey: 'email',
+      header: 'Email',
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <div>{row.original.email}</div>
+          <div className="text-xs text-gray-600">{row.original.phoneNumber || 'No phone number'}</div>
+        </div>
+      )
+    },
     {
       accessorKey: 'programLevel',
       header: 'Program',
@@ -132,9 +132,9 @@ const GraduationManagement = () => {
         <button
           onClick={() => addToGraduationMutation.mutate(row.original.id)}
           className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50"
-          disabled={ addToGraduationMutation.isPending}
+          disabled={addToGraduationMutation.isPending}
         >
-          {addToGraduationMutation.isPending  ? (
+          {addToGraduationMutation.isPending ? (
             <span className="flex items-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing...
@@ -148,14 +148,14 @@ const GraduationManagement = () => {
       )
     }
   ], [addToGraduationMutation]);
-  
+
   const graduatesColumns = useMemo(() => [
     {
       accessorKey: 'name',
       header: 'Name',
       cell: ({ row }) => (
         <div className="flex items-center capitalize">
-          {`${row.original.firstName} ${row.original.lastName}`}
+          {`${row.original.fullName}`}
         </div>
       )
     },
@@ -213,7 +213,7 @@ const GraduationManagement = () => {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
-  
+
   const graduatesTable = useReactTable({
     data: graduatedStudents || [],
     columns: graduatesColumns,
@@ -354,21 +354,19 @@ const GraduationManagement = () => {
           <nav className="-mb-px flex">
             <button
               onClick={() => setActiveTab('approved')}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
-                activeTab === 'approved'
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${activeTab === 'approved'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
             >
-               Students Ready For Graduation
+              Students Ready For Graduation
             </button>
             <button
               onClick={() => setActiveTab('graduates')}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
-                activeTab === 'graduates'
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${activeTab === 'graduates'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
             >
               Graduates
             </button>
@@ -384,7 +382,7 @@ const GraduationManagement = () => {
               Ready for Graduation
             </h2>
           </div>
-          
+
           <div className="overflow-x-auto">
             {isLoadingStudents ? (
               <div className="flex flex-col items-center justify-center p-8">
@@ -473,7 +471,7 @@ const GraduationManagement = () => {
               Graduates
             </h2>
           </div>
-          
+
           <div className="overflow-x-auto">
             {isLoadingStudents ? (
               <div className="flex flex-col items-center justify-center p-8">

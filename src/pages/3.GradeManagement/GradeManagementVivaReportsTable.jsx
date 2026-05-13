@@ -32,7 +32,7 @@ const getStudentMarks = (row) => {
 const getSupervisorByRole = (student, targetRole) => {
   if (!student || !student.supervisors || !student.supervisorRoles) return "N/A";
   const roles = student.supervisorRoles || {};
-  
+
   const supervisor = student.supervisors.find(s => {
     const role = (roles[s.id] || "").toUpperCase().replace(/[^A-Z]/g, '');
     if (targetRole === "MAIN") {
@@ -43,7 +43,7 @@ const getSupervisorByRole = (student, targetRole) => {
     }
     return false;
   });
-  
+
   return supervisor ? supervisor.name : "N/A";
 };
 
@@ -90,24 +90,40 @@ const GradeManagementVivaReportsTable = ({ data, proposalsData, pageSize, setPag
   // Books (Viva)
   const filteredBooksData = useMemo(() => data.filter(book => {
     const isCurrentBook = book.isCurrent === true;
-    const hasFinalStatus = book.student?.statuses?.some(status =>
-       status.definition?.name === 'final dissertation & compliance report received'
-    );
+
+    // Include books that have a viva record OR are in a status related to viva/examination
+    const hasVivaActivity = (book.vivaHistory && book.vivaHistory.length > 0) ||
+      book.student?.statuses?.some(status => {
+        const name = status.definition?.name?.toLowerCase();
+        return name === 'scheduled for viva' ||
+          name === 'minutes pending' ||
+          name === 'failed viva' ||
+          name === 'final dissertation & compliance report received';
+      });
+
     const isNotGraduated = !book.student?.statuses?.some(status =>
       status.isCurrent &&
       status.definition?.name === 'graduated'
     );
-    return isCurrentBook && hasFinalStatus && isNotGraduated;
+    return isCurrentBook && hasVivaActivity && isNotGraduated;
   }), [data]);
   const completedBooks = useMemo(() => filteredBooksData.filter(book => {
-    const hasVivaHistory = book.vivaHistory && book.vivaHistory.length > 0;
-    const hasCurrentViva = book.vivaHistory?.some(v => v.isCurrent);
-    return hasVivaHistory && hasCurrentViva;
+    const currentViva = book.vivaHistory?.find(v => v.isCurrent);
+    // Completed means the viva has a status like COMPLETED or FAILED, or has a verdict
+    return currentViva && (
+      currentViva.status === 'COMPLETED' ||
+      currentViva.status === 'FAILED' ||
+      currentViva.verdict
+    );
   }), [filteredBooksData]);
+
   const pendingBooks = useMemo(() => filteredBooksData.filter(book => {
-    const hasVivaHistory = book.vivaHistory && book.vivaHistory.length > 0;
-    const hasCurrentViva = book.vivaHistory?.some(v => v.isCurrent);
-    return !hasVivaHistory || !hasCurrentViva;
+    const currentViva = book.vivaHistory?.find(v => v.isCurrent);
+    // Pending means it has a current viva that is still SCHEDULED or has no verdict yet
+    return currentViva && (
+      currentViva.status === 'SCHEDULED' ||
+      !currentViva.verdict
+    );
   }), [filteredBooksData]);
 
   // Columns for proposals
@@ -179,7 +195,7 @@ const GradeManagementVivaReportsTable = ({ data, proposalsData, pageSize, setPag
       id: "gender",
       size: 60,
     }),
-    columnHelper.accessor(row => row.student?.course || "N/A", {
+    columnHelper.accessor(row => row.student?.course?.code || row.student?.course?.title || "N/A", {
       header: "COURSE",
       id: "course",
       size: 80,
@@ -196,7 +212,7 @@ const GradeManagementVivaReportsTable = ({ data, proposalsData, pageSize, setPag
     }),
     columnHelper.accessor(row => {
       const currentViva = row.vivaHistory?.find(v => v.isCurrent);
-      return currentViva?.vivaDate ? format(new Date(currentViva.vivaDate), "dd/MM/yyyy") : "N/A";
+      return currentViva?.scheduledDate ? format(new Date(currentViva.scheduledDate), "dd/MM/yyyy") : "N/A";
     }, {
       header: "VIVA DATE",
       id: "vivaDate",
@@ -276,10 +292,10 @@ const GradeManagementVivaReportsTable = ({ data, proposalsData, pageSize, setPag
       item.student?.fullName || "N/A",
       item.student?.registrationNumber || "N/A",
       item.student?.gender === "male" ? "M" : "F" || "N/A",
-      item.student?.course || "N/A",
+      item.student?.course?.code || item.student?.course?.title || "N/A",
       item.student?.academicYear || "N/A",
       item.student?.school?.name || "N/A",
-      currentViva?.vivaDate ? format(new Date(currentViva.vivaDate), "dd/MM/yyyy") : "N/A",
+      currentViva?.scheduledDate ? format(new Date(currentViva.scheduledDate), "dd/MM/yyyy") : "N/A",
       vivaMarks.internal.toFixed(0),
       (vivaMarks.internal * 0.2).toFixed(0),
       vivaMarks.external.toFixed(0),
@@ -492,18 +508,18 @@ const GradeManagementVivaReportsTable = ({ data, proposalsData, pageSize, setPag
                     {table.getHeaderGroups().map(headerGroup => (
                       <tr key={headerGroup.id}>
                         {headerGroup.headers.map(header => (
-                          <th 
-                            key={header.id} 
-                            colSpan={header.colSpan} 
+                          <th
+                            key={header.id}
+                            colSpan={header.colSpan}
                             className="px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-gray-600 border border-gray-200"
                             style={{ width: header.getSize() }}
                           >
                             {header.isPlaceholder
                               ? null
                               : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
                           </th>
                         ))}
                       </tr>
@@ -514,8 +530,8 @@ const GradeManagementVivaReportsTable = ({ data, proposalsData, pageSize, setPag
                       groupRows.map(row => (
                         <tr key={row.id} className="hover:bg-gray-50">
                           {row.getVisibleCells().map(cell => (
-                            <td 
-                              key={cell.id} 
+                            <td
+                              key={cell.id}
                               className="px-2 py-2 text-xs border border-gray-200 text-center"
                               style={{ width: cell.column.getSize() }}
                             >
