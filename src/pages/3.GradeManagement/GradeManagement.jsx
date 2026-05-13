@@ -102,7 +102,7 @@ const GradeManagement = () => {
 
   const failedBooks = useMemo(() => {
     return (booksData?.books || []).filter(book => {
-      return book.averageExamMark < 60;
+      return book.averageExamMark !== null && book.averageExamMark !== undefined && book.averageExamMark < 60;
     }).length;
   }, [booksData?.books]);
 

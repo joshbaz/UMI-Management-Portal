@@ -30,7 +30,7 @@ const GradeBook = () => {
   const [isComplianceReportDialogOpen, setIsComplianceReportDialogOpen] = useState(false);
   const [complianceReport, setComplianceReport] = useState("");
   const [actualTopic, setActualTopic] = useState("");
-  
+
   useEffect(() => {
     if (book?.book) {
       setMinutesSentDate(book.book.minutesSentDate || null);
@@ -119,7 +119,7 @@ const GradeBook = () => {
       toast.error(`Error: ${error.message}`);
     }
   });
-          
+
 
   const handleMinutesDateSubmit = useCallback((e) => {
     e.preventDefault();
@@ -191,7 +191,7 @@ const GradeBook = () => {
                 Back
               </button>
               <span className="text-lg font-[Inter-SemiBold] capitalize text-gray-900">
-                {`${book?.book?.student?.firstName} ${book?.book?.student?.lastName}` || "Loading..."}
+                {`${book?.book?.student?.fullName}` || "Loading..."}
               </span>
             </div>
           </div>
@@ -202,7 +202,7 @@ const GradeBook = () => {
       <div className="grid grid-cols-3 px-6 pb-4">
         <div>
           <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
-             ID
+            ID
           </h3>
           <div className="flex gap-2">
             <span className="text-sm font-[Inter-Regular] text-gray-900">
@@ -211,7 +211,7 @@ const GradeBook = () => {
           </div>
         </div>
 
-       
+
 
         <div>
           <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
@@ -222,9 +222,8 @@ const GradeBook = () => {
               color: currentStatus?.definition?.color || "#6B7280",
               backgroundColor:
                 `${currentStatus?.definition?.color}18` || "#F3F4F6",
-              border: `1px solid ${
-                currentStatus?.definition?.color || "#6B7280"
-              }`,
+              border: `1px solid ${currentStatus?.definition?.color || "#6B7280"
+                }`,
             }}
             className="inline-flex px-2 py-0.5 rounded-[4px] text-sm font-[Inter-Regular] capitalize"
           >
@@ -241,12 +240,12 @@ const GradeBook = () => {
           </span>
         </div>
 
-        
+
       </div>
 
       {/** Minutes sent and compliance received buttons */}
       <div className="grid grid-cols-3 px-6 pb-4">
-      <div>
+        <div>
           <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
             Minutes Sent
           </h3>
@@ -254,7 +253,7 @@ const GradeBook = () => {
             <span className="text-sm font-[Inter-Regular] text-gray-900">
               {book?.book?.minutesSentDate ? format(new Date(book.book.minutesSentDate), "dd-MMM-yyyy") : "Not Sent"}
             </span>
-            <button 
+            <button
               onClick={() => setIsMinutesDateDialogOpen(true)}
               className="p-1 rounded-full hover:bg-gray-100"
             >
@@ -271,7 +270,7 @@ const GradeBook = () => {
             <span className="text-sm font-[Inter-Regular] text-gray-900">
               {book?.book?.complianceReportDate ? format(new Date(book.book.complianceReportDate), "dd-MMM-yyyy") : "Not Received"}
             </span>
-            <button 
+            <button
               onClick={() => setIsComplianceReportDialogOpen(true)}
               className="p-1 rounded-full hover:bg-gray-100"
             >
@@ -287,21 +286,19 @@ const GradeBook = () => {
           <nav className="flex -mb-px px-4 py-4 gap-4">
             <button
               onClick={() => setActiveTab("examiners")}
-              className={`py-2 px-6 text-sm font-[Inter-Medium] rounded-lg ${
-                activeTab === "examiners"
+              className={`py-2 px-6 text-sm font-[Inter-Medium] rounded-lg ${activeTab === "examiners"
                   ? "border-2 border-primary-600 text-primary-600"
                   : "border-2 border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
+                }`}
             >
               Dissertation Examiners
             </button>
             <button
               onClick={() => setActiveTab("vivas")}
-              className={`py-2 px-6 text-sm font-[Inter-Medium] rounded-lg ${
-                activeTab === "vivas"
+              className={`py-2 px-6 text-sm font-[Inter-Medium] rounded-lg ${activeTab === "vivas"
                   ? "border-2 border-primary-600 text-primary-600"
                   : "border-2 border-gray-200text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
+                }`}
             >
               Vivas
             </button>
@@ -322,7 +319,7 @@ const GradeBook = () => {
                     Add External Examiner
                   </button>
                 )}
-                
+
                 {showResubmissionButton && (
                   <button
                     className="px-3 py-1.5 text-sm font-[Inter-Medium] text-white bg-primary-600 rounded hover:bg-primary-700"
@@ -334,7 +331,7 @@ const GradeBook = () => {
               </div>
             </div>
             <div className="px-4 mt-4">
-              <GradeBookExaminerTable 
+              <GradeBookExaminerTable
                 examiners={book?.book?.examiners || []}
                 bookId={bookId}
                 refetchBook={refetchBook}
@@ -349,32 +346,32 @@ const GradeBook = () => {
 
         {activeTab === "vivas" && (
           <div className="py-4">
-            
+
             <div className="px-4 mt-4">
-             
-                <GradeBookVivaTable 
-                  panelists={book.book.panelists || []}
-                  bookId={bookId}
-                  refetchBook={refetchBook}
-                  onUpdateClick={handleUpdatePanelist}
-                  onViewClick={handleViewPanelist}
-                  
-                />
-             
+
+              <GradeBookVivaTable
+                panelists={book.book.panelists || []}
+                bookId={bookId}
+                refetchBook={refetchBook}
+                onUpdateClick={handleUpdatePanelist}
+                onViewClick={handleViewPanelist}
+
+              />
+
             </div>
           </div>
         )}
       </div>
 
       {/* View Drawer */}
-      <GradeBookExaminerViewDrawer 
+      <GradeBookExaminerViewDrawer
         selectedAssignment={selectedAssignment}
         isOpen={isViewDrawerOpen}
         onClose={handleCloseViewDrawer}
       />
 
       {/* Edit Drawer */}
-      <GradeBookExaminerEditDrawer  
+      <GradeBookExaminerEditDrawer
         selectedAssignment={selectedAssignment}
         isOpen={isEditDrawerOpen}
         onClose={handleCloseEditDrawer}
@@ -523,7 +520,7 @@ const GradeBook = () => {
           </form>
         </DialogContent>
       </Dialog>
-    </div>  
+    </div>
   );
 };
 
