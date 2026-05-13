@@ -33,7 +33,7 @@ const GradeProposal = () => {
   const [ethicsCommitteeDate, setEthicsCommitteeDate] = useState("");
   const [isFieldLetterDialogOpen, setIsFieldLetterDialogOpen] = useState(false);
   const { id: proposalId } = useParams();
-  const { data: proposal, isPending: isLoading, error, refetch:refetchProposal } = useGetProposal(proposalId);
+  const { data: proposal, isPending: isLoading, error, refetch: refetchProposal } = useGetProposal(proposalId);
 
   const addComplianceReportDateMutation = useMutation({
     mutationFn: ({ proposalId, complianceReportDate }) => addComplianceReportDateService(proposalId, complianceReportDate),
@@ -172,7 +172,7 @@ const GradeProposal = () => {
       {/* Top Search Bar */}
       <div className="flex px-6 justify-between items-center border-b border-gray-300 h-[89px]">
         <p className="text-sm font-[Inter-SemiBold]  text-gray-900">Research Centre Portal</p>
-      <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
+        <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
       </div>
 
       {/* Header */}
@@ -207,14 +207,14 @@ const GradeProposal = () => {
         </div>
       </div>
 
-{/* Proposal Details */}
+      {/* Proposal Details */}
       <div className="grid grid-cols-3 px-6">
         <div>
           <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
             Proposal ID
           </h3>
           <div className="flex gap-2">
-          <span className="text-sm text-primary-500 font-[Inter-Medium] ">
+            <span className="text-sm text-primary-500 font-[Inter-Medium] ">
               {proposal?.proposal?.proposalCode}
             </span>
           </div>
@@ -229,9 +229,8 @@ const GradeProposal = () => {
               color: currentStatus?.definition?.color || "#6B7280",
               backgroundColor:
                 `${currentStatus?.definition?.color}18` || "#F3F4F6",
-              border: `1px solid ${
-                currentStatus?.definition?.color || "#6B7280"
-              }`,
+              border: `1px solid ${currentStatus?.definition?.color || "#6B7280"
+                }`,
             }}
             className="inline-flex px-2 py-0.5 rounded-[4px] text-sm font-[Inter-Regular] capitalize"
           >
@@ -259,7 +258,7 @@ const GradeProposal = () => {
         </p>
       </div>
 
-{/* Compliance Report and Letter to Field */}
+      {/* Compliance Report and Letter to Field */}
       {hasPassedProposalGraded && (
         <div className="grid grid-cols-3 px-6 mt-8">
           <div>
@@ -268,7 +267,7 @@ const GradeProposal = () => {
             </h3>
             <div className="flex gap-4">
               <span className="text-sm font-[Inter-Regular] text-gray-900">
-                {proposal?.proposal?.complianceReportDate 
+                {proposal?.proposal?.complianceReportDate
                   ? format(new Date(proposal.proposal.complianceReportDate), "dd-MMM-yyyy")
                   : "Not Available"}
               </span>
@@ -300,17 +299,17 @@ const GradeProposal = () => {
             </div>
           </div> */}
 
-<div>
+          <div>
             <h3 className="text-sm font-[Inter-Regular] text-[#626263] mb-1">
-               Letter to Ethics Committee 
+              Letter to Ethics Committee
             </h3>
             <div className="flex items-center gap-4">
               <span className="text-sm font-[Inter-Regular] text-gray-900">
-                {proposal?.proposal?.ethicsCommitteeDate 
+                {proposal?.proposal?.ethicsCommitteeDate
                   ? format(new Date(proposal.proposal.ethicsCommitteeDate), "dd-MMM-yyyy")
                   : "Not Available"}
               </span>
-              <button 
+              <button
                 className={`px-2 py-1 text-xs font-[Inter-Medium] text-white rounded ${isProposalActive ? 'bg-accent2-600 hover:bg-accent2-700' : 'bg-gray-400 cursor-not-allowed'}`}
                 onClick={() => isProposalActive ? setIsEthicsCommitteeDialogOpen(true) : toast.error("Cannot update field letter date for inactive proposals")}
                 disabled={!isProposalActive}
@@ -326,11 +325,11 @@ const GradeProposal = () => {
             </h3>
             <div className="flex items-center gap-4">
               <span className="text-sm font-[Inter-Regular] text-gray-900">
-                {proposal?.proposal?.fieldLetterDate 
+                {proposal?.proposal?.fieldLetterDate
                   ? format(new Date(proposal.proposal.fieldLetterDate), "dd-MMM-yyyy")
                   : "Not Available"}
               </span>
-              <button 
+              <button
                 className={`px-2 py-1 text-xs font-[Inter-Medium] text-white rounded ${isProposalActive ? 'bg-accent2-600 hover:bg-accent2-700' : 'bg-gray-400 cursor-not-allowed'}`}
                 onClick={() => isProposalActive ? setIsFieldLetterDateDialogOpen(true) : toast.error("Cannot update field letter date for inactive proposals")}
                 disabled={!isProposalActive}
@@ -344,32 +343,32 @@ const GradeProposal = () => {
 
       <div className="bg-white py-4 rounded-lg shadow-md mx-6 mb-8">
         <GradeProposalTableTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-        
+
         <div className="px-4 mt-4">
           {activeTab === "Reviewers" && (
-            <GradeProposalReviewerTable 
-              reviewers={reviewers} 
-              proposalId={proposalId} 
-              refetchProposal={refetchProposal} 
-              onUpdateClick={handleReviewerUpdateClick} 
-              reviewGrades={proposal?.proposal?.reviewGrades} 
-              onViewClick={handleViewReviewerClick} 
+            <GradeProposalReviewerTable
+              reviewers={reviewers}
+              proposalId={proposalId}
+              refetchProposal={refetchProposal}
+              onUpdateClick={handleReviewerUpdateClick}
+              reviewGrades={proposal?.proposal?.reviewGrades}
+              onViewClick={handleViewReviewerClick}
               isProposalActive={isProposalActive}
             />
           )}
-          
+
           {activeTab === "Proposal defense" && (
-            <GradeProposalDefenseTable 
-             
-              proposalId={proposalId} 
+            <GradeProposalDefenseTable
+
+              proposalId={proposalId}
               isProposalActive={isProposalActive}
-            
-              
+
+
             />
           )}
 
 
-{/* 
+          {/* 
 needs to be removed for cleanups
 {activeTab === "Reports" && (
   <GradeProposalReportsTable
@@ -467,8 +466,8 @@ needs to be removed for cleanups
         </DialogContent>
       </Dialog>
 
-        {/** Ethics Committee Date Dialog */}
-        <Dialog open={isEthicsCommitteeDialogOpen} onOpenChange={setIsEthicsCommitteeDialogOpen}>
+      {/** Ethics Committee Date Dialog */}
+      <Dialog open={isEthicsCommitteeDialogOpen} onOpenChange={setIsEthicsCommitteeDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold leading-6">
@@ -520,7 +519,7 @@ needs to be removed for cleanups
       {/** Field Letter Dialog */}
       <GradeProposalGenerateFieldLetter isOpen={isFieldLetterDialogOpen} onClose={() => setIsFieldLetterDialogOpen(false)} proposalId={proposalId} proposal={proposal?.proposal} />
 
-         {/** Defense Report Dialog */}
+      {/** Defense Report Dialog */}
       {/* 
       Needs to be removed for cleanups
       <GradeProposalDefenseReport
@@ -528,7 +527,7 @@ needs to be removed for cleanups
         onClose={() => setIsDefenseReportDialogOpen(false)}
         proposal={proposal?.proposal}
       /> */}
-    </div>  
+    </div>
   );
 };
 

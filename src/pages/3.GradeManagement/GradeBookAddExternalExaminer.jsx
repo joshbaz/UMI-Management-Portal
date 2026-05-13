@@ -50,7 +50,7 @@ const GradeBookAddExternalExaminer = () => {
 
   // Query to fetch book details
   const { data: bookData, isLoading: isBookLoading, error: bookError } = useGetBook(id);
-  
+
   // Query to fetch all staff members
   const { data: staffMembersData, isLoading: isStaffMembersLoading, error: staffMembersError, refetch } = useGetStaffMembers();
   console.log(staffMembersData)
@@ -59,7 +59,7 @@ const GradeBookAddExternalExaminer = () => {
   const assignExaminersMutation = useMutation({
     mutationFn: () => assignExaminersToBookService(id, selectedExaminers.map(examiner => examiner.id)),
     onSuccess: (data) => {
-      toast.success(data?.message || "Examiners assigned successfully",{
+      toast.success(data?.message || "Examiners assigned successfully", {
         duration: 5000,
         action: {
           label: "Undo",
@@ -90,7 +90,7 @@ const GradeBookAddExternalExaminer = () => {
 
   // Handle add dialog cancel
   const handleAddDialogCancel = () => {
-      setShowModal(false);
+    setShowModal(false);
   };
 
   // Helper function to get initials
@@ -109,7 +109,7 @@ const GradeBookAddExternalExaminer = () => {
     // Handle different possible institution data structures
     let primary = "Not specified";
     let secondary = "";
-    
+
     if (member.isExternal) {
       // For external staff members, use external institution fields
       primary = member.externalInstitution || "External Institution";
@@ -141,7 +141,7 @@ const GradeBookAddExternalExaminer = () => {
           primary = member.campus.name;
         }
       }
-      
+
       // Handle secondary information for internal staff
       if (member.department) {
         if (typeof member.department === 'string') {
@@ -157,12 +157,12 @@ const GradeBookAddExternalExaminer = () => {
         secondary = member.institution.department;
       }
     }
-    
+
     let icon = <Building className="h-4 w-4 text-muted-foreground" />;
     if (member.isExternal) {
       icon = <Globe className="h-4 w-4 text-blue-600" />;
     }
-    
+
     return { primary, secondary, icon };
   };
 
@@ -175,7 +175,7 @@ const GradeBookAddExternalExaminer = () => {
   // Filter staff members based on search and external status
   const filteredStaffMembers = useMemo(() => {
     const staffMembers = staffMembersData || [];
-    
+
     // Combine and normalize the data
     const allStaffMembers = staffMembers.map(staff => ({
       ...staff,
@@ -192,16 +192,16 @@ const GradeBookAddExternalExaminer = () => {
       displayExternalDepartment: staff.externalDepartment,
       displayExternalLocation: staff.externalLocation
     }));
-    
+
     if (!searchTerm) return allStaffMembers.filter(member => member.isExternal);
-    
+
     return allStaffMembers.filter((member) => {
       const matchesSearch =
         member.displayName
           ?.toLowerCase()
           ?.includes(searchTerm?.toLowerCase()) ||
         member.displayEmail?.toLowerCase()?.includes(searchTerm?.toLowerCase());
-      
+
       // Only include external staff members
       const isExternal = member.isExternal === true;
 
@@ -313,14 +313,14 @@ const GradeBookAddExternalExaminer = () => {
               <div>
                 <CardTitle>Assign External Staff Members</CardTitle>
                 <CardDescription>
-                  Select external staff members to assign as examiners to this book. 
+                  Select external staff members to assign as examiners to this book.
                   {selectedExaminers.length > 0 && (
                     <span className="ml-2 text-sm text-blue-600">
                       ({selectedExaminers.length}) Selected
-              </span>
+                    </span>
                   )}
                 </CardDescription>
-          </div>
+              </div>
               <Button onClick={() => setShowModal(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add New Staff Member
@@ -331,8 +331,8 @@ const GradeBookAddExternalExaminer = () => {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
                 />
               </div>
@@ -355,12 +355,12 @@ const GradeBookAddExternalExaminer = () => {
                   paginatedStaffMembers.map((member) => {
                     const isSelected = selectedExaminers.some(e => e.id === member.id);
                     const institutionalInfo = getInstitutionalInfo(member);
-                    
+
                     // Safety check: ensure we have valid data
                     if (!member || typeof member !== 'object') {
                       return null;
                     }
-                    
+
                     return (
                       <TableRow key={member.id} className={isSelected ? 'bg-blue-50' : ''}>
                         <TableCell>
@@ -384,7 +384,7 @@ const GradeBookAddExternalExaminer = () => {
                             {institutionalInfo.icon}
                             <div>
                               <div className="font-medium">
-                                {member.isExternal 
+                                {member.isExternal
                                   ? (member.displayExternalInstitution || 'External Institution')
                                   : (member.displaySchool || member.displayInstitution || institutionalInfo.primary || 'Not specified')
                                 }
@@ -408,7 +408,7 @@ const GradeBookAddExternalExaminer = () => {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm text-muted-foreground">
-                            {member.isExternal 
+                            {member.isExternal
                               ? (member.displayExternalLocation || 'External Location')
                               : (member.displayCampus || member.campus?.name || member.campus || "Not specified")
                             }
@@ -444,7 +444,7 @@ const GradeBookAddExternalExaminer = () => {
                       <div className="text-muted-foreground">
                         <p className="text-sm font-medium">No external staff members found</p>
                         <p className="text-xs mt-1">Please add a new staff member or adjust your search criteria</p>
-            </div>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}
@@ -456,52 +456,52 @@ const GradeBookAddExternalExaminer = () => {
               <div className="flex justify-between items-center mt-4">
                 <div className="text-sm text-muted-foreground">
                   Showing {Math.min(filteredStaffMembers.length, (currentPage - 1) * pageSize + 1)} to {Math.min(filteredStaffMembers.length, currentPage * pageSize)} of {filteredStaffMembers.length} entries
-              </div>
-              <div className="flex items-center space-x-2">
+                </div>
+                <div className="flex items-center space-x-2">
                   <Button
-                  onClick={() => handlePageChange(1)}
-                  disabled={currentPage === 1}
+                    onClick={() => handlePageChange(1)}
+                    disabled={currentPage === 1}
                     variant="outline"
                     size="sm"
-                >
-                  First
+                  >
+                    First
                   </Button>
                   <Button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
                     variant="outline"
                     size="sm"
-                >
-                  Previous
+                  >
+                    Previous
                   </Button>
-                <div className="flex items-center space-x-1">
-                  {[...Array(totalPages).keys()].map((page) => (
+                  <div className="flex items-center space-x-1">
+                    {[...Array(totalPages).keys()].map((page) => (
                       <Button
-                      key={page + 1}
-                      onClick={() => handlePageChange(page + 1)}
+                        key={page + 1}
+                        onClick={() => handlePageChange(page + 1)}
                         variant={currentPage === page + 1 ? "default" : "outline"}
                         size="sm"
                         className="w-8 h-8 p-0"
-                    >
-                      {page + 1}
+                      >
+                        {page + 1}
                       </Button>
-                  ))}
-                </div>
+                    ))}
+                  </div>
                   <Button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages || totalPages === 0}
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages || totalPages === 0}
                     variant="outline"
                     size="sm"
-                >
-                  Next
+                  >
+                    Next
                   </Button>
                   <Button
-                  onClick={() => handlePageChange(totalPages)}
-                  disabled={currentPage === totalPages || totalPages === 0}
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={currentPage === totalPages || totalPages === 0}
                     variant="outline"
                     size="sm"
-                >
-                  Last
+                  >
+                    Last
                   </Button>
                 </div>
               </div>
@@ -510,13 +510,13 @@ const GradeBookAddExternalExaminer = () => {
         </Card>
 
         {/* Save Button */}
-          <div className="flex justify-center items-center gap-4 pt-8">
-          <Button 
-              onClick={handleSave}
-              disabled={selectedExaminers.length === 0 || assignExaminersMutation.isPending}
+        <div className="flex justify-center items-center gap-4 pt-8">
+          <Button
+            onClick={handleSave}
+            disabled={selectedExaminers.length === 0 || assignExaminersMutation.isPending}
             size="lg"
             className="min-w-[200px]"
-            >
+          >
             {assignExaminersMutation.isPending ? 'Saving...' : 'Save Assignments'}
           </Button>
         </div>

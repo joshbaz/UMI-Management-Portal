@@ -223,8 +223,7 @@ const GradeBookScheduleViva = () => {
                   </span>
                   <span className="text-sm font-[Inter-Medium] capitalize text-gray-600">
                     Student:{" "}
-                    {`${bookData?.book?.student?.firstName} ${bookData?.book?.student?.lastName}` ||
-                      "Not Available"}
+                    {bookData?.book?.student?.fullName || "Not Available"} ({bookData?.book?.student?.registrationNumber || "N/A"})
                   </span>
                 </div>
               </div>
@@ -246,11 +245,11 @@ const GradeBookScheduleViva = () => {
                   </p>
                   <p className="mb-2">
                     <span className="font-semibold">Student:</span>{" "}
-                    {`${book.student?.firstName} ${book.student?.lastName}`}
+                    {book.student?.fullName || "Not Available"}
                   </p>
                   <p className="mb-2">
                     <span className="font-semibold">Registration Number:</span>{" "}
-                    {book.student?.registrationNumber}
+                    {book.student?.registrationNumber || "Not Available"}
                   </p>
                 </div>
                 <div>
@@ -282,9 +281,8 @@ const GradeBookScheduleViva = () => {
                     <Button
                       variant="outline"
                       role="combobox"
-                      className={`w-full justify-start text-left font-normal ${
-                        formErrors.vivaDate ? "border-red-500" : ""
-                      }`}
+                      className={`w-full justify-start text-left font-normal ${formErrors.vivaDate ? "border-red-500" : ""
+                        }`}
                     >
                       {vivaDate ? (
                         format(vivaDate, "PPP")
@@ -293,8 +291,8 @@ const GradeBookScheduleViva = () => {
                       )}
                     </Button>
                   </DialogTrigger>
-                  <DialogContent 
-                    className="w-auto p-4" 
+                  <DialogContent
+                    className="w-auto p-4"
                     style={{ position: 'absolute', zIndex: 9999 }}
                   >
                     <DialogHeader>
@@ -357,9 +355,8 @@ const GradeBookScheduleViva = () => {
                 <Input
                   id="viva-time"
                   type="time"
-                  className={`${
-                    formErrors.vivaTime ? "border-red-500" : ""
-                  }`}
+                  className={`${formErrors.vivaTime ? "border-red-500" : ""
+                    }`}
                   value={vivaTime}
                   onChange={(e) => setVivaTime(e.target.value)}
                   style={{ fontSize: '1.00em' }}
@@ -405,7 +402,7 @@ const GradeBookScheduleViva = () => {
                     <p className="text-sm text-gray-600">An internal examiner must be assigned before scheduling a viva</p>
                   </div>
                 ) : (
-                <div className="mb-4">
+                  <div className="mb-4">
                     <Label className="mb-2 block">Select Internal Examiner *</Label>
                     <div className="space-y-2">
                       {internalExaminers.map((examiner) => (
@@ -431,7 +428,7 @@ const GradeBookScheduleViva = () => {
                           </label>
                         </div>
                       ))}
-                </div>
+                    </div>
                     {formErrors.chairperson && (
                       <p className="text-red-500 text-sm mt-1">
                         {formErrors.chairperson}
@@ -470,9 +467,9 @@ const GradeBookScheduleViva = () => {
                       <p className="font-medium">
                         Current Minutes Secretary: {externalPersonsData.externalPersons.find(s => s.id === minutesSecretary)?.name}
                       </p>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="text-red-500 border-red-500 hover:bg-red-50"
                         onClick={() => setMinutesSecretary("")}
                       >
@@ -552,7 +549,7 @@ const GradeBookScheduleViva = () => {
                     <p className="text-sm text-gray-600">An external examiner must be assigned before scheduling a viva</p>
                   </div>
                 ) : (
-                <div className="mb-4">
+                  <div className="mb-4">
                     <Label className="mb-2 block">Select External Examiners *</Label>
                     <div className="space-y-2">
                       {externalExaminers.map((examiner) => (
@@ -586,7 +583,7 @@ const GradeBookScheduleViva = () => {
                         {formErrors.reviewers}
                       </p>
                     )}
-                </div>
+                  </div>
                 )}
 
                 <div className="mt-4">
@@ -630,8 +627,8 @@ const GradeBookScheduleViva = () => {
               </Button>
 
               <div className="space-x-4">
-                <Button 
-                  onClick={handleScheduleViva} 
+                <Button
+                  onClick={handleScheduleViva}
                   disabled={scheduleVivaMutation?.isPending || internalExaminers.length === 0 || externalExaminers.length === 0}
                 >
                   {scheduleVivaMutation?.isPending ? "Scheduling..." : "Schedule Viva"}
@@ -685,7 +682,7 @@ const GradeBookScheduleViva = () => {
   );
 };
 
-const AddPersonDialog = ({ 
+const AddPersonDialog = ({
   type,
   onSelect,
   availablePeople,
@@ -753,9 +750,9 @@ const AddPersonDialog = ({
   const getAvailablePeople = () => {
     if (type === 'panelist') {
       const staffMembers = staffMembersData || [];
-      
+
       console.log('Staff members data:', staffMembers);
-      
+
       // Get all staff members (both convertible and already panelists)
       const allStaffMembers = staffMembers.map(staff => ({
         ...staff,
@@ -784,14 +781,14 @@ const AddPersonDialog = ({
       if (p.isStaffMember && p.isAlreadyPanelist && type === 'panelist') {
         const isSelected = selectedPeople.some((sp) => sp.id === p.panelistId);
         const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                             p.email.toLowerCase().includes(searchQuery.toLowerCase());
+          p.email.toLowerCase().includes(searchQuery.toLowerCase());
         console.log(`Staff member ${p.name} (already panelist): isSelected=${isSelected}, matchesSearch=${matchesSearch}`);
         return !isSelected && matchesSearch;
       }
       // For other cases, check against the person's id
       const isSelected = selectedPeople.some((sp) => sp.id === p.id);
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           p.email.toLowerCase().includes(searchQuery.toLowerCase());
+        p.email.toLowerCase().includes(searchQuery.toLowerCase());
       console.log(`Person ${p.name}: isSelected=${isSelected}, matchesSearch=${matchesSearch}`);
       return !isSelected && matchesSearch;
     }
@@ -806,7 +803,7 @@ const AddPersonDialog = ({
 
   const handleConversionConfirm = () => {
     if (!selectedStaffMember) return;
-    
+
     setConversionLoading(true);
     createPanelistFromStaffMutation.mutate(selectedStaffMember.id);
   };
@@ -834,8 +831,8 @@ const AddPersonDialog = ({
     }
   };
 
-  const isLoading = 
-    addPanelistMutation.isPending || 
+  const isLoading =
+    addPanelistMutation.isPending ||
     createExternalPersonMutation.isPending;
 
   return (
@@ -853,7 +850,7 @@ const AddPersonDialog = ({
           <DialogHeader>
             <DialogTitle>Add {type.charAt(0).toUpperCase() + type.slice(1)}</DialogTitle>
           </DialogHeader>
-          
+
           <Tabs defaultValue="search" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="search" className="data-[state=active]:border-gray-300">Search</TabsTrigger>
@@ -945,13 +942,13 @@ const AddPersonDialog = ({
                             )}
                           </div>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="border border-primary-500 text-primary-600 hover:bg-primary-50 hover:text-primary-700"
                         >
-                          {person.isStaffMember && !person.isAlreadyPanelist && type === 'panelist' ? 'Convert' : 
-                           person.isStaffMember && person.isAlreadyPanelist && type === 'panelist' ? 'Add Panelist' : 'Add'}
+                          {person.isStaffMember && !person.isAlreadyPanelist && type === 'panelist' ? 'Convert' :
+                            person.isStaffMember && person.isAlreadyPanelist && type === 'panelist' ? 'Add Panelist' : 'Add'}
                         </Button>
                       </div>
                     ))}
@@ -963,7 +960,7 @@ const AddPersonDialog = ({
             <TabsContent value="create" className="space-y-4">
               {type === 'panelist' ? (
                 <div className="max-h-[60vh] overflow-y-auto pr-2">
-                  <AddStaffMember 
+                  <AddStaffMember
                     onSuccess={(newStaffMember) => {
                       console.log('AddStaffMember onSuccess called with:', newStaffMember);
                       // Staff member created successfully - no automatic conversion
@@ -1009,8 +1006,8 @@ const AddPersonDialog = ({
                     </div>
                   )}
                   {error && <p className="text-red-500 text-sm">{error}</p>}
-                  <Button 
-                    onClick={handleCreate} 
+                  <Button
+                    onClick={handleCreate}
                     className="w-full"
                     disabled={isLoading}
                   >
@@ -1032,7 +1029,7 @@ const AddPersonDialog = ({
               <span>Convert Staff Member to Panelist</span>
             </DialogTitle>
           </DialogHeader>
-          
+
           {selectedStaffMember && (
             <div className="space-y-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -1063,7 +1060,7 @@ const AddPersonDialog = ({
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div className="flex items-start space-x-3">
                   <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
@@ -1080,7 +1077,7 @@ const AddPersonDialog = ({
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex justify-end space-x-3">
                 <Button
                   variant="outline"

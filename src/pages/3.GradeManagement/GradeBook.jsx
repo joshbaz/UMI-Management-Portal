@@ -191,7 +191,7 @@ const GradeBook = () => {
                 Back
               </button>
               <span className="text-lg font-[Inter-SemiBold] capitalize text-gray-900">
-                {`${book?.book?.student?.fullName}` || "Loading..."}
+                {book?.book?.student?.fullName || "Loading..."} {book?.book?.student?.registrationNumber ? `(${book.book.student.registrationNumber})` : ""}
               </span>
             </div>
           </div>
