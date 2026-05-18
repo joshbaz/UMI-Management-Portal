@@ -62,7 +62,7 @@ const NotificationsManagement = () => {
   const { data, isLoading, error } = useGetNotifications();
 
   console.log("data", data);
-  
+
   // Use the fetched data
   const notificationsData = data?.notifications || [];
 
@@ -78,11 +78,11 @@ const NotificationsManagement = () => {
         accessorKey: "title",
         header: "Title",
         cell: (info) => (
-          
-            <div className="max-w-xs whitespace-pre-wrap break-words text-xs font-[Inter-Medium]">
-              {info.getValue()}
-            </div>
-       
+
+          <div className="max-w-xs whitespace-pre-wrap break-words text-xs font-[Inter-Medium]">
+            {info.getValue()}
+          </div>
+
         ),
       },
       {
@@ -93,7 +93,7 @@ const NotificationsManagement = () => {
             onClick={() => handleRowClick(info.row.original.id)}
             className="text-left hover:text-primary-600"
           >
-            {info.row.original?.studentStatus?.student?.firstName} {info.row.original?.studentStatus?.student?.lastName}
+            {info.row.original?.studentStatus?.student?.fullName}
           </button>
         ),
       },
@@ -108,8 +108,8 @@ const NotificationsManagement = () => {
           </div>
         ),
       },
-  
- 
+
+
       {
         accessorKey: "recipientName",
         header: "Recipient",
@@ -124,9 +124,9 @@ const NotificationsManagement = () => {
           </div>
         ),
       },
-      
-     
-      
+
+
+
       {
         accessorKey: "statusType",
         header: "Status",
@@ -157,7 +157,7 @@ const NotificationsManagement = () => {
           );
         },
       },
-   
+
       {
         accessorKey: "actions",
         header: " ",
@@ -180,7 +180,7 @@ const NotificationsManagement = () => {
   // Filter data based on search query
   const filteredNotificationsData = useMemo(() => {
     let filtered = notificationsData;
-    
+
     if (searchQuery) {
       filtered = filtered.filter((item) =>
         item.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -188,7 +188,7 @@ const NotificationsManagement = () => {
         item.remarks?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    
+
     return filtered;
   }, [searchQuery, notificationsData]);
 
@@ -212,15 +212,50 @@ const NotificationsManagement = () => {
     onGlobalFilterChange: setSearchQuery,
   });
 
+  const getPageNumbers = () => {
+    const pageCount = table.getPageCount();
+    const currentPage = table.getState().pagination.pageIndex + 1;
+
+    if (pageCount <= 7) {
+      return Array.from({ length: pageCount }, (_, i) => i + 1);
+    }
+
+    const pages = [];
+
+    if (currentPage <= 4) {
+      for (let i = 1; i <= 5; i++) {
+        pages.push(i);
+      }
+      pages.push("...");
+      pages.push(pageCount);
+    } else if (currentPage >= pageCount - 3) {
+      pages.push(1);
+      pages.push("...");
+      for (let i = pageCount - 4; i <= pageCount; i++) {
+        pages.push(i);
+      }
+    } else {
+      pages.push(1);
+      pages.push("...");
+      pages.push(currentPage - 1);
+      pages.push(currentPage);
+      pages.push(currentPage + 1);
+      pages.push("...");
+      pages.push(pageCount);
+    }
+
+    return pages;
+  };
+
   return (
     <div className="min-h-full">
       {/* Global Search */}
       <div className="flex px-6 justify-between items-center border-b border-gray-300 h-[89px]">
         <p className="text-sm font-[Inter-SemiBold]  text-gray-900">Research Centre Portal</p>
-      <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
+        <p className="text-sm font-[Inter-Medium]  text-gray-600">Digital Research Information Management System</p>
       </div>
 
-    
+
 
       {/* Header */}
       <div className="flex justify-between items-center px-6 py-4">
@@ -353,9 +388,9 @@ const NotificationsManagement = () => {
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                         </th>
                       ))}
                     </tr>
@@ -409,22 +444,27 @@ const NotificationsManagement = () => {
               >
                 Previous
               </button>
-              {Array.from(
-                { length: table.getPageCount() },
-                (_, i) => i + 1
-              ).map((pageNumber) => (
-                <button
-                  key={pageNumber}
-                  className={`w-8 h-8 rounded text-sm ${
-                    pageNumber === table.getState().pagination.pageIndex + 1
-                      ? "bg-blue-50 text-blue-600 font-medium"
-                      : "text-gray-500"
-                  }`}
-                  onClick={() => table.setPageIndex(pageNumber - 1)}
-                >
-                  {pageNumber}
-                </button>
-              ))}
+              {getPageNumbers().map((page, idx) => {
+                if (page === "...") {
+                  return (
+                    <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">
+                      ...
+                    </span>
+                  );
+                }
+                return (
+                  <button
+                    key={`page-${page}`}
+                    className={`w-8 h-8 rounded text-sm ${page === table.getState().pagination.pageIndex + 1
+                        ? "bg-blue-50 text-blue-600 font-medium"
+                        : "text-gray-500 hover:bg-gray-50"
+                      }`}
+                    onClick={() => table.setPageIndex(page - 1)}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
               <button
                 className="border rounded p-1 text-sm disabled:opacity-50"
                 onClick={() => table.nextPage()}
