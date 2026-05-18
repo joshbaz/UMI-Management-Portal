@@ -414,7 +414,7 @@ const UserManagementView = () => {
                 // setSubmitting(false);
               }}
             >
-              {({ isSubmitting, dirty, handleSubmit }) => (
+              {({ isSubmitting, dirty, handleSubmit, values, handleChange }) => (
                 <Form className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

@@ -462,7 +462,7 @@ const UserRolesManagement = () => {
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
             >
-              {({ isSubmitting }) => (
+              {({ isSubmitting, values, handleChange }) => (
                 <Form>
                   <div className="mb-4 flex gap-4">
                     <div className="w-1/2">
