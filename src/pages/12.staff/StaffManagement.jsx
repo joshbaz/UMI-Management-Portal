@@ -407,12 +407,12 @@ const StaffManagement = () => {
       {/* Add Staff Member Dialog */}
       <Dialog open={showAddDialog} onOpenChange={handleAddDialogClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+          {/* <DialogHeader>
             <DialogTitle>Add New Staff Member</DialogTitle>
             <DialogDescription>
               Add a new academic staff member to the system.
             </DialogDescription>
-          </DialogHeader>
+          </DialogHeader> */}
           <AddStaffMember onSuccess={handleStaffMemberAdded} onCancel={handleAddDialogCancel} />
         </DialogContent>
       </Dialog>
