@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  useReactTable, getCoreRowModel, flexRender, getPaginationRowModel,
+  useReactTable, getCoreRowModel, flexRender,
   getFilteredRowModel, createColumnHelper
 } from "@tanstack/react-table";
 import { useNavigate } from 'react-router-dom';
@@ -173,11 +173,9 @@ const StudentTable = ({ students, columnVisibility, setColumnVisibility }) => {
     state: {
       globalFilter,
       columnVisibility: effectiveColumnVisibility,
-
     },
     getFilteredRowModel: getFilteredRowModel(),
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
   });
 
   return (
