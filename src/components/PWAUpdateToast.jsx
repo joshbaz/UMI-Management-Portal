@@ -83,9 +83,7 @@ const PWAUpdateToast = () => {
   const hasUpdate = needRefresh && previousBuild && previousBuild !== APP_INFO?.build;
 
   const handleUpdate = () => {
-    updateServiceWorker(true).then(() => {
-      window.location.reload();
-    });
+    updateServiceWorker(true);
   };
 
   return (

@@ -20,8 +20,8 @@ export default defineConfig({
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'safari-pinned-tab.svg'],
       manifest: {
-        name: 'DRIMS Research Centre Portal',
-        short_name: 'DRIMS RC',
+        name: 'DRIMS RC Portal',
+        short_name: 'DRIMS Research Centre',
         description: 'DRIMS - Research Centre Portal',
         id: '/research/',
         theme_color: '#059669',
@@ -58,6 +58,7 @@ export default defineConfig({
         ]
       },
       workbox: {
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB limit
         runtimeCaching: [
