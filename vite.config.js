@@ -23,6 +23,7 @@ export default defineConfig({
         name: 'DRIMS Research Centre Portal',
         short_name: 'DRIMS Research Centre',
         description: 'DRIMS - Research Centre Portal',
+        id: '/research/',
         theme_color: '#059669',
         background_color: '#ffffff',
         display: 'standalone',

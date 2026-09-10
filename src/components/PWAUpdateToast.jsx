@@ -61,6 +61,12 @@ const PWAUpdateToast = () => {
 
   const hasUpdate = needRefresh && previousBuild && previousBuild !== APP_INFO?.build;
 
+  const handleUpdate = () => {
+    updateServiceWorker(true).then(() => {
+      window.location.reload();
+    });
+  };
+
   return (
     <>
       {needRefresh && (
@@ -90,7 +96,7 @@ const PWAUpdateToast = () => {
           </div>
           <div className="mt-3 flex gap-2">
             <button
-              onClick={() => updateServiceWorker(true)}
+              onClick={handleUpdate}
               className="flex-1 bg-[#059669] text-white text-sm font-medium py-2 px-3 rounded-md hover:bg-[#047857] transition-colors"
             >
               Update now
