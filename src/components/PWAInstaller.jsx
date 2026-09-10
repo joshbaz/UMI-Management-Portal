@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { X, Download, RefreshCw } from 'lucide-react';
+import { X, Download, RefreshCw, Share } from 'lucide-react';
 
 const PWAInstaller = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
   const [debugInfo, setDebugInfo] = useState('');
   const [debugPanelClosed, setDebugPanelClosed] = useState(false);
 
   useEffect(() => {
+    const ua = window.navigator.userAgent;
+    const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    setIsIOS(ios);
+
     // Check if app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
@@ -29,12 +34,17 @@ const PWAInstaller = () => {
       return;
     }
 
-    // Listen for the beforeinstallprompt event
+    // iOS never fires beforeinstallprompt — show custom guide
+    if (ios) {
+      setShowInstallPrompt(true);
+      setDebugInfo('iOS detected — showing install guide');
+      return;
+    }
+
+    // Listen for the beforeinstallprompt event (Android/Chrome)
     const handleBeforeInstallPrompt = (e) => {
       console.log('PWA: beforeinstallprompt event fired');
-      // Prevent Chrome 67 and earlier from automatically showing the prompt
       e.preventDefault();
-      // Stash the event so it can be triggered later
       setDeferredPrompt(e);
       setShowInstallPrompt(true);
       setDebugInfo('Install prompt ready');
@@ -52,7 +62,6 @@ const PWAInstaller = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Debug: Check if event has already fired
     setTimeout(() => {
       if (!deferredPrompt && !isInstalled) {
         setDebugInfo('Waiting for install event...');
@@ -70,10 +79,8 @@ const PWAInstaller = () => {
     if (!deferredPrompt) return;
 
     console.log('PWA: Showing install prompt');
-    // Show the install prompt
     deferredPrompt.prompt();
 
-    // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
     
     console.log('PWA: User choice:', outcome);
@@ -83,14 +90,12 @@ const PWAInstaller = () => {
       console.log('User dismissed the install prompt');
     }
 
-    // Clear the deferredPrompt
     setDeferredPrompt(null);
     setShowInstallPrompt(false);
   };
 
   const handleDismiss = () => {
     setShowInstallPrompt(false);
-    // Hide for this session
     sessionStorage.setItem('pwa-install-dismissed', 'true');
     console.log('PWA: Install prompt dismissed for this session');
   };
@@ -107,11 +112,9 @@ const PWAInstaller = () => {
     console.log('PWA: Debug panel closed');
   };
 
-  // Show debug info in development
   const isDev = import.meta.env.DEV;
   const isDismissed = sessionStorage.getItem('pwa-install-dismissed');
   
-  // In development, always show something for debugging
   if (isDev && !debugPanelClosed) {
     return (
       <div className="fixed bottom-4 left-4 bg-gray-900 text-white text-xs p-3 rounded z-50 max-w-xs">
@@ -133,6 +136,7 @@ const PWAInstaller = () => {
           </div>
         </div>
         <div>Status: {debugInfo || 'Initializing...'}</div>
+        <div>iOS: {isIOS ? 'Yes' : 'No'}</div>
         <div>Prompt Available: {deferredPrompt ? 'Yes' : 'No'}</div>
         <div>Dismissed: {isDismissed ? 'Yes' : 'No'}</div>
         <div>Installed: {isInstalled ? 'Yes' : 'No'}</div>
@@ -143,11 +147,62 @@ const PWAInstaller = () => {
     );
   }
   
-  // Don't show if already installed or dismissed this session
   if (isInstalled || !showInstallPrompt || isDismissed) {
     return null;
   }
 
+  // iOS install guide — custom banner since beforeinstallprompt doesn't fire on iOS
+  if (isIOS) {
+    return (
+      <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="flex-shrink-0">
+              <Share className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-900">
+                Install DRIMS Research Centre Portal
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">
+                Add this app to your home screen for quick access
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleDismiss}
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="mt-3 space-y-2">
+          <div className="flex items-start gap-2 text-xs text-gray-600">
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold">1</span>
+            <span>Tap the <strong>Share</strong> button in Safari</span>
+          </div>
+          <div className="flex items-start gap-2 text-xs text-gray-600">
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold">2</span>
+            <span>Tap <strong>Add to Home Screen</strong></span>
+          </div>
+          <div className="flex items-start gap-2 text-xs text-gray-600">
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold">3</span>
+            <span>Tap <strong>Add</strong></span>
+          </div>
+        </div>
+        <div className="mt-3">
+          <button
+            onClick={handleDismiss}
+            className="w-full bg-gray-200 text-gray-700 text-sm font-medium py-2 px-3 rounded hover:bg-gray-300 transition-colors"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Android/Chrome install prompt
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 z-50">
       <div className="flex items-start justify-between">
@@ -190,4 +245,4 @@ const PWAInstaller = () => {
   );
 };
 
-export default PWAInstaller; 
+export default PWAInstaller;

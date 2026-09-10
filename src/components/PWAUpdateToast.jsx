@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { RefreshCw, X } from 'lucide-react';
+import { RefreshCw, X, Info } from 'lucide-react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
 const APP_INFO = __APP_VERSION__;
@@ -22,6 +22,7 @@ const formatBuild = (iso) => {
 const PWAUpdateToast = () => {
   const registrationRef = useRef(null);
   const [previousBuild] = useState(() => localStorage.getItem('umi_prev_app_version'));
+  const [showIOSReinstall, setShowIOSReinstall] = useState(false);
 
   const {
     needRefresh: [needRefresh, setNeedRefresh],
@@ -46,6 +47,26 @@ const PWAUpdateToast = () => {
     localStorage.setItem('umi_app_version', current);
   }, []);
 
+  // iOS reinstall guide — show when icon changed on installed iOS PWA
+  useEffect(() => {
+    const ua = window.navigator.userAgent;
+    const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const standalone = window.matchMedia('(display-mode: standalone)').matches;
+    const iconVersion = APP_INFO?.iconVersion;
+
+    if (!ios || !standalone || !iconVersion) return;
+
+    const storedIconVersion = localStorage.getItem('drims_icon_version');
+    if (storedIconVersion !== iconVersion) {
+      setShowIOSReinstall(true);
+    }
+  }, []);
+
+  const handleDismissIOSReinstall = () => {
+    setShowIOSReinstall(false);
+    localStorage.setItem('drims_icon_version', APP_INFO?.iconVersion);
+  };
+
   useEffect(() => {
     const checkForUpdates = () => registrationRef.current?.update();
     const onVisible = () => {
@@ -69,6 +90,53 @@ const PWAUpdateToast = () => {
 
   return (
     <>
+      {/* iOS reinstall guide — icon/name won't update without remove + re-add */}
+      {showIOSReinstall && (
+        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-[101]">
+          <div className="flex items-start gap-3">
+            <span className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#059669] flex items-center justify-center">
+              <Info className="w-4 h-4 text-white" />
+            </span>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-semibold text-gray-900">New app icon available</h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                To see the updated icon, remove this app from your home screen and re-install from Safari.
+              </p>
+            </div>
+            <button
+              onClick={handleDismissIOSReinstall}
+              className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+              aria-label="Dismiss"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="mt-3 space-y-1.5">
+            <div className="flex items-start gap-2 text-xs text-gray-600">
+              <span className="flex-shrink-0 w-4 h-4 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold">1</span>
+              <span>Long-press this app icon and tap <strong>Remove App</strong></span>
+            </div>
+            <div className="flex items-start gap-2 text-xs text-gray-600">
+              <span className="flex-shrink-0 w-4 h-4 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold">2</span>
+              <span>Open <strong>Safari</strong> and visit this site</span>
+            </div>
+            <div className="flex items-start gap-2 text-xs text-gray-600">
+              <span className="flex-shrink-0 w-4 h-4 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-[10px] font-bold">3</span>
+              <span>Tap <strong>Share</strong> then <strong>Add to Home Screen</strong></span>
+            </div>
+          </div>
+          <div className="mt-3">
+            <button
+              onClick={handleDismissIOSReinstall}
+              className="w-full bg-gray-100 text-gray-700 text-sm font-medium py-2 px-3 rounded-md hover:bg-gray-200 transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* SW update toast */}
       {needRefresh && (
         <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-[100]">
           <div className="flex items-start gap-3">
