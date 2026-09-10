@@ -20,7 +20,7 @@ export default defineConfig({
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'safari-pinned-tab.svg'],
       manifest: {
-        name: 'DRIMS RC Portal',
+        name: 'DRIMS Research Centre Portal',
         short_name: 'DRIMS Research Centre',
         description: 'DRIMS - Research Centre Portal',
         id: '/research/',
