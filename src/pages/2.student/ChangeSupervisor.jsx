@@ -37,6 +37,7 @@ const ChangeSupervisor = () => {
   const [reason, setReason] = useState("");
   const [selectedSupervisor, setSelectedSupervisor] = useState("");
   const [supervisorToReplace, setSupervisorToReplace] = useState(supervisorIdFromUrl || "");
+  const [isCorrection, setIsCorrection] = useState(false);
 
   // Get all supervisors using the query hook
   const { data: availableSupervisors = [], isLoading: isLoadingSupervisors } = useGetAllSupervisors();
@@ -63,7 +64,8 @@ const ChangeSupervisor = () => {
         oldSupervisorId: supervisorToReplace,
         newSupervisorId: selectedSupervisor,
         reason: reason,
-        role: role
+        role: role,
+        isCorrection: isCorrection
       });
     },
     onSuccess: () => {
@@ -193,6 +195,35 @@ const ChangeSupervisor = () => {
                 onChange={(e) => setReason(e.target.value)}
                 className="min-h-[120px]"
               />
+            </div>
+
+            <div>
+              <Label>Change Type</Label>
+              <div className="flex items-center space-x-6 mt-1">
+                <label className="inline-flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="changeType"
+                    checked={!isCorrection}
+                    onChange={() => setIsCorrection(false)}
+                    className="h-4 w-4 text-accent2-600 border-gray-300 focus:ring-accent2-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Genuine change</span>
+                </label>
+                <label className="inline-flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="changeType"
+                    checked={isCorrection}
+                    onChange={() => setIsCorrection(true)}
+                    className="h-4 w-4 text-accent2-600 border-gray-300 focus:ring-accent2-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Correction of a mistake</span>
+                </label>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Mark as a correction if this fixes a wrong allocation. Corrections are logged but not counted in reallocation statistics.
+              </p>
             </div>
           </div>
           
