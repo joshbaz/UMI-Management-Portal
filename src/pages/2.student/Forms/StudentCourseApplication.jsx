@@ -499,6 +499,8 @@ const StudentCourseApplication = ({ formRef, handleNext, createStudentMutation }
                   <option value="fullTime">Full Time</option>
                   <option value="partTime">Part Time</option>
                   <option value="distance">Distance Learning</option>
+                  <option value="weekend">Weekend</option>
+                  <option value="evening">Evening</option>
                 </select>
                 {errors.studyMode && touched.studyMode && (
                   <div className="text-red-500 text-sm mt-1">{errors.studyMode}</div>

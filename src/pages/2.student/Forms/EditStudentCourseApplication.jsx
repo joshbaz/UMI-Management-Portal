@@ -301,6 +301,8 @@ const EditStudentCourseApplication = ({ studentData, formRef, updateStudentMutat
                                 <option value="fullTime">Full Time</option>
                                 <option value="partTime">Part Time</option>
                                 <option value="distance">Distance Learning</option>
+                                <option value="weekend">Weekend</option>
+                                <option value="evening">Evening</option>
                             </select>
                         </div>
 
